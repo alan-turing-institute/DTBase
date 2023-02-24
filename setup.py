@@ -11,7 +11,13 @@ setup(
     url="https://github.com/alan-turing-institute/DTBase",
     author="The Alan Turing Institute Research Engineering Group",
     license="MIT",
-    packages=["dtbase"],
+    packages=[
+        "dtbase",
+        "dtbase.core",
+        "dtbase.backend",
+        "dtbase.webapp",
+        "dtbase.functions",
+        "dtbase.ingress"
+    ],
     install_requires=required,
-    zip_safe=False,
 )

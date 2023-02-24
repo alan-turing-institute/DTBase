@@ -1,4 +1,4 @@
-pip==22.0.4
+pip==23.0.1
 pytest==7.1.1
 
 sqlalchemy==1.4.39
