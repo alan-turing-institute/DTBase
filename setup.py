@@ -17,7 +17,7 @@ setup(
         "dtbase.backend",
         "dtbase.webapp",
         "dtbase.functions",
-        "dtbase.ingress"
+        "dtbase.ingress",
     ],
     install_requires=required,
 )

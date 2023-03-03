@@ -10,7 +10,7 @@ from dtbase.core.structure import (
     LocationFloatIdentifierClass,
     LocationStringValueClass,
     LocationIntegerValueClass,
-    LocationFloatValueClass
+    LocationFloatValueClass,
 )
 
 

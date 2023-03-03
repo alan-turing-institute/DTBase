@@ -30,20 +30,15 @@ def make_conn_string(sql_engine, sql_user, sql_password, sql_host, sql_port):
         sql_port,
     )
 
+
 # Create connection string
 SQL_ENGINE = "postgresql"
-SQL_USER = (
-    os.environ["DT_SQL_USER"].strip() if "DT_SQL_USER" in os.environ else "DUMMY"
-)
+SQL_USER = os.environ["DT_SQL_USER"].strip() if "DT_SQL_USER" in os.environ else "DUMMY"
 SQL_PASSWORD = (
     os.environ["DT_SQL_PASS"].strip() if "DT_SQL_PASS" in os.environ else "DUMMY"
 )
-SQL_HOST = (
-    os.environ["DT_SQL_HOST"].strip() if "DT_SQL_HOST" in os.environ else "DUMMY"
-)
-SQL_PORT = (
-    os.environ["DT_SQL_PORT"].strip() if "DT_SQL_PORT" in os.environ else "DUMMY"
-)
+SQL_HOST = os.environ["DT_SQL_HOST"].strip() if "DT_SQL_HOST" in os.environ else "DUMMY"
+SQL_PORT = os.environ["DT_SQL_PORT"].strip() if "DT_SQL_PORT" in os.environ else "DUMMY"
 SQL_CONNECTION_STRING = make_conn_string(
     SQL_ENGINE,
     SQL_USER,
@@ -81,9 +76,7 @@ SQL_TEST_PORT = (
     else "DUMMY"
 )
 SQL_TEST_DBNAME = (
-    os.environ["DT_SQL_TESTDBNAME"]
-    if "DT_SQL_TESTDBNAME" in os.environ
-    else "test_db"
+    os.environ["DT_SQL_TESTDBNAME"] if "DT_SQL_TESTDBNAME" in os.environ else "test_db"
 )
 
 SQL_TEST_CONNECTION_STRING = make_conn_string(
@@ -117,9 +110,7 @@ CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_USER_USERNAME = "default_user"
 DEFAULT_USER_EMAIL = "N/A"
 DEFAULT_USER_PASS = (
-    os.environ["DT_DEFAULT_USER_PASS"]
-    if "DT_DEFAULT_USER_PASS" in os.environ
-    else None
+    os.environ["DT_DEFAULT_USER_PASS"] if "DT_DEFAULT_USER_PASS" in os.environ else None
 )
 
 

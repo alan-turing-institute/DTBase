@@ -11,7 +11,7 @@ from dtbase.core.db import (
     connect_db,
     drop_db,
     session_open,
-    session_close
+    session_close,
 )
 
 # if we start a new docker container, store the ID so we can stop it later
@@ -99,7 +99,7 @@ def pytest_configure(config):
     # create database so that we have tables ready
     create_database(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     time.sleep(1)
-#    upload_synthetic_data.main(SQL_TEST_DBNAME)
+    #    upload_synthetic_data.main(SQL_TEST_DBNAME)
     print("pytest_configure: end")
 
 

@@ -1,9 +1,11 @@
 """
-Module to define the structure of the database. Each Class, defines a table in the database.
+Module to define the structure of the database. Each Class, defines a table in the
+database.
     __tablename__: creates the table with the name given
     __table_args__: table arguments eg: __table_args__ = {'sqlite_autoincrement': True}
-    BASE: the declarative_base() callable returns a new base class from which all mapped classes
-    should inherit. When the class definition is completed, a new Table and mapper() is generated.
+    BASE: the declarative_base() callable returns a new base class from which all mapped
+    classes should inherit. When the class definition is completed, a new Table and
+    mapper() is generated.
 """
 import enum
 from sqlalchemy import (
@@ -56,47 +58,50 @@ class LocationStringIdentifierClass(BASE):
     """
     Any string variables that can be used to identify locations in the farm.
     """
+
     __tablename__ = "location_string_variable"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name","units"),)
+    __table_args__ = (UniqueConstraint("name", "units"),)
 
 
 class LocationIntegerIdentifierClass(BASE):
     """
     Any integer variables that can be used to identify locations in the farm.
     """
+
     __tablename__ = "location_integer_variable"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name","units"),)
+    __table_args__ = (UniqueConstraint("name", "units"),)
 
 
 class LocationFloatIdentifierClass(BASE):
     """
     Any floating point number variables that can be used to identify locations in the farm.
     """
+
     __tablename__ = "location_float_variable"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name","units"),)
+    __table_args__ = (UniqueConstraint("name", "units"),)
 
 
 class LocationStringValueClass(BASE):
     """
     The value of a string variable that can be used to identify locations in the farm.
     """
-    __tablename__ = "location_string_value"
 
+    __tablename__ = "location_string_value"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -111,13 +116,14 @@ class LocationStringValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id","location_id"),)
+    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
 
 
 class LocationIntegerValueClass(BASE):
     """
     The value of an integer variable that can be used to identify locations in the farm.
     """
+
     __tablename__ = "location_integer_value"
 
     # columns
@@ -133,13 +139,14 @@ class LocationIntegerValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id","location_id"),)
+    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
 
 
 class LocationFloatValueClass(BASE):
     """
     The value of a floating point number variable that can be used to identify locations in the farm.
     """
+
     __tablename__ = "location_float_value"
 
     # columns
@@ -155,4 +162,4 @@ class LocationFloatValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id","location_id"),)
+    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
