@@ -43,6 +43,11 @@ class Location(BASE):
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
+    schema_id = Column(
+        Integer,
+        ForeignKey("location_schema.id"),
+        nullable=False,
+    )
 
     # relationshionships (One-To-Many)
     string_values_relationship = relationship("LocationStringValue")
@@ -175,12 +180,12 @@ class LocationSchema(BASE):
     __table_args__ = (UniqueConstraint("name"),)
 
 
-class LocationSchemaIdentifiers(BASE):
+class LocationSchemaIdentifier(BASE):
     """Relations on which location identifiers can and should be specified for which
     location schemas.
     """
 
-    __tablename__ = "location_schema_identifiers"
+    __tablename__ = "location_schema_identifier"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     schema_id = Column(
