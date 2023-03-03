@@ -118,7 +118,7 @@ class LocationStringValueClass(BASE):
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
-    value = Column(String(100), nullable=False)
+    value = Column(Text, nullable=False)
     variable_id = Column(
         Integer,
         ForeignKey("location_string_variable.id"),
