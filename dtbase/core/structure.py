@@ -17,6 +17,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Enum,
     Float,
     ForeignKey,
     Integer,
@@ -33,7 +34,7 @@ SQLA = SQLAlchemy()
 BASE = SQLA.Model
 
 
-class LocationClass(BASE):
+class Location(BASE):
     """
     This class describes all the physical locations in the farm.
     """
@@ -52,64 +53,22 @@ class LocationClass(BASE):
     __table_args__ = (UniqueConstraint("id"),)
 
 
-class LocationStringIdentifierClass(BASE):
+class LocationIdentifier(BASE):
     """
     Any string variables that can be used to identify locations in the farm.
     """
 
-    __tablename__ = "location_string_variable"
+    __tablename__ = "location_string_identifier"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
+    datatype = Column(Enum("string", "float", "integer", "boolean"), nullable=False)
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
-class LocationIntegerIdentifierClass(BASE):
-    """
-    Any integer variables that can be used to identify locations in the farm.
-    """
-
-    __tablename__ = "location_integer_variable"
-
-    # columns
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name", "units"),)
-
-
-class LocationFloatIdentifierClass(BASE):
-    """
-    Any floating point number variables that can be used to identify locations in the
-    farm.
-    """
-
-    __tablename__ = "location_float_variable"
-
-    # columns
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name", "units"),)
-
-
-class LocationBooleanIdentifierClass(BASE):
-    """
-    Any boolean variables that can be used to identify locations in the farm.
-    """
-
-    __tablename__ = "location_float_variable"
-
-    # columns
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    units = Column(String(100), nullable=True)
-    __table_args__ = (UniqueConstraint("name", "units"),)
-
-
-class LocationStringValueClass(BASE):
+class LocationStringValue(BASE):
     """
     The value of a string variable that can be used to identify locations in the farm.
     """
@@ -119,9 +78,9 @@ class LocationStringValueClass(BASE):
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(Text, nullable=False)
-    variable_id = Column(
+    identifier_id = Column(
         Integer,
-        ForeignKey("location_string_variable.id"),
+        ForeignKey("location_identifier.id"),
         nullable=False,
     )
     location_id = Column(
@@ -129,10 +88,10 @@ class LocationStringValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
+    __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationIntegerValueClass(BASE):
+class LocationIntegerValue(BASE):
     """
     The value of an integer variable that can be used to identify locations in the farm.
     """
@@ -142,9 +101,9 @@ class LocationIntegerValueClass(BASE):
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(Integer, nullable=False)
-    variable_id = Column(
+    identifier_id = Column(
         Integer,
-        ForeignKey("location_integer_variable.id"),
+        ForeignKey("location_identifier.id"),
         nullable=False,
     )
     location_id = Column(
@@ -152,10 +111,10 @@ class LocationIntegerValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
+    __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationFloatValueClass(BASE):
+class LocationFloatValue(BASE):
     """
     The value of a floating point number variable that can be used to identify locations
     in the farm.
@@ -166,9 +125,9 @@ class LocationFloatValueClass(BASE):
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(Float, nullable=False)
-    variable_id = Column(
+    identifier_id = Column(
         Integer,
-        ForeignKey("location_float_variable.id"),
+        ForeignKey("location_identifier.id"),
         nullable=False,
     )
     location_id = Column(
@@ -176,10 +135,10 @@ class LocationFloatValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
+    __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationBooleanValueClass(BASE):
+class LocationBooleanValue(BASE):
     """
     The value of a boolean variable that can be used to identify locations in the farm.
     """
@@ -189,9 +148,9 @@ class LocationBooleanValueClass(BASE):
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(Boolean, nullable=False)
-    variable_id = Column(
+    identifier_id = Column(
         Integer,
-        ForeignKey("location_boolean_variable.id"),
+        ForeignKey("location_identifier.id"),
         nullable=False,
     )
     location_id = Column(
@@ -199,4 +158,35 @@ class LocationBooleanValueClass(BASE):
         ForeignKey("location.id"),
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
+    __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
+
+
+class LocationSchema(BASE):
+    """Types of locations."""
+
+    __tablename__ = "location_schema"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    __table_args__ = (UniqueConstraint("name"),)
+
+
+class LocationSchemaIdentifiers(BASE):
+    """Relations on which location identifiers can and should be specified for which
+    location schemas.
+    """
+
+    __tablename__ = "location_schema_identifiers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    location_schema_id = Column(
+        Integer,
+        ForeignKey("location_schema.id"),
+        nullable=False,
+    )
+    location_identifier_id = Column(
+        Integer,
+        ForeignKey("location_identifier.id"),
+        nullable=False,
+    )
