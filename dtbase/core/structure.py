@@ -45,9 +45,9 @@ class Location(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     # relationshionships (One-To-Many)
-    string_values_relationship = relationship("LocationStringValueClass")
-    integer_values_relationship = relationship("LocationIntegerValueClass")
-    float_values_relationship = relationship("LocationFloatValueClass")
+    string_values_relationship = relationship("LocationStringValue")
+    integer_values_relationship = relationship("LocationIntegerValue")
+    float_values_relationship = relationship("LocationFloatValue")
 
     # arguments
     __table_args__ = (UniqueConstraint("id"),)
@@ -58,13 +58,16 @@ class LocationIdentifier(BASE):
     Any string variables that can be used to identify locations in the farm.
     """
 
-    __tablename__ = "location_string_identifier"
+    __tablename__ = "location_identifier"
 
     # columns
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    datatype = Column(Enum("string", "float", "integer", "boolean"), nullable=False)
+    datatype = Column(
+        Enum("string", "float", "integer", "boolean", name="location_value_datatype"),
+        nullable=False,
+    )
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
@@ -180,13 +183,14 @@ class LocationSchemaIdentifiers(BASE):
     __tablename__ = "location_schema_identifiers"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    location_schema_id = Column(
+    schema_id = Column(
         Integer,
         ForeignKey("location_schema.id"),
         nullable=False,
     )
-    location_identifier_id = Column(
+    identifier_id = Column(
         Integer,
         ForeignKey("location_identifier.id"),
         nullable=False,
     )
+    __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)

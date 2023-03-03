@@ -4,18 +4,17 @@ the SQLAlchemy ORM.
 """
 
 from dtbase.core.structure import (
-    LocationClass,
-    LocationFloatIdentifierClass,
-    LocationFloatValueClass,
-    LocationIntegerIdentifierClass,
-    LocationIntegerValueClass,
-    LocationStringIdentifierClass,
-    LocationStringValueClass,
+    Location,
+    LocationIdentifier,
+    LocationFloatValue,
+    LocationIntegerValue,
+    LocationStringValue,
+    LocationBooleanValue,
 )
 
 
 def test_add_location_empty(session):
-    loc = LocationClass()
+    loc = Location()
     session.add(loc)
     session.commit()
     assert isinstance(loc.id, int)
@@ -23,9 +22,9 @@ def test_add_location_empty(session):
 
 
 def test_add_location_identifiers(session):
-    si = LocationStringIdentifierClass(name="zone")
-    ii = LocationIntegerIdentifierClass(name="aisle")
-    fi = LocationFloatIdentifierClass(name="distance", units="m")
+    si = LocationIdentifier(name="zone", datatype="string")
+    ii = LocationIdentifier(name="aisle", datatype="integer")
+    fi = LocationIdentifier(name="distance", units="m", datatype="float")
     session.add(si)
     session.add(ii)
     session.add(fi)
@@ -37,18 +36,18 @@ def test_add_location_identifiers(session):
 
 
 def test_add_xyz_location(session):
-    loc = LocationClass()
-    x = LocationFloatIdentifierClass(name="x", units="m")
-    y = LocationFloatIdentifierClass(name="y", units="m")
-    z = LocationFloatIdentifierClass(name="z", units="m")
+    loc = Location()
+    x = LocationIdentifier(name="x", units="m", datatype="float")
+    y = LocationIdentifier(name="y", units="m", datatype="float")
+    z = LocationIdentifier(name="z", units="m", datatype="float")
     session.add(loc)
     session.add(x)
     session.add(y)
     session.add(z)
     session.commit()
-    xval = LocationFloatValueClass(value=2.0, variable_id=x.id, location_id=loc.id)
-    yval = LocationFloatValueClass(value=3.0, variable_id=y.id, location_id=loc.id)
-    zval = LocationFloatValueClass(value=4.0, variable_id=z.id, location_id=loc.id)
+    xval = LocationFloatValue(value=2.0, identifier_id=x.id, location_id=loc.id)
+    yval = LocationFloatValue(value=3.0, identifier_id=y.id, location_id=loc.id)
+    zval = LocationFloatValue(value=4.0, identifier_id=z.id, location_id=loc.id)
     session.add(xval)
     session.add(yval)
     session.add(zval)
