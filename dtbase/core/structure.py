@@ -8,28 +8,26 @@ database.
     mapper() is generated.
 """
 import enum
+
+from bcrypt import gensalt, hashpw
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
     Float,
     ForeignKey,
     Integer,
-    JSON,
     String,
     Text,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
-
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import false
-
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
-
-from bcrypt import gensalt, hashpw
 
 SQLA = SQLAlchemy()
 BASE = SQLA.Model

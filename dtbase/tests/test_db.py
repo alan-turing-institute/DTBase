@@ -5,12 +5,12 @@ the SQLAlchemy ORM.
 
 from dtbase.core.structure import (
     LocationClass,
-    LocationStringIdentifierClass,
-    LocationIntegerIdentifierClass,
     LocationFloatIdentifierClass,
-    LocationStringValueClass,
-    LocationIntegerValueClass,
     LocationFloatValueClass,
+    LocationIntegerIdentifierClass,
+    LocationIntegerValueClass,
+    LocationStringIdentifierClass,
+    LocationStringValueClass,
 )
 
 

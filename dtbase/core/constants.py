@@ -1,8 +1,8 @@
 """
 A module for keeping track of constants
 """
-import os
 import logging
+import os
 from urllib import parse
 
 logging.basicConfig(level=logging.DEBUG)

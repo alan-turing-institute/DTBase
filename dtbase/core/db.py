@@ -3,10 +3,10 @@ Module for the main functions to create a new database with SQLAlchemy and Postg
 drop database, and check its structure.
 """
 
-from sqlalchemy import create_engine, inspect
-from sqlalchemy_utils import database_exists, drop_database
-from sqlalchemy.orm import registry, RelationshipProperty, sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import RelationshipProperty, registry, sessionmaker
+from sqlalchemy_utils import database_exists, drop_database
 
 from .constants import SQL_DEFAULT_DBNAME
 from .structure import BASE

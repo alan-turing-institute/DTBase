@@ -1,17 +1,18 @@
 import os
-import sys
-import pytest
-import subprocess
-import time
 import re
+import subprocess
+import sys
+import time
+
+import pytest
 
 from dtbase.core.constants import SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME
 from dtbase.core.db import (
-    create_database,
     connect_db,
+    create_database,
     drop_db,
-    session_open,
     session_close,
+    session_open,
 )
 
 # if we start a new docker container, store the ID so we can stop it later
