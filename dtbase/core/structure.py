@@ -82,7 +82,22 @@ class LocationIntegerIdentifierClass(BASE):
 
 class LocationFloatIdentifierClass(BASE):
     """
-    Any floating point number variables that can be used to identify locations in the farm.
+    Any floating point number variables that can be used to identify locations in the
+    farm.
+    """
+
+    __tablename__ = "location_float_variable"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    units = Column(String(100), nullable=True)
+    __table_args__ = (UniqueConstraint("name", "units"),)
+
+
+class LocationBooleanIdentifierClass(BASE):
+    """
+    Any boolean variables that can be used to identify locations in the farm.
     """
 
     __tablename__ = "location_float_variable"
@@ -142,7 +157,8 @@ class LocationIntegerValueClass(BASE):
 
 class LocationFloatValueClass(BASE):
     """
-    The value of a floating point number variable that can be used to identify locations in the farm.
+    The value of a floating point number variable that can be used to identify locations
+    in the farm.
     """
 
     __tablename__ = "location_float_value"
@@ -153,6 +169,29 @@ class LocationFloatValueClass(BASE):
     variable_id = Column(
         Integer,
         ForeignKey("location_float_variable.id"),
+        nullable=False,
+    )
+    location_id = Column(
+        Integer,
+        ForeignKey("location.id"),
+        nullable=False,
+    )
+    __table_args__ = (UniqueConstraint("variable_id", "location_id"),)
+
+
+class LocationBooleanValueClass(BASE):
+    """
+    The value of a boolean variable that can be used to identify locations in the farm.
+    """
+
+    __tablename__ = "location_boolean_value"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Boolean, nullable=False)
+    variable_id = Column(
+        Integer,
+        ForeignKey("location_boolean_variable.id"),
         nullable=False,
     )
     location_id = Column(
