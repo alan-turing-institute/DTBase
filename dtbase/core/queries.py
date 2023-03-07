@@ -13,7 +13,7 @@ from dtbase.core.structure import (
     LocationIdentifier,
     LocationIntegerValue,
     LocationSchema,
-    LocationSchemaIdentifier,
+    LocationSchemaIdentifierRelation,
     LocationStringValue,
 )
 
@@ -29,12 +29,12 @@ def location_identifiers(session):
             LocationIdentifier.datatype.label("identifier_datatype"),
         )
         .join(
-            LocationSchemaIdentifier,
-            LocationSchemaIdentifier.schema_id == Location.schema_id,
+            LocationSchemaIdentifierRelation,
+            LocationSchemaIdentifierRelation.schema_id == Location.schema_id,
         )
         .join(
             LocationIdentifier,
-            LocationIdentifier.id == LocationSchemaIdentifier.identifier_id,
+            LocationIdentifier.id == LocationSchemaIdentifierRelation.identifier_id,
         )
     )
     return query

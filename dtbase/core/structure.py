@@ -180,12 +180,12 @@ class LocationSchema(BASE):
     __table_args__ = (UniqueConstraint("name"),)
 
 
-class LocationSchemaIdentifier(BASE):
+class LocationSchemaIdentifierRelation(BASE):
     """Relations on which location identifiers can and should be specified for which
     location schemas.
     """
 
-    __tablename__ = "location_schema_identifier"
+    __tablename__ = "location_schema_identifier_relation"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     schema_id = Column(

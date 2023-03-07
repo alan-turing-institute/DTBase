@@ -11,7 +11,7 @@ from dtbase.core.structure import (
     LocationIdentifier,
     LocationIntegerValue,
     LocationSchema,
-    LocationSchemaIdentifier,
+    LocationSchemaIdentifierRelation,
     LocationStringValue,
 )
 from dtbase.core.structure import SQLA as db
@@ -80,7 +80,7 @@ def insert_location_schema(name, description, identifiers, session=None):
     for identifier_name in identifiers:
         identifier_id = identifier_id_from_name(identifier_name, session=session)
         session.add(
-            LocationSchemaIdentifier(
+            LocationSchemaIdentifierRelation(
                 schema_id=new_schema.id, identifier_id=identifier_id
             )
         )

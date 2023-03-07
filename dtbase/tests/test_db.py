@@ -10,7 +10,7 @@ from dtbase.core.structure import (
     LocationIdentifier,
     LocationIntegerValue,
     LocationSchema,
-    LocationSchemaIdentifier,
+    LocationSchemaIdentifierRelation,
     LocationStringValue,
 )
 
@@ -35,10 +35,10 @@ def test_add_zadf_location(session):
     session.commit()
     assert isinstance(schema.id, int)
 
-    sid_s = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=si.id)
-    sid_i = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=ii.id)
-    sid_f = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=fi.id)
-    sid_b = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=bi.id)
+    sid_s = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=si.id)
+    sid_i = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=ii.id)
+    sid_f = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=fi.id)
+    sid_b = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=bi.id)
     session.add(sid_s)
     session.add(sid_i)
     session.add(sid_f)
@@ -84,9 +84,9 @@ def test_add_xyz_location(session):
     session.add(schema)
     session.flush()
 
-    x_sid = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=x.id)
-    y_sid = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=y.id)
-    z_sid = LocationSchemaIdentifier(schema_id=schema.id, identifier_id=z.id)
+    x_sid = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=x.id)
+    y_sid = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=y.id)
+    z_sid = LocationSchemaIdentifierRelation(schema_id=schema.id, identifier_id=z.id)
     session.add(x_sid)
     session.add(y_sid)
     session.add(z_sid)
