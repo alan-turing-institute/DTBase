@@ -1,11 +1,12 @@
 """
 Test the functions for accessing the locations tables.
 """
+import pytest
 
 from dtbase.backend import locations
 
 
-def test_insert_locations(session):
+def test_insert_delete_locations(session):
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
     )
@@ -19,3 +20,17 @@ def test_insert_locations(session):
         session=session,
     )
     locations.insert_location("latlong", latitude=-2.0, longitude=10.4, session=session)
+    locations.insert_location("latlong", latitude=23.2, longitude=-5.3, session=session)
+    session.commit()
+
+    # Delete the newly created location
+    locations.delete_location_by_coordinates(
+        "latlong", latitude=23.2, longitude=-5.3, session=session
+    )
+    with pytest.raises(
+        ValueError, match="Location not found: {'latitude': 23.2, 'longitude': -5.3}"
+    ):
+        # Doing the same deletion again should fail, since that row is gone.
+        locations.delete_location_by_coordinates(
+            "latlong", latitude=23.2, longitude=-5.3, session=session
+        )

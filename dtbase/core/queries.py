@@ -18,19 +18,20 @@ from dtbase.core.structure import (
 )
 
 
-def location_identifiers(session):
-    """Query for identifiers of locations."""
+def location_identifiers_by_schema(session):
+    """Query for identifiers of locations by schema."""
     query = (
         session.query(
-            Location.id.label("location_id"),
+            LocationSchema.id.label("schema_id"),
+            LocationSchema.name.label("schema_name"),
             LocationIdentifier.id.label("identifier_id"),
             LocationIdentifier.name.label("identifier_name"),
-            LocationIdentifier.unit.label("identifier_unit"),
+            LocationIdentifier.units.label("identifier_units"),
             LocationIdentifier.datatype.label("identifier_datatype"),
         )
         .join(
             LocationSchemaIdentifierRelation,
-            LocationSchemaIdentifierRelation.schema_id == Location.schema_id,
+            LocationSchemaIdentifierRelation.schema_id == LocationSchema.id,
         )
         .join(
             LocationIdentifier,
@@ -38,8 +39,3 @@ def location_identifiers(session):
         )
     )
     return query
-
-
-def location_value(session):
-    location_identifiers_sq = location_identifiers(session).subquery()
-    # TODO Finish this
