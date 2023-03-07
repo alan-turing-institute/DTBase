@@ -20,6 +20,17 @@ from dtbase.core import utils
 
 @add_default_session
 def insert_location_value(value, location_id, identifier_id, session=None):
+    """Insert a coordinate for a location into the database.
+
+    Args:
+        value: Value of the coordinate
+        location_id: Id of location for which this is the coordinate
+        identifier_id: Id of the location identifier this a coordinate for
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
     value_class = utils.get_value_class_from_instance_type(value)
     if value_class is None:
         msg = f"Don't know how to insert location values of type {type(value)}."
@@ -32,39 +43,115 @@ def insert_location_value(value, location_id, identifier_id, session=None):
 
 @add_default_session
 def identifier_id_from_name(identifier_name, session=None):
+    """Find the id of a location identifier of the given name.
+
+    Args:
+        identifier_name: Name of the location identifier
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Database id of the location identifier.
+    """
     query = session.query(LocationIdentifier.id).where(
         LocationIdentifier.name == identifier_name
     )
-    identifier_id = session.execute(query).fetchone()[0]
-    return identifier_id
+    result = session.execute(query).fetchall()
+    if len(result) == 0:
+        raise ValueError(f"No location identifier named {identifier_name}")
+    if len(result) > 1:
+        raise ValueError(f"Multiple location identifiers named {identifier_name}")
+    return result[0][0]
 
 
 @add_default_session
 def schema_id_from_name(schema_name, session=None):
+    """Find the id of a location schema of the given name.
+
+    Args:
+        schema_name: Name of the location schema
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Database id of the location schema.
+    """
     query = session.query(LocationSchema.id).where(LocationSchema.name == schema_name)
-    schema_id = session.execute(query).fetchone()[0]
-    return schema_id
+    result = session.execute(query).fetchall()
+    if len(result) == 0:
+        raise ValueError(f"No location schema named {schema_name}")
+    if len(result) > 1:
+        raise ValueError(f"Multiple location schemas named {schema_name}")
+    return result[0][0]
 
 
 @add_default_session
 def insert_location(schema_name, session=None, **kwargs):
+    """Insert a new location into the database.
+
+    Args:
+        schema_name: Name of the location schema that this location uses.
+        session: SQLAlchemy session. Optional.
+        keyword arguments: Coordinates of this location. Which keyword arguments need to
+            be provided by the schema. For instance, if the schema says that locations
+            are specified by coordinates x, y, and z, then the keyword argument should
+            be x, y, and z.
+
+    Returns:
+        None
+    """
+    # TODO Add a check that this location doesn't exist yet.
     schema_id = schema_id_from_name(schema_name, session=session)
     new_location = Location(schema_id=schema_id)
     session.add(new_location)
     session.flush()
     for identifier_name, value in kwargs.items():
+        # TODO Add a check that the values given match the schema
         identifier_id = identifier_id_from_name(identifier_name, session=session)
         insert_location_value(value, new_location.id, identifier_id, session=session)
 
 
 @add_default_session
 def insert_location_identifier(name, units, datatype, session=None):
+    """Insert a new location identifier into the database.
+
+    Location identifiers are types of coordinates by which locations can be set and
+    identified. For instance "shelf number", "latitude", or "y-coordinate."
+
+    Args:
+        name: Name of this location identifier. For example "y-coordinate".
+        units: Units in which this location identifier is measured.
+        datatype: Value type of this location identifier. Has to be one of "string",
+            "integer", "float", or "boolean".
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    if datatype not in ("string", "integer", "float", "boolean"):
+        raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(LocationIdentifier(name=name, units=units, datatype=datatype))
     session.flush()
 
 
 @add_default_session
 def insert_location_schema(name, description, identifiers, session=None):
+    """Insert a new location schema into the database.
+
+    Location schema specifies a set of identifiers by which locations are identified
+    uniquely. For instance, schema might say that locations are identified by latitude,
+    longitude, and height from sea level. Another schema might say that locations are
+    identified by aisle, column, and shelf (in a warehouse).
+
+    Args:
+        name: Name of this location schema.
+        description: Free form text description, for human consumption.
+        identifiers: List of identifiers that this schema uses to identify locations.
+            This should be a list of strings, that are the names of existing location
+            identifiers in the database.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
     new_schema = LocationSchema(name=name, description=description)
     session.add(new_schema)
     session.flush()
@@ -80,6 +167,17 @@ def insert_location_schema(name, description, identifiers, session=None):
 
 @add_default_session
 def delete_location_by_id(location_id, session=None):
+    """Delete a location from the database, identified by its primary key id.
+
+    Also deletes any coordinate values for this location.
+
+    Args:
+        location_id: Primary key id of the location to delete.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
     for value_class in (
         LocationStringValue,
         LocationIntegerValue,
@@ -94,6 +192,19 @@ def delete_location_by_id(location_id, session=None):
 
 @add_default_session
 def delete_location_by_coordinates(schema_name, session=None, **kwargs):
+    """Delete a location from the database, identified by its coordinates.
+
+    Also deletes any coordinate values for this location.
+
+    Args:
+        schema_name: Name of the location schema for this location.
+        session: SQLAlchemy session. Optional.
+        keyword arguments: Coordinates for this location. See docstring of
+            `insert_location` for more information.
+
+    Returns:
+        None
+    """
     location_query = queries.select_location_by_coordinates(
         schema_name, session, **kwargs
     )

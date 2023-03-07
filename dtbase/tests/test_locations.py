@@ -23,6 +23,13 @@ def test_insert_delete_locations(session):
     locations.insert_location("latlong", latitude=23.2, longitude=-5.3, session=session)
     session.commit()
 
+    # Try to delete a non-existent location
+    with pytest.raises(
+        ValueError, match="Location not found: {'latitude': 0.0, 'longitude': 0.0}"
+    ):
+        locations.delete_location_by_coordinates(
+            "latlong", latitude=0.0, longitude=0.0, session=session
+        )
     # Delete the newly created location
     locations.delete_location_by_coordinates(
         "latlong", latitude=23.2, longitude=-5.3, session=session
@@ -34,3 +41,6 @@ def test_insert_delete_locations(session):
         locations.delete_location_by_coordinates(
             "latlong", latitude=23.2, longitude=-5.3, session=session
         )
+    locations.delete_location_by_coordinates(
+        "latlong", latitude=-2.0, longitude=10.4, session=session
+    )
