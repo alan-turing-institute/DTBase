@@ -4,7 +4,7 @@ Test the functions for accessing the locations tables.
 import sqlalchemy
 import pytest
 
-from dtbase.backend import locations
+from dtbase.core import locations
 
 
 def test_insert_delete_locations(session):
