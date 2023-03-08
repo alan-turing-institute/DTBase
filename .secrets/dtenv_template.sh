@@ -16,3 +16,8 @@ export DT_OPENWEATHERMAP_APIKEY="<REPLACE_ME>"
 
 # Hyper AG API key
 export DT_HYPER_APIKEY="<REPLACE_ME>"
+
+# Pulumi backend on Azure
+export AZURE_STORAGE_KEY="<REPLACE_ME>"
+export AZURE_STORAGE_ACCOUNT="<REPLACE_ME>"
+export AZURE_KEYVAULT_AUTH_VIA_CLI="true"

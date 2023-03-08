@@ -37,4 +37,7 @@ python-dateutil==2.8.2
 PyYAML==6.0
 requests_mock==1.9.3
 
+pulumi==3.56.0
+pulumi-azure-native==1.96.0
+
 pre-commit
