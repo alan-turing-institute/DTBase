@@ -259,3 +259,27 @@ def delete_location_by_coordinates(schema_name, session=None, **kwargs):
     if not location_id:
         raise ValueError(f"Location not found: {schema_name}, {kwargs}")
     delete_location_by_id(location_id[0][0], session=session)
+
+
+@add_default_session
+def list_locations(schema_name, session=None, **kwargs):
+    """List all locations in a schema, optionally filtering by coordinates.
+
+    With `list_locations(schema_name)`, all locations in a schema will be returned.
+    Additional keyword arguments can fix some coordinates, e.g.
+    `list_locations("latlong", latitude=0)` would list all locations with latitude=0.
+
+    Args:
+        schema_name: Name of the location schema.
+        session: SQLAlchemy session. Optional.
+        keyword arguments: Coordinates for the locations to list. Optional. See
+        docstring of `insert_location` for more.
+
+    Returns:
+        List of all the locations that match the provided arguments, i.e. are of the
+        specified schema and have the coordinate values specified in the keyword
+        arguments.
+    """
+    query = queries.select_location_by_coordinates(schema_name, session, **kwargs)
+    locations = session.execute(query).mappings().all()
+    return locations

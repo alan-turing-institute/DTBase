@@ -43,6 +43,18 @@ def location_identifiers_by_schema(session):
 
 
 def select_location_by_coordinates(schema_name, session, **kwargs):
+    """Query for locations and their coordinates.
+
+    Return a query with the column `id` and one column for each location identifier for
+    this location schema. Each row is a location. Keyword arguments can be used to
+    filter by the location identifiers, e.g. with no keyword arguments the query will
+    return all locations in this schema, and with all location identifiers specified in
+    the keyword arguments the query will return a single location.
+
+    For instance, `select_location_by_coordinates("latlong", latitude=0)` will return a
+    query for "latlong" locations that have latitude=0.
+    """
+    # Find the identifiers for this schema.
     schema_sq = location_identifiers_by_schema(session).subquery()
     schema_q = session.query(
         schema_sq.c.identifier_id,
@@ -50,15 +62,28 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
         schema_sq.c.identifier_datatype,
     ).where(schema_sq.c.schema_name == schema_name)
     identifiers = session.execute(schema_q).fetchall()
-    location_q = session.query(Location.id)
+
+    # Check that no extraneous keyword arguments are given.
+    identifier_names = set(x[1] for x in identifiers)
+    for key in kwargs:
+        if key not in identifier_names:
+            msg = f"Location identifier '{key}' not valid for schema '{schema_name}'"
+            raise ValueError(msg)
+
+    # Create the query for locations.
+    columns = [Location.id]
+    joins = []
     for id_id, id_name, id_datatype in identifiers:
         value_class = aliased(utils.get_value_class_from_type_name(id_datatype))
-        location_q = location_q.join(
-            value_class,
-            and_(
-                value_class.location_id == Location.id,
-                value_class.value == kwargs[id_name],
-                value_class.identifier_id == id_id,
-            ),
-        )
+        columns.append(value_class.value.label(id_name))
+        join_conditions = [
+            value_class.location_id == Location.id,
+            value_class.identifier_id == id_id,
+        ]
+        if id_name in kwargs:
+            join_conditions.append(value_class.value == kwargs[id_name])
+        joins.append((value_class, and_(*join_conditions)))
+    location_q = session.query(*columns)
+    for join in joins:
+        location_q = location_q.join(*join)
     return location_q

@@ -7,7 +7,13 @@ import pytest
 from dtbase.core import locations
 
 
-def test_insert_delete_locations(session):
+def test_locations(session):
+    """Test locations.
+
+    Run a long list of tests for locations, creating identifiers, a schema,
+    locations, listing them, deleting them, and trying a number of invalid function
+    calls and checking that they raise errors as expected.
+    """
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
     )
@@ -96,6 +102,20 @@ def test_insert_delete_locations(session):
             "latlong", latitude="this is a string", longitude=0.0, session=session
         )
 
+    # Find the inserted locations
+    all_locations = locations.list_locations("latlong", session=session)
+    assert len(all_locations) == 2
+    assert all_locations[0]["latitude"] == -2.0
+    assert all_locations[0]["longitude"] == 10.4
+    assert all_locations[1]["latitude"] == 23.2
+    assert all_locations[1]["longitude"] == -5.3
+    some_locations = locations.list_locations("latlong", session=session, latitude=-2.0)
+    assert len(some_locations) == 1
+    assert some_locations[0]["latitude"] == -2.0
+    assert some_locations[0]["longitude"] == 10.4
+    no_locations = locations.list_locations("latlong", session=session, latitude=-3.0)
+    assert len(no_locations) == 0
+
     # Try to delete a non-existent location
     with pytest.raises(
         ValueError,
@@ -109,6 +129,9 @@ def test_insert_delete_locations(session):
     locations.delete_location_by_coordinates(
         "latlong", latitude=23.2, longitude=-5.3, session=session
     )
+    all_locations = locations.list_locations("latlong", session=session)
+    assert len(all_locations) == 1
+
     # Doing the same deletion again should fail, since that row is gone.
     with pytest.raises(
         ValueError,
@@ -120,4 +143,7 @@ def test_insert_delete_locations(session):
     locations.delete_location_by_coordinates(
         "latlong", latitude=-2.0, longitude=10.4, session=session
     )
+    all_locations = locations.list_locations("latlong", session=session)
+    assert len(all_locations) == 0
+
     session.close()
