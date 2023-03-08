@@ -1,0 +1,30 @@
+FROM ubuntu:22.04
+
+# Upgrade various packages and install python
+RUN apt update
+RUN apt dist-upgrade -y
+RUN apt install -y build-essential
+RUN apt install -y software-properties-common
+RUN apt install -y python3-pip python3-dev
+RUN apt install -y python3.10 python3.10-dev libpython3.10
+RUN rm -f /usr/bin/python3 && ln -s /usr/bin/python3.10 /usr/bin/python3
+RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
+RUN python3 -m pip install --upgrade pip
+
+# Install nodejs/npm (requires first installing CURL)
+RUN apt install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt install -y nodejs
+
+# Copy dtbase over and install it
+RUN mkdir DTBase
+WORKDIR DTBase
+ADD dtbase dtbase
+ADD setup.py setup.py
+ADD requirements.txt requirements.txt
+RUN python3 -m pip install .
+
+# launch the webapp
+WORKDIR /DTBase/dtbase/backend
+EXPOSE 5000
+CMD ["./run.sh"]
