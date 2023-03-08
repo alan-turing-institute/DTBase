@@ -24,7 +24,7 @@ def insert_location_value(value, location_id, identifier_id, session=None):
 
     Args:
         value: Value of the coordinate
-        location_id: Id of location for which this is the coordinate
+        location_id: Id of the location for which this is the coordinate
         identifier_id: Id of the location identifier this a coordinate for
         session: SQLAlchemy session. Optional.
 
@@ -83,6 +83,18 @@ def schema_id_from_name(schema_name, session=None):
     return result[0][0]
 
 
+def _check_datatype(value, datatype_name):
+    if datatype_name == "string":
+        return isinstance(value, str)
+    if datatype_name == "integer":
+        return isinstance(value, int)
+    if datatype_name == "float":
+        return isinstance(value, float)
+    if datatype_name == "boolean":
+        return isinstance(value, bool)
+    raise ValueError(f"Unrecognised datatype: {datatype_name}")
+
+
 @add_default_session
 def insert_location(schema_name, session=None, **kwargs):
     """Insert a new location into the database.
@@ -98,14 +110,49 @@ def insert_location(schema_name, session=None, **kwargs):
     Returns:
         None
     """
-    # TODO Add a check that this location doesn't exist yet.
     schema_id = schema_id_from_name(schema_name, session=session)
+    # Check that all the right identifiers are specified for this schema.
+    identifiers_sq = queries.location_identifiers_by_schema(session).subquery()
+    identifiers_q = session.query(
+        identifiers_sq.c.identifier_id,
+        identifiers_sq.c.identifier_name,
+        identifiers_sq.c.identifier_datatype,
+    ).where(identifiers_sq.c.schema_id == schema_id)
+    identifiers_result = session.execute(identifiers_q).fetchall()
+    identifiers_expected = set(x[1] for x in identifiers_result)
+    identifiers_specified = set(kwargs.keys())
+    # Check that exactly the right identifiers are given
+    if identifiers_expected != identifiers_specified:
+        raise ValueError(
+            f"For schema {schema_name} expected to receive location identifiers "
+            f"{identifiers_expected} but got {identifiers_specified}."
+        )
+    # Check that the data types are correct
+    for _, identifier_name, datatype_expected in identifiers_result:
+        value = kwargs[identifier_name]
+        datatype_matches = _check_datatype(value, datatype_expected)
+        if not datatype_matches:
+            raise ValueError(
+                f"For location identifier '{identifier_name}' expected a value of type "
+                f"{datatype_expected} but got a {type(value)}."
+            )
+
+    # Check that this location doesn't exist yet.
+    current_locations = session.execute(
+        queries.select_location_by_coordinates(schema_name, session, **kwargs)
+    ).fetchall()
+    if len(current_locations) > 0:
+        raise ValueError(
+            f"Location with schema '{schema_name}' and coordinates "
+            f"{kwargs} already exists."
+        )
+
+    # Make the new location and set its coordinates
     new_location = Location(schema_id=schema_id)
     session.add(new_location)
     session.flush()
-    for identifier_name, value in kwargs.items():
-        # TODO Add a check that the values given match the schema
-        identifier_id = identifier_id_from_name(identifier_name, session=session)
+    for identifier_id, identifier_name, _ in identifiers_result:
+        value = kwargs[identifier_name]
         insert_location_value(value, new_location.id, identifier_id, session=session)
 
 
@@ -210,5 +257,5 @@ def delete_location_by_coordinates(schema_name, session=None, **kwargs):
     )
     location_id = session.execute(location_query).fetchall()
     if not location_id:
-        raise ValueError(f"Location not found: {kwargs}")
+        raise ValueError(f"Location not found: {schema_name}, {kwargs}")
     delete_location_by_id(location_id[0][0], session=session)
