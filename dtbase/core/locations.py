@@ -1,6 +1,5 @@
 """Functions for accessing the locations tables. """
-from sqlalchemy import and_, case, delete, func
-from sqlalchemy.orm import aliased, Query
+import sqlalchemy as sqla
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries
@@ -52,7 +51,7 @@ def identifier_id_from_name(identifier_name, session=None):
     Returns:
         Database id of the location identifier.
     """
-    query = session.query(LocationIdentifier.id).where(
+    query = sqla.select(LocationIdentifier.id).where(
         LocationIdentifier.name == identifier_name
     )
     result = session.execute(query).fetchall()
@@ -74,7 +73,7 @@ def schema_id_from_name(schema_name, session=None):
     Returns:
         Database id of the location schema.
     """
-    query = session.query(LocationSchema.id).where(LocationSchema.name == schema_name)
+    query = sqla.select(LocationSchema.id).where(LocationSchema.name == schema_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
         raise ValueError(f"No location schema named {schema_name}")
@@ -112,8 +111,8 @@ def insert_location(schema_name, session=None, **kwargs):
     """
     schema_id = schema_id_from_name(schema_name, session=session)
     # Check that all the right identifiers are specified for this schema.
-    identifiers_sq = queries.location_identifiers_by_schema(session).subquery()
-    identifiers_q = session.query(
+    identifiers_sq = queries.location_identifiers_by_schema().subquery()
+    identifiers_q = sqla.select(
         identifiers_sq.c.identifier_id,
         identifiers_sq.c.identifier_name,
         identifiers_sq.c.identifier_datatype,
@@ -232,9 +231,9 @@ def delete_location_by_id(location_id, session=None):
         LocationBooleanValue,
     ):
         session.execute(
-            delete(value_class).where(value_class.location_id == location_id)
+            sqla.delete(value_class).where(value_class.location_id == location_id)
         )
-    session.execute(delete(Location).where(Location.id == location_id))
+    session.execute(sqla.delete(Location).where(Location.id == location_id))
 
 
 @add_default_session

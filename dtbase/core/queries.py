@@ -3,7 +3,7 @@
 Each function returns a SQLAlchemy Query object. Turning these into subqueries or CTEs
 or executing them is the responsibility of the caller.
 """
-from sqlalchemy import and_, case, func
+import sqlalchemy as sqla
 from sqlalchemy.orm import aliased, Query
 
 from dtbase.core.structure import (
@@ -19,10 +19,10 @@ from dtbase.core.structure import (
 from dtbase.core import utils
 
 
-def location_identifiers_by_schema(session):
+def location_identifiers_by_schema():
     """Query for identifiers of locations by schema."""
     query = (
-        session.query(
+        sqla.select(
             LocationSchema.id.label("schema_id"),
             LocationSchema.name.label("schema_name"),
             LocationIdentifier.id.label("identifier_id"),
@@ -53,10 +53,13 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
 
     For instance, `select_location_by_coordinates("latlong", latitude=0)` will return a
     query for "latlong" locations that have latitude=0.
+
+    Note that in the process of constructing this query another query needs to be
+    executed.
     """
     # Find the identifiers for this schema.
-    schema_sq = location_identifiers_by_schema(session).subquery()
-    schema_q = session.query(
+    schema_sq = location_identifiers_by_schema().subquery()
+    schema_q = sqla.select(
         schema_sq.c.identifier_id,
         schema_sq.c.identifier_name,
         schema_sq.c.identifier_datatype,
@@ -82,8 +85,8 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
         ]
         if id_name in kwargs:
             join_conditions.append(value_class.value == kwargs[id_name])
-        joins.append((value_class, and_(*join_conditions)))
-    location_q = session.query(*columns)
+        joins.append((value_class, sqla.and_(*join_conditions)))
+    location_q = sqla.select(*columns)
     for join in joins:
         location_q = location_q.join(*join)
     return location_q
