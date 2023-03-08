@@ -19,3 +19,4 @@ def test_insert_locations(session):
         session=session,
     )
     locations.insert_location("latlong", latitude=-2.0, longitude=10.4, session=session)
+    session.close()

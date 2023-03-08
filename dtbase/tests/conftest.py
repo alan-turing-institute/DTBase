@@ -6,6 +6,7 @@ import time
 
 import pytest
 
+from dtbase.backend.config import config_dict
 from dtbase.core.constants import SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME
 from dtbase.core.db import (
     connect_db,
@@ -14,9 +15,35 @@ from dtbase.core.db import (
     session_close,
     session_open,
 )
+from dtbase.core.utils import create_user
+from dtbase.backend.api import create_app
+
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
+
+@pytest.fixture()
+def app():
+    config = config_dict["Test"]
+    app = create_app(config)
+    yield app
+
+
+@pytest.fixture()
+def client(app):
+    return app.test_client()
+
+
+@pytest.fixture()
+def testuser(app):
+    # create a dummy test user
+    with app.app_context():
+        create_user(username="testuser", email="test@test.com", password="test")
+
+
+@pytest.fixture()
+def runner(app):
+    return app.test_cli_runner()
 
 
 @pytest.fixture()
