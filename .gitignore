@@ -133,3 +133,6 @@ dmypy.json
 
 # Secrets folder
 .secrets
+
+# vim swap files
+*.swp
