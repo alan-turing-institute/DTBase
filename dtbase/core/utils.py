@@ -16,6 +16,16 @@ from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.structure import User
 from dtbase.core.structure import SQLA as db
 
+from dtbase.core.structure import (
+    Location,
+    LocationBooleanValue,
+    LocationFloatValue,
+    LocationIdentifier,
+    LocationIntegerValue,
+    LocationSchema,
+    LocationSchemaIdentifierRelation,
+    LocationStringValue,
+)
 
 def get_db_session(return_engine=False):
     """
@@ -279,3 +289,33 @@ def insert_to_db_from_df(engine, df, DbClass):
                 session.rollback()
     session_close(session)
     print(f"Inserted {len(df.index)} rows to table {DbClass.__tablename__}")
+
+
+def get_value_class_from_instance_type(value):
+    value_class = (
+        LocationBooleanValue
+        if isinstance(value, bool)
+        else LocationFloatValue
+        if isinstance(value, float)
+        else LocationIntegerValue
+        if isinstance(value, int)
+        else LocationStringValue
+        if isinstance(value, str)
+        else None
+    )
+    return value_class
+
+
+def get_value_class_from_type_name(name):
+    value_class = (
+        LocationBooleanValue
+        if name == "bool"
+        else LocationFloatValue
+        if name == "float"
+        else LocationIntegerValue
+        if name == "int"
+        else LocationStringValue
+        if name == "string"
+        else None
+    )
+    return value_class
