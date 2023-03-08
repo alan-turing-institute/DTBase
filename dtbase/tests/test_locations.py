@@ -24,6 +24,17 @@ def test_insert_delete_locations(session):
     locations.insert_location("latlong", latitude=23.2, longitude=-5.3, session=session)
     session.commit()
 
+    # Try to add a location identifier that conflicts with one that exists.
+    with pytest.raises(
+        sqlalchemy.exc.IntegrityError,
+        match="duplicate key value violates unique constraint "
+        '"location_identifier_name_units_key"',
+    ):
+        locations.insert_location_identifier(
+            name="longitude", units="", datatype="integer", session=session
+        )
+    session.rollback()
+
     # Try to add a location schema that uses identifiers that don't exist.
     with pytest.raises(
         ValueError, match="No location identifier named longitude_misspelled"
