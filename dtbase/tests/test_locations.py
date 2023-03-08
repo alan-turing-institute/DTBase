@@ -7,143 +7,232 @@ import pytest
 from dtbase.core import locations
 
 
-def test_locations(session):
-    """Test locations.
+# Some constants we will use in the tests repeatedly.
+LATITUDE1 = -2.0
+LATITUDE2 = 12.3
+LONGITUDE1 = 23.5
+LONGITUDE2 = -0.0
 
-    Run a long list of tests for locations, creating identifiers, a schema,
-    locations, listing them, deleting them, and trying a number of invalid function
-    calls and checking that they raise errors as expected.
-    """
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Functions for inserting some data into the database. These will called at the
+# beginning of many tests to populate the database with data to test against. They are a
+# lot like fixtures, but aren't fixtures because running them successfully is a test in
+# itself.
+
+
+def insert_identifiers(session):
+    """Insert some location identifiers into the database."""
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
     )
     locations.insert_location_identifier(
         name="longitude", units="", datatype="float", session=session
     )
+
+
+def insert_schema(session):
+    """Insert a location schema into the database."""
+    insert_identifiers(session)
     locations.insert_location_schema(
         name="latlong",
         description="Latitude and longitude",
         identifiers=["latitude", "longitude"],
         session=session,
     )
-    locations.insert_location("latlong", latitude=-2.0, longitude=10.4, session=session)
-    locations.insert_location("latlong", latitude=23.2, longitude=-5.3, session=session)
-    session.commit()
 
-    # Try to add a location identifier that conflicts with one that exists.
-    with pytest.raises(
-        sqlalchemy.exc.IntegrityError,
-        match="duplicate key value violates unique constraint "
-        '"location_identifier_name_units_key"',
-    ):
+
+def insert_locations(session):
+    """Insert some locations into the database."""
+    insert_schema(session)
+    locations.insert_location(
+        "latlong", latitude=LATITUDE1, longitude=LONGITUDE1, session=session
+    )
+    locations.insert_location(
+        "latlong", latitude=LATITUDE2, longitude=LONGITUDE2, session=session
+    )
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Tests for location identifiers
+
+
+def test_insert_location_identifier(rollback_session):
+    """Test inserting location identifiers."""
+    insert_identifiers(rollback_session)
+
+
+def test_insert_location_identifier_duplicate(rollback_session):
+    """Try to add a location identifier that conflicts with one that exists."""
+    locations.insert_location_identifier(
+        name="latitude", units="", datatype="float", session=rollback_session
+    )
+    error_msg = (
+        "duplicate key value violates unique constraint "
+        '"location_identifier_name_units_key"'
+    )
+    with pytest.raises(sqlalchemy.exc.IntegrityError, match=error_msg):
         locations.insert_location_identifier(
-            name="longitude", units="", datatype="integer", session=session
+            name="latitude", units="", datatype="integer", session=rollback_session
         )
-    session.rollback()
 
-    # Try to add a location schema that uses identifiers that don't exist.
-    with pytest.raises(
-        ValueError, match="No location identifier named longitude_misspelled"
-    ):
-        locations.insert_location_schema(
-            name="latlong_misspelled",
-            description="Latitude and longitude misspelled",
-            identifiers=["latitude", "longitude_misspelled"],
-            session=session,
-        )
-    # Try to add a location schema that conflicts with one that exists.
-    with pytest.raises(
-        sqlalchemy.exc.IntegrityError,
-        match='duplicate key value violates unique constraint "location_schema_name_key"',
-    ):
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Tests for location schemas
+
+
+def test_insert_location_schema(rollback_session):
+    """Test inserting a location schema."""
+    insert_schema(rollback_session)
+
+
+def test_insert_location_schema_duplicate(rollback_session):
+    """Try to add a location schema that conflicts with one that exists."""
+    insert_schema(rollback_session)
+    error_msg = (
+        'duplicate key value violates unique constraint "location_schema_name_key"'
+    )
+    with pytest.raises(sqlalchemy.exc.IntegrityError, match=error_msg):
         locations.insert_location_schema(
             name="latlong",
             description="Latimer and Longchamp",
             identifiers=["latitude", "longitude"],
-            session=session,
+            session=rollback_session,
         )
-    session.rollback()
 
-    # Try to add a location that already exists.
-    with pytest.raises(
-        ValueError,
-        match="Location with schema 'latlong' and coordinates "
-        "{'latitude': -2.0, 'longitude': 10.4} already exists.",
-    ):
-        locations.insert_location(
-            "latlong", latitude=-2.0, longitude=10.4, session=session
+
+def test_insert_location_schema_no_identifierr(rollback_session):
+    """Try to add a location schema that uses identifiers that don't exist."""
+    insert_schema(rollback_session)
+    error_msg = "No location identifier named longitude_misspelled"
+    with pytest.raises(ValueError, match=error_msg):
+        locations.insert_location_schema(
+            name="latlong_misspelled",
+            description="Latitude and longitude misspelled",
+            identifiers=["latitude", "longitude_misspelled"],
+            session=rollback_session,
         )
-    # Try to add a location with a non-existing schema
-    with pytest.raises(
-        ValueError,
-        match="No location schema named heightitude",
-    ):
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Tests for locations
+
+
+def test_insert_location(rollback_session):
+    """Test inserting locations."""
+    insert_locations(rollback_session)
+
+
+def test_insert_location_duplicate(rollback_session):
+    """Try to add a location that already exists."""
+    insert_locations(rollback_session)
+    error_msg = (
+        "Location with schema 'latlong' and coordinates "
+        f"{{'latitude': {LATITUDE1}, 'longitude': {LONGITUDE1}}} already exists."
+    )
+    with pytest.raises(ValueError, match=error_msg):
         locations.insert_location(
-            "heightitude", latitude=12.0, longitude=0.0, session=session
+            "latlong",
+            latitude=LATITUDE1,
+            longitude=LONGITUDE1,
+            session=rollback_session,
         )
-    # Try to add a location with the wrong identifier
-    with pytest.raises(
-        ValueError,
-        # The (|) or clauses are needed because order isn't guaranteed.
-        match="For schema latlong expected to receive location identifiers "
+
+
+def test_insert_location_no_schema(rollback_session):
+    """Try to add a location with a non-existing schema."""
+    insert_schema(rollback_session)
+    with pytest.raises(ValueError, match="No location schema named heightitude"):
+        locations.insert_location(
+            "heightitude", latitude=12.0, longitude=0.0, session=rollback_session
+        )
+
+
+def test_insert_location_wrong_identifier(rollback_session):
+    """Try to add a location with the wrong identifier."""
+    insert_schema(rollback_session)
+    # The (|) or clauses are needed because order isn't guaranteed.
+    error_msg = (
+        "For schema latlong expected to receive location identifiers "
         "{'(latitude|longitude)', '(latitude|longitude)'} but got "
-        "{'(height|longitude)', '(height|longitude)'}.",
-    ):
+        "{'(height|longitude)', '(height|longitude)'}."
+    )
+    with pytest.raises(ValueError, match=error_msg):
         locations.insert_location(
-            "latlong", height=12.0, longitude=0.0, session=session
-        )
-    # Try to add a location with the wrong datatype
-    with pytest.raises(
-        ValueError,
-        match="For location identifier 'latitude' expected a value of type float but "
-        "got a <class 'str'>.",
-    ):
-        locations.insert_location(
-            "latlong", latitude="this is a string", longitude=0.0, session=session
+            "latlong", height=12.0, longitude=0.0, session=rollback_session
         )
 
-    # Find the inserted locations
-    all_locations = locations.list_locations("latlong", session=session)
+
+def test_insert_location_wrong_data_type(rollback_session):
+    """Try to add a location with the wrong datatype."""
+    insert_schema(rollback_session)
+    error_msg = (
+        "For location identifier 'latitude' expected a value of type float but "
+        "got a <class 'str'>."
+    )
+    with pytest.raises(ValueError, match=error_msg):
+        locations.insert_location(
+            "latlong",
+            latitude="this is a string",
+            longitude=0.0,
+            session=rollback_session,
+        )
+
+
+def test_list_locations(rollback_session):
+    """Find the inserted locations."""
+    insert_locations(rollback_session)
+    all_locations = locations.list_locations("latlong", session=rollback_session)
     assert len(all_locations) == 2
-    assert all_locations[0]["latitude"] == -2.0
-    assert all_locations[0]["longitude"] == 10.4
-    assert all_locations[1]["latitude"] == 23.2
-    assert all_locations[1]["longitude"] == -5.3
-    some_locations = locations.list_locations("latlong", session=session, latitude=-2.0)
+    assert all_locations[0]["latitude"] == LATITUDE1
+    assert all_locations[0]["longitude"] == LONGITUDE1
+    assert all_locations[1]["latitude"] == LATITUDE2
+    assert all_locations[1]["longitude"] == LONGITUDE2
+    some_locations = locations.list_locations(
+        "latlong", session=rollback_session, latitude=LATITUDE1
+    )
     assert len(some_locations) == 1
-    assert some_locations[0]["latitude"] == -2.0
-    assert some_locations[0]["longitude"] == 10.4
-    no_locations = locations.list_locations("latlong", session=session, latitude=-3.0)
+    assert some_locations[0]["latitude"] == LATITUDE1
+    assert some_locations[0]["longitude"] == LONGITUDE1
+    no_locations = locations.list_locations(
+        "latlong", session=rollback_session, latitude=-3.0
+    )
     assert len(no_locations) == 0
 
-    # Try to delete a non-existent location
-    with pytest.raises(
-        ValueError,
-        match="Location not found: latlong, {'latitude': 0.0, 'longitude': 0.0}",
-    ):
-        locations.delete_location_by_coordinates(
-            "latlong", latitude=0.0, longitude=0.0, session=session
-        )
 
-    # Delete the newly created location
+def test_delete_location(rollback_session):
+    """Delete a location, and check that it is deleted and can't be redeleted."""
+    insert_locations(rollback_session)
     locations.delete_location_by_coordinates(
-        "latlong", latitude=23.2, longitude=-5.3, session=session
+        "latlong", latitude=LATITUDE2, longitude=LONGITUDE2, session=rollback_session
     )
-    all_locations = locations.list_locations("latlong", session=session)
+    all_locations = locations.list_locations("latlong", session=rollback_session)
     assert len(all_locations) == 1
 
     # Doing the same deletion again should fail, since that row is gone.
-    with pytest.raises(
-        ValueError,
-        match="Location not found: latlong, {'latitude': 23.2, 'longitude': -5.3}",
-    ):
-        locations.delete_location_by_coordinates(
-            "latlong", latitude=23.2, longitude=-5.3, session=session
-        )
-    locations.delete_location_by_coordinates(
-        "latlong", latitude=-2.0, longitude=10.4, session=session
+    error_msg = (
+        "Location not found: latlong, "
+        f"{{'latitude': {LATITUDE2}, 'longitude': {LONGITUDE2}}}"
     )
-    all_locations = locations.list_locations("latlong", session=session)
+    with pytest.raises(ValueError, match=error_msg):
+        locations.delete_location_by_coordinates(
+            "latlong",
+            latitude=LATITUDE2,
+            longitude=LONGITUDE2,
+            session=rollback_session,
+        )
+
+    locations.delete_location_by_coordinates(
+        "latlong", latitude=LATITUDE1, longitude=LONGITUDE1, session=rollback_session
+    )
+    all_locations = locations.list_locations("latlong", session=rollback_session)
     assert len(all_locations) == 0
 
-    session.close()
+
+def test_delete_location_nonexistent(rollback_session):
+    """Try to delete a non-existent location."""
+    insert_locations(rollback_session)
+    error_msg = "Location not found: latlong, {'latitude': 0.0, 'longitude': 0.0}"
+    with pytest.raises(ValueError, match=error_msg):
+        locations.delete_location_by_coordinates(
+            "latlong", latitude=0.0, longitude=0.0, session=rollback_session
+        )

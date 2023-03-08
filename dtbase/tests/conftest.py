@@ -26,6 +26,14 @@ def session():
     yield session
 
 
+@pytest.fixture()
+def rollback_session(session):
+    session.begin()
+    yield session
+    session.rollback()
+    session.close()
+
+
 def check_for_docker():
     """
     See if we have a postgres docker container already running.
