@@ -313,7 +313,7 @@ def get_value_class_from_type_name(name):
         else LocationFloatValue
         if name == "float"
         else LocationIntegerValue
-        if name == "int"
+        if name == "integer"
         else LocationStringValue
         if name == "string"
         else None
