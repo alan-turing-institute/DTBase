@@ -4,6 +4,8 @@ config:
   azure-native:location: UKSouth
   dtbase-azure:default-user-password:
     secure: v1:criuNJqd4uhdbwqR:oAM0RSObR5PGcRHzP03BsDGzaDiGlYtB/grQbzFuHdg=
+  dtbase-azure:postgres-allowed-ips:
+    secure: v1:Rub1A0Txf0cIxCTI:l/UJExv/Sb17aN6n2C1Z/NTTmYiBu0UGf/QixDqq
   dtbase-azure:resource-name-prefix: dtbase
   dtbase-azure:sql-server-password:
     secure: v1:dnNunAc5n9GmBGYr:K4C68UaY/RP1Jzu+hacw8wx5DY+6szX6lI3mPwLfYYY=
