@@ -53,6 +53,7 @@ def insert_location_schema():
         identifiers = idnames,
         session = db.session
     )
+    db.session.commit()
     return jsonify(payload), 201
 
 
@@ -124,12 +125,9 @@ def insert_location_existing_schema(schema_name):
 
     payload = json.loads(request.get_json())
 
-    locations.insert_location(
-        schema_name = schema_name,
-        **payload,
-        session = db.session
-    )
-    return jsonify(value_dict), 201
+    locations.insert_location(schema_name=schema_name, **payload, session=db.session)
+    db.session.commit()
+    return jsonify(payload), 201
 
 
 @blueprint.route("/list/<schema_name>", methods=["GET"])
@@ -150,4 +148,6 @@ def list_locations(schema_name):
         **payload,
         session=db.session,
     )
+    # Convert from SQLAlchemy RowMapping to plain dicts
+    result = [{k: v for k, v in row.items()} for row in result]
     return jsonify(result), 200
