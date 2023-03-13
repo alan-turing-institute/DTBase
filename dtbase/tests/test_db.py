@@ -48,18 +48,17 @@ def test_add_zadf_location(session):
     assert isinstance(sid_i.id, int)
     assert isinstance(sid_f.id, int)
     assert isinstance(sid_b.id, int)
-
     loc = Location(schema_id=schema.id)
     session.add(loc)
     session.commit()
     assert isinstance(loc.id, int)
 
     zone = LocationStringValue(
-        value="Zone A", identifier_id=sid_f.id, location_id=loc.id
+        value="Zone A", identifier_id=si.id, location_id=loc.id
     )
-    aisle = LocationIntegerValue(value=23, identifier_id=sid_i.id, location_id=loc.id)
-    distance = LocationFloatValue(value=3.1, identifier_id=sid_f.id, location_id=loc.id)
-    shelf = LocationBooleanValue(value=True, identifier_id=sid_b.id, location_id=loc.id)
+    aisle = LocationIntegerValue(value=23, identifier_id=ii.id, location_id=loc.id)
+    distance = LocationFloatValue(value=3.1, identifier_id=fi.id, location_id=loc.id)
+    shelf = LocationBooleanValue(value=True, identifier_id=bi.id, location_id=loc.id)
     session.add(zone)
     session.add(aisle)
     session.add(distance)
