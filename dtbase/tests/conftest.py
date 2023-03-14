@@ -22,6 +22,7 @@ from dtbase.backend.api import create_app
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
 
+
 @pytest.fixture()
 def app():
     config = config_dict["Test"]

@@ -21,15 +21,17 @@ def test_user(testuser):
 def test_insert_location_schema(client):
     with client:
         schema = {
-            "name" : "building-floor-room",
+            "name": "building-floor-room",
             "description": "Find something within a building",
             "identifiers": [
                 {"name": "building", "units": None, "datatype": "string"},
                 {"name": "floor", "units": None, "datatype": "integer"},
                 {"name": "room", "units": None, "datatype": "string"},
-            ]
+            ],
         }
-        response = client.post("/location/insert_location_schema", json=json.dumps(schema))
+        response = client.post(
+            "/location/insert_location_schema", json=json.dumps(schema)
+        )
         assert response.status_code == 201
 
 
@@ -42,7 +44,7 @@ def test_insert_location_no_schema(client):
                 {"name": "y_distance", "units": "m", "datatype": "float"},
                 {"name": "z_distance", "units": "m", "datatype": "float"},
             ],
-            "values": [5.0, 0.1, 4.4]
+            "values": [5.0, 0.1, 4.4],
         }
 
         response = client.post("/location/insert_location", json=json.dumps(location))
@@ -55,27 +57,33 @@ def test_insert_location_nonexisting_schema(client):
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
             location = {"a": 123.4, "b": 432.1}
-            response = client.post("/location/insert_location/ab", json=json.dumps(location))
+            response = client.post(
+                "/location/insert_location/ab", json=json.dumps(location)
+            )
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_location_existing_schema(client, session):
-#    with mock.patch("dtbase.backend.api.location.routes.db.session", session):
+    #    with mock.patch("dtbase.backend.api.location.routes.db.session", session):
     with client:
         schema = {
-            "name" : "xy",
+            "name": "xy",
             "description": "x-y coordinates in mm",
             "identifiers": [
                 {"name": "x", "units": "mm", "datatype": "float"},
                 {"name": "y", "units": "mm", "datatype": "float"},
-            ]
+            ],
         }
-        response = client.post("/location/insert_location_schema", json=json.dumps(schema))
+        response = client.post(
+            "/location/insert_location_schema", json=json.dumps(schema)
+        )
         assert response.status_code == 201
 
         # now use that schema to insert a location
         location = {"x": 123.4, "y": 432.1}
-        response = client.post("/location/insert_location/xy", json=json.dumps(location))
+        response = client.post(
+            "/location/insert_location/xy", json=json.dumps(location)
+        )
         assert response.status_code == 201
 
 

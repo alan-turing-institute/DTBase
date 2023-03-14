@@ -53,9 +53,7 @@ def test_add_zadf_location(session):
     session.commit()
     assert isinstance(loc.id, int)
 
-    zone = LocationStringValue(
-        value="Zone A", identifier_id=si.id, location_id=loc.id
-    )
+    zone = LocationStringValue(value="Zone A", identifier_id=si.id, location_id=loc.id)
     aisle = LocationIntegerValue(value=23, identifier_id=ii.id, location_id=loc.id)
     distance = LocationFloatValue(value=3.1, identifier_id=fi.id, location_id=loc.id)
     shelf = LocationBooleanValue(value=True, identifier_id=bi.id, location_id=loc.id)

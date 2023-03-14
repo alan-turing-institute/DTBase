@@ -34,24 +34,26 @@ def insert_location_schema():
     payload = json.loads(request.get_json())
     for k in ["name", "description", "identifiers"]:
         if not k in payload.keys():
-            raise RuntimeError(f"Must include '{k}' in POST request to /insert_location_schema")
+            raise RuntimeError(
+                f"Must include '{k}' in POST request to /insert_location_schema"
+            )
     idnames = []
     for identifier in payload["identifiers"]:
         locations.insert_location_identifier(
-            name = identifier["name"],
-            units = identifier["units"],
-            datatype = identifier["datatype"],
-            session = db.session
+            name=identifier["name"],
+            units=identifier["units"],
+            datatype=identifier["datatype"],
+            session=db.session,
         )
         idnames.append(identifier["name"])
     # sort the idnames list, and use it to create/find a schema
     idnames.sort()
     schema_name = "-".join(idnames)
     locations.insert_location_schema(
-        name = payload["name"],
-        description = payload["description"],
-        identifiers = idnames,
-        session = db.session
+        name=payload["name"],
+        description=payload["description"],
+        identifiers=idnames,
+        session=db.session,
     )
     db.session.commit()
     return jsonify(payload), 201
@@ -78,33 +80,31 @@ def insert_location():
     payload = json.loads(request.get_json())
     for k in ["identifiers", "values"]:
         if not k in payload.keys():
-            raise RuntimeError(f"Must include '{k}' in POST request to /insert_location")
+            raise RuntimeError(
+                f"Must include '{k}' in POST request to /insert_location"
+            )
     idnames = []
     for identifier in payload["identifiers"]:
         locations.insert_location_identifier(
-            name = identifier["name"],
-            units = identifier["units"],
-            datatype = identifier["datatype"],
-            session = db.session
+            name=identifier["name"],
+            units=identifier["units"],
+            datatype=identifier["datatype"],
+            session=db.session,
         )
         idnames.append(identifier["name"])
     # sort the idnames list, and use it to create/find a schema
     idnames.sort()
     schema_name = "-".join(idnames)
     locations.insert_location_schema(
-        name = schema_name,
-        description = schema_name,
-        identifiers = idnames,
-        session = db.session
+        name=schema_name,
+        description=schema_name,
+        identifiers=idnames,
+        session=db.session,
     )
     value_dict = {}
     for i, val in enumerate(payload["values"]):
         value_dict[payload["identifiers"][i]["name"]] = val
-    locations.insert_location(
-        schema_name = schema_name,
-        **value_dict,
-        session = db.session
-    )
+    locations.insert_location(schema_name=schema_name, **value_dict, session=db.session)
     return jsonify(value_dict), 201
 
 

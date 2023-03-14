@@ -27,6 +27,7 @@ from dtbase.core.structure import (
     LocationStringValue,
 )
 
+
 def get_db_session(return_engine=False):
     """
     Get an SQLAlchemy session on the database.
@@ -66,7 +67,6 @@ def query_result_to_array(query_result, date_iso=True):
     dict_entry, results_arr = {}, []
 
     for rowproxy in query_result:
-
         # NOTE: added ._asdict() as rowproxy didnt come in the form of dict and could
         # not read .items.
         if "_asdict" in dir(rowproxy):
@@ -77,7 +77,6 @@ def query_result_to_array(query_result, date_iso=True):
             pass
 
         for column, value in rowproxy.items():
-
             if isinstance(value, datetime):
                 if date_iso:
                     dict_entry = {**dict_entry, **{column: value.isoformat()}}
