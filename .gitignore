@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# emacs autosave
+*~
+
+# Secrets folder
+.secrets
+
+# vim swap files
+*.swp

@@ -1,0 +1,35 @@
+name: "Unit tests"
+
+on:
+  push:
+    branches: [main, develop, test-actions]
+  pull_request:
+    branches: [main, develop, test-actions]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DT_SQL_TESTHOST: "localhost"
+      DT_SQL_TESTUSER: "postgres"
+      DT_SQL_TESTPASS: "postgres"
+      DT_SQL_TESTDBNAME: "test_db"
+      DT_SQL_TESTPORT: "5432"
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          architecture: x64
+      - uses: actions/checkout@v3
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: "11"
+          postgresql db: cropdb
+          postgresql user: postgres
+          postgresql password: postgres
+      - run: git submodule update --init --recursive
+      - run: pip install .
+      - run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pytest -vv

@@ -1,0 +1,3 @@
+name: dtbase-azure
+runtime: python
+description: DTBase on Azure
