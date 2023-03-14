@@ -104,7 +104,7 @@ def create_storage_account(resource_group):
     return storage_account
 
 
-def create_webapp(resource_group, app_service_plan, sql_server, app_insights):
+def create_webapp(name, resource_group, app_service_plan, sql_server, app_insights):
     _sql_host = Output.format("{0}.postgres.database.azure.com", sql_server.name)
     _sql_user = Output.format("{0}@{1}", SQL_SERVER_USER, sql_server.name)
     webapp_settings = [
@@ -130,7 +130,7 @@ def create_webapp(resource_group, app_service_plan, sql_server, app_insights):
         )
     ]
     webapp = web.WebApp(
-        f"{RESOURCE_NAME_PREFIX}-webapp",
+        f"{RESOURCE_NAME_PREFIX}-{name}",
         resource_group_name=resource_group.name,
         server_farm_id=app_service_plan.id,
         site_config=web.SiteConfigArgs(
@@ -182,7 +182,9 @@ def main():
     sa_connection_string = get_connection_string(
         storage_account.name, resource_group.name
     )
-    webapp = create_webapp(resource_group, app_service_plan, sql_server, app_insights)
+    backend = create_webapp(
+        "backend", resource_group, app_service_plan, sql_server, app_insights
+    )
 
     # Create firewall rules for allowing traffic for the PostgreSQL server.
     # Using apply in this way explicitly breaks the Pulumi docs' warning that one
@@ -192,7 +194,7 @@ def main():
     # that `pulumi preview` doesn't work correctly though, it might not show the
     # firewall rules.
     firewall_ips = []
-    webapp.outbound_ip_addresses.apply(
+    backend.outbound_ip_addresses.apply(
         lambda x: create_postgres_firewall_rules(
             resource_group, sql_server, x, firewall_ips
         )
@@ -204,7 +206,7 @@ def main():
 
     export(
         "endpoint",
-        webapp.default_host_name.apply(lambda endpoint: "https://" + endpoint),
+        backend.default_host_name.apply(lambda endpoint: "https://" + endpoint),
     )
 
 
