@@ -186,13 +186,12 @@ def main():
         "backend", resource_group, app_service_plan, sql_server, app_insights
     )
 
-    # Create firewall rules for allowing traffic for the PostgreSQL server.
-    # Using apply in this way explicitly breaks the Pulumi docs' warning that one
-    # shouldn't create new resources within apply. However, this is also how some
-    # officially Pulumi examples do it, and I don't there's another way. (Ideally we
-    # would need a function from Option[list] to list[Option].) I think this might mean
-    # that `pulumi preview` doesn't work correctly though, it might not show the
-    # firewall rules.
+    # Create firewall rules for allowing traffic for the PostgreSQL server. Using apply
+    # in this way explicitly breaks the Pulumi docs' warning that one shouldn't create
+    # new resources within apply. However, this is also how some officially Pulumi
+    # examples do it, and I don't know of another way. This means that `pulumi preview`
+    # doesn't work correctly though, it might not show the firewall rules, but the
+    # deployment does work out fine.
     firewall_ips = []
     backend.outbound_ip_addresses.apply(
         lambda x: create_postgres_firewall_rules(
