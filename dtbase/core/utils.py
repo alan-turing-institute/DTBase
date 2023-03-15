@@ -318,3 +318,15 @@ def get_value_class_from_type_name(name):
         else None
     )
     return value_class
+
+
+def check_datatype(value, datatype_name):
+    if datatype_name == "string":
+        return isinstance(value, str)
+    if datatype_name == "integer":
+        return isinstance(value, int)
+    if datatype_name == "float":
+        return isinstance(value, float)
+    if datatype_name == "boolean":
+        return isinstance(value, bool)
+    raise ValueError(f"Unrecognised datatype: {datatype_name}")

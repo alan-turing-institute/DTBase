@@ -15,6 +15,14 @@ from dtbase.core.structure import (
     LocationSchema,
     LocationSchemaIdentifierRelation,
     LocationStringValue,
+    Sensor,
+    SensorBooleanReading,
+    SensorFloatReading,
+    SensorIntegerReading,
+    SensorMeasure,
+    SensorStringReading,
+    SensorType,
+    SensorTypeMeasureRelation,
 )
 from dtbase.core import utils
 
@@ -90,3 +98,26 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
     for join in joins:
         location_q = location_q.join(*join)
     return location_q
+
+
+def sensor_measures_by_type():
+    """Query for measures of sensors by sensor type."""
+    query = (
+        sqla.select(
+            SensorType.id.label("type_id"),
+            SensorType.name.label("type_name"),
+            SensorMeasure.id.label("measure_id"),
+            SensorMeasure.name.label("measure_name"),
+            SensorMeasure.units.label("measure_units"),
+            SensorMeasure.datatype.label("measure_datatype"),
+        )
+        .join(
+            SensorTypeMeasureRelation,
+            SensorTypeMeasureRelation.schema_id == SensorType.id,
+        )
+        .join(
+            SensorMeasure,
+            SensorMeasure.id == SensorTypeMeasureRelation.identifier_id,
+        )
+    )
+    return query

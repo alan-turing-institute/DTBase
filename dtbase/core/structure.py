@@ -225,7 +225,7 @@ class Sensor(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     type_id = Column(Integer, ForeignKey("sensor_type.id"), nullable=False)
     unique_identifier = Column(String(100), nullable=False)
-    display_name = Column(String(100), nullable=True)
+    name = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
 
     # relationshionships (One-To-Many)

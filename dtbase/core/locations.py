@@ -13,7 +13,6 @@ from dtbase.core.structure import (
     LocationSchemaIdentifierRelation,
     LocationStringValue,
 )
-from dtbase.core.structure import SQLA as db
 from dtbase.core import utils
 
 
@@ -82,18 +81,6 @@ def schema_id_from_name(schema_name, session=None):
     return result[0][0]
 
 
-def _check_datatype(value, datatype_name):
-    if datatype_name == "string":
-        return isinstance(value, str)
-    if datatype_name == "integer":
-        return isinstance(value, int)
-    if datatype_name == "float":
-        return isinstance(value, float)
-    if datatype_name == "boolean":
-        return isinstance(value, bool)
-    raise ValueError(f"Unrecognised datatype: {datatype_name}")
-
-
 @add_default_session
 def insert_location(schema_name, session=None, **kwargs):
     """Insert a new location into the database.
@@ -129,7 +116,7 @@ def insert_location(schema_name, session=None, **kwargs):
     # Check that the data types are correct
     for _, identifier_name, datatype_expected in identifiers_result:
         value = kwargs[identifier_name]
-        datatype_matches = _check_datatype(value, datatype_expected)
+        datatype_matches = utils.check_datatype(value, datatype_expected)
         if not datatype_matches:
             raise ValueError(
                 f"For location identifier '{identifier_name}' expected a value of type "
@@ -258,6 +245,16 @@ def delete_location_by_coordinates(schema_name, session=None, **kwargs):
     if not location_id:
         raise ValueError(f"Location not found: {schema_name}, {kwargs}")
     delete_location_by_id(location_id[0][0], session=session)
+
+
+@add_default_session
+def delete_location_identifier(identifier_name, session=None):
+    raise NotImplemented("Deleting location identifiers not yet implemented.")
+
+
+@add_default_session
+def delete_location_schema(schema_name, session=None):
+    raise NotImplemented("Deleting location schemas not yet implemented.")
 
 
 @add_default_session
