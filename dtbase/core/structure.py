@@ -35,9 +35,13 @@ SQLA = SQLAlchemy()
 BASE = SQLA.Model
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Locations
+
+
 class Location(BASE):
     """
-    This class describes all the physical locations in the farm.
+    This class describes all the physical locations in the digital twin.
     """
 
     __tablename__ = "location"
@@ -54,6 +58,7 @@ class Location(BASE):
     string_values_relationship = relationship("LocationStringValue")
     integer_values_relationship = relationship("LocationIntegerValue")
     float_values_relationship = relationship("LocationFloatValue")
+    boolean_values_relationship = relationship("LocationBooleanValue")
 
     # arguments
     __table_args__ = (UniqueConstraint("id"),)
@@ -61,7 +66,7 @@ class Location(BASE):
 
 class LocationIdentifier(BASE):
     """
-    Any string variables that can be used to identify locations in the farm.
+    Variables that can be used to identify locations in the digital twin.
     """
 
     __tablename__ = "location_identifier"
@@ -79,7 +84,8 @@ class LocationIdentifier(BASE):
 
 class LocationStringValue(BASE):
     """
-    The value of a string variable that can be used to identify locations in the farm.
+    The value of a string variable that can be used to identify locations in the digital
+    twin.
     """
 
     __tablename__ = "location_string_value"
@@ -102,7 +108,8 @@ class LocationStringValue(BASE):
 
 class LocationIntegerValue(BASE):
     """
-    The value of an integer variable that can be used to identify locations in the farm.
+    The value of an integer variable that can be used to identify locations in the
+    digital twin.
     """
 
     __tablename__ = "location_integer_value"
@@ -126,7 +133,7 @@ class LocationIntegerValue(BASE):
 class LocationFloatValue(BASE):
     """
     The value of a floating point number variable that can be used to identify locations
-    in the farm.
+    in the digital twin.
     """
 
     __tablename__ = "location_float_value"
@@ -149,7 +156,8 @@ class LocationFloatValue(BASE):
 
 class LocationBooleanValue(BASE):
     """
-    The value of a boolean variable that can be used to identify locations in the farm.
+    The value of a boolean variable that can be used to identify locations in the
+    digital twin.
     """
 
     __tablename__ = "location_boolean_value"
@@ -200,6 +208,184 @@ class LocationSchemaIdentifierRelation(BASE):
         nullable=False,
     )
     __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Sensors
+
+
+class Sensor(BASE):
+    """
+    Class for sensors.
+    """
+
+    __tablename__ = "sensor"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type_id = Column(Integer, ForeignKey("sensor_type.id"), nullable=False)
+    unique_identifier = Column(String(100), nullable=False)
+    display_name = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+
+    # relationshionships (One-To-Many)
+    string_values_relationship = relationship("SensorStringValue")
+    integer_values_relationship = relationship("SensorIntegerValue")
+    float_values_relationship = relationship("SensorFloatValue")
+    boolean_values_relationship = relationship("SensorFloatValue")
+
+    # arguments
+    __table_args__ = (UniqueConstraint("unique_identifier"),)
+
+
+class SensorMeasure(BASE):
+    """
+    Variables measured by sensors, e.g. temperature, pressure, electricity consumption.
+    """
+
+    __tablename__ = "sensor_measure"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    units = Column(String(100), nullable=True)
+    datatype = Column(
+        Enum("string", "float", "integer", "boolean", name="sensor_reading_datatype"),
+        nullable=False,
+    )
+    __table_args__ = (UniqueConstraint("name", "units"),)
+
+
+class SensorStringReading(BASE):
+    """
+    Sensor reading of a string variable.
+    """
+
+    __tablename__ = "sensor_string_reading"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Text, nullable=False)
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    sensor_id = Column(
+        Integer,
+        ForeignKey("sensor.id"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(), nullable=False)
+    __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
+
+
+class SensorIntegerReading(BASE):
+    """
+    Sensor reading of a integer variable.
+    """
+
+    __tablename__ = "sensor_integer_reading"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Integer, nullable=False)
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    sensor_id = Column(
+        Integer,
+        ForeignKey("sensor.id"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(), nullable=False)
+    __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
+
+
+class SensorFloatReading(BASE):
+    """
+    Sensor reading of a float variable.
+    """
+
+    __tablename__ = "sensor_float_reading"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Float, nullable=False)
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    sensor_id = Column(
+        Integer,
+        ForeignKey("sensor.id"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(), nullable=False)
+    __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
+
+
+class SensorBooleanReading(BASE):
+    """
+    Sensor reading of a boolean variable.
+    """
+
+    __tablename__ = "sensor_boolean_reading"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Boolean, nullable=False)
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    sensor_id = Column(
+        Integer,
+        ForeignKey("sensor.id"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(), nullable=False)
+    __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
+
+
+class SensorType(BASE):
+    """Types of sensors."""
+
+    __tablename__ = "sensor_type"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    __table_args__ = (UniqueConstraint("name"),)
+
+
+class SensorTypeMeasureRelation(BASE):
+    """Relations on which sensor measures can and should have readings for which
+    sensor types.
+    """
+
+    __tablename__ = "sensor_type_measure_relation"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type_id = Column(
+        Integer,
+        ForeignKey("sensor_type.id"),
+        nullable=False,
+    )
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    __table_args__ = (UniqueConstraint("type_id", "measure_id"),)
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Other
 
 
 class User(BASE, UserMixin):
