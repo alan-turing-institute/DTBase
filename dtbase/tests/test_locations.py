@@ -1,7 +1,7 @@
 """
 Test the functions for accessing the locations tables.
 """
-import sqlalchemy
+import sqlalchemy as sqla
 import pytest
 
 from dtbase.core import locations
@@ -70,7 +70,7 @@ def test_insert_location_identifier_duplicate(rollback_session):
         "duplicate key value violates unique constraint "
         '"location_identifier_name_units_key"'
     )
-    with pytest.raises(sqlalchemy.exc.IntegrityError, match=error_msg):
+    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
         locations.insert_location_identifier(
             name="latitude", units="", datatype="integer", session=rollback_session
         )
@@ -91,7 +91,7 @@ def test_insert_location_schema_duplicate(rollback_session):
     error_msg = (
         'duplicate key value violates unique constraint "location_schema_name_key"'
     )
-    with pytest.raises(sqlalchemy.exc.IntegrityError, match=error_msg):
+    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
         locations.insert_location_schema(
             name="latlong",
             description="Latimer and Longchamp",
