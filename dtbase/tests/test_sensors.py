@@ -37,7 +37,7 @@ def insert_measures(session):
     )
 
 
-def insert_type(session):
+def insert_types(session):
     """Insert a sensor type into the database."""
     insert_measures(session)
     sensors.insert_sensor_type(
@@ -56,7 +56,7 @@ def insert_type(session):
 
 def insert_sensors(session):
     """Insert some sensors into the database."""
-    insert_type(session)
+    insert_types(session)
     sensors.insert_sensor(
         "weather",
         SENSOR_ID1,
@@ -116,14 +116,14 @@ def test_insert_sensor_measure_duplicate(rollback_session):
 # Tests for sensor types
 
 
-def test_insert_sensor_type(rollback_session):
+def test_insert_sensor_types(rollback_session):
     """Test inserting a sensor type."""
-    insert_type(rollback_session)
+    insert_types(rollback_session)
 
 
-def test_insert_sensor_type_duplicate(rollback_session):
+def test_insert_sensor_types_duplicate(rollback_session):
     """Try to insert a sensor type that conflicts with one that exists."""
-    insert_type(rollback_session)
+    insert_types(rollback_session)
     error_msg = 'duplicate key value violates unique constraint "sensor_type_name_key"'
     with pytest.raises(sqlalchemy.exc.IntegrityError, match=error_msg):
         sensors.insert_sensor_type(
@@ -134,9 +134,9 @@ def test_insert_sensor_type_duplicate(rollback_session):
         )
 
 
-def test_insert_sensor_type_no_measurer(rollback_session):
+def test_insert_sensor_types_no_measurer(rollback_session):
     """Try to insert a sensor type that uses measures that don't exist."""
-    insert_type(rollback_session)
+    insert_types(rollback_session)
     error_msg = "No sensor measure named 'is raining misspelled'"
     with pytest.raises(ValueError, match=error_msg):
         sensors.insert_sensor_type(
@@ -168,7 +168,7 @@ def test_insert_sensor_duplicate(rollback_session):
 
 def test_insert_sensor_no_type(rollback_session):
     """Try to insert a sensor with a non-existing type."""
-    insert_type(rollback_session)
+    insert_types(rollback_session)
     with pytest.raises(ValueError, match="No sensor type named 'electron microscope'"):
         sensors.insert_sensor(
             "electron microscope", "BLAHBLAHBLAH", session=rollback_session
@@ -300,9 +300,17 @@ def test_list_sensors(rollback_session):
     """Find the inserted sensors."""
     insert_sensors(rollback_session)
     all_sensors = sensors.list_sensors(session=rollback_session)
-    print(all_sensors)
+    expected_keys = {
+        "id",
+        "name",
+        "unique_identifier",
+        "notes",
+        "sensor_type_id",
+        "sensor_type_name",
+    }
     assert len(all_sensors) == 3
     assert all_sensors[0]["unique_identifier"] == SENSOR_ID1
+    assert set(all_sensors[0].keys()) == expected_keys
     assert all_sensors[0]["sensor_type_name"] == "weather"
     assert all_sensors[1]["unique_identifier"] == SENSOR_ID2
     assert all_sensors[1]["sensor_type_name"] == "weather"
@@ -314,6 +322,57 @@ def test_list_sensors(rollback_session):
     assert weather_sensors[0]["sensor_type_name"] == "weather"
     assert weather_sensors[1]["unique_identifier"] == SENSOR_ID2
     assert weather_sensors[1]["sensor_type_name"] == "weather"
+
+
+def test_list_sensor_measures(rollback_session):
+    """Find the inserted sensor measures."""
+    insert_measures(rollback_session)
+    all_measures = sensors.list_sensor_measures(session=rollback_session)
+    expected_keys = {"id", "name", "units", "datatype"}
+    assert len(all_measures) == 2
+    assert all_measures[0]["name"] == "temperature"
+    assert set(all_measures[0].keys()) == expected_keys
+    assert all_measures[1]["name"] == "is raining"
+
+
+def test_list_sensor_types(rollback_session):
+    """Find the inserted sensor types."""
+    insert_types(rollback_session)
+    all_types = sensors.list_sensor_types(session=rollback_session)
+    expected_keys = {"id", "name", "description", "measures"}
+    assert len(all_types) == 2
+    assert all_types[0]["name"] == "weather"
+    assert {"name": "temperature", "units": "Kelvin", "datatype": "float"} in all_types[
+        0
+    ]["measures"]
+    assert set(all_types[0].keys()) == expected_keys
+    assert all_types[1]["name"] == "temperature"
+
+
+def test_delete_sensor_measure(rollback_session):
+    """Delete a sensor measure."""
+    insert_measures(rollback_session)
+    sensors.delete_sensor_measure("temperature", session=rollback_session)
+    all_measures = sensors.list_sensor_measures(session=rollback_session)
+    assert len(all_measures) == 1
+
+    # Doing the same deletion again should fail, since that row is gone.
+    error_msg = "No sensor measure named 'temperature'"
+    with pytest.raises(ValueError, match=error_msg):
+        sensors.delete_sensor_measure("temperature", session=rollback_session)
+
+
+def test_delete_sensor_type(rollback_session):
+    """Delete a sensor type."""
+    insert_types(rollback_session)
+    sensors.delete_sensor_type("weather", session=rollback_session)
+    all_types = sensors.list_sensor_types(session=rollback_session)
+    assert len(all_types) == 1
+
+    # Doing the same deletion again should fail, since that row is gone.
+    error_msg = "No sensor type named 'weather'"
+    with pytest.raises(ValueError, match=error_msg):
+        sensors.delete_sensor_type("weather", session=rollback_session)
 
 
 def test_delete_sensor(rollback_session):

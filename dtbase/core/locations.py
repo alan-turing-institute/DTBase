@@ -273,5 +273,7 @@ def list_locations(schema_name, session=None, **kwargs):
         arguments.
     """
     query = queries.select_location_by_coordinates(schema_name, session, **kwargs)
-    locations = session.execute(query).mappings().all()
-    return locations
+    result = session.execute(query).mappings().all()
+    # Convert from SQLAlchemy RowMapping to plain dicts
+    result = [{k: v for k, v in row.items()} for row in result]
+    return result

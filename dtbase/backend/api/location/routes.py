@@ -148,6 +148,4 @@ def list_locations(schema_name):
         **payload,
         session=db.session,
     )
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
     return jsonify(result), 200

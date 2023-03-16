@@ -318,8 +318,12 @@ def delete_sensor_measure(measure_name, session=None):
     Returns:
         None
     """
-    session.execute(
-        sqla.delete(SensorMeasure).where(SensorMeasure.measure_name == measure_name)
+    # The measure_id_from_name call is just a quick way to raise a ValueError if this
+    # measure doesn't exist. I'm lazy to write a more proper solution to check what the
+    # DELETE query returns.
+    measure_id_from_name(measure_name, session=session)
+    result = session.execute(
+        sqla.delete(SensorMeasure).where(SensorMeasure.name == measure_name)
     )
 
 
@@ -336,7 +340,68 @@ def delete_sensor_type(type_name, session=None):
     Returns:
         None
     """
-    session.execute(sqla.delete(SensorType).where(SensorType.type_name == type_name))
+    type_id = type_id_from_name(type_name, session=session)
+    session.execute(
+        sqla.delete(SensorTypeMeasureRelation).where(
+            SensorTypeMeasureRelation.type_id == type_id
+        )
+    )
+    session.execute(sqla.delete(SensorType).where(SensorType.name == type_name))
+
+
+@add_default_session
+def list_sensor_measures(session=None):
+    """List all sensor measures.
+
+    Args:
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        List of all sensor measures.
+    """
+    query = sqla.select(
+        SensorMeasure.id,
+        SensorMeasure.name,
+        SensorMeasure.units,
+        SensorMeasure.datatype,
+    )
+    result = session.execute(query).mappings().all()
+    # Convert from SQLAlchemy RowMapping to plain dicts
+    result = [{k: v for k, v in row.items()} for row in result]
+    return result
+
+
+@add_default_session
+def list_sensor_types(session=None):
+    """List all sensor types.
+
+    Args:
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        List of all sensor types.
+    """
+    measures_query = queries.sensor_measures_by_type()
+    all_measures = session.execute(measures_query).mappings().all()
+    types_query = sqla.select(SensorType.id, SensorType.name, SensorType.description)
+    result = session.execute(types_query).mappings().all()
+    # Convert from SQLAlchemy RowMapping to plain dicts
+    result = [{k: v for k, v in row.items()} for row in result]
+    # To each sensor type, attach a list of measures
+    for row in result:
+        type_name = row["name"]
+        measures = []
+        for measure in all_measures:
+            if measure["type_name"] == type_name:
+                measures.append(
+                    {
+                        "name": measure["measure_name"],
+                        "units": measure["measure_units"],
+                        "datatype": measure["measure_datatype"],
+                    }
+                )
+        row["measures"] = measures
+    return result
 
 
 @add_default_session
@@ -361,5 +426,7 @@ def list_sensors(type_name=None, session=None):
     ).where(Sensor.type_id == SensorType.id)
     if type_name is not None:
         query = query.where(SensorType.name == type_name)
-    sensors = session.execute(query).mappings().all()
-    return sensors
+    result = session.execute(query).mappings().all()
+    # Convert from SQLAlchemy RowMapping to plain dicts
+    result = [{k: v for k, v in row.items()} for row in result]
+    return result
