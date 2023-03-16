@@ -85,7 +85,7 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
     columns = [Location.id]
     joins = []
     for id_id, id_name, id_datatype in identifiers:
-        value_class = aliased(utils.get_value_class_from_type_name(id_datatype))
+        value_class = aliased(utils.location_value_class_dict[id_datatype])
         columns.append(value_class.value.label(id_name))
         join_conditions = [
             value_class.location_id == Location.id,
@@ -113,11 +113,11 @@ def sensor_measures_by_type():
         )
         .join(
             SensorTypeMeasureRelation,
-            SensorTypeMeasureRelation.schema_id == SensorType.id,
+            SensorTypeMeasureRelation.type_id == SensorType.id,
         )
         .join(
             SensorMeasure,
-            SensorMeasure.id == SensorTypeMeasureRelation.identifier_id,
+            SensorMeasure.id == SensorTypeMeasureRelation.measure_id,
         )
     )
     return query

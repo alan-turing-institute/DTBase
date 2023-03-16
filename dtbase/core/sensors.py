@@ -30,9 +30,9 @@ def measure_id_from_name(measure_name, session=None):
     query = sqla.select(SensorMeasure.id).where(SensorMeasure.name == measure_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No sensor measure named {measure_name}")
+        raise ValueError(f"No sensor measure named '{measure_name}'")
     if len(result) > 1:
-        raise ValueError(f"Multiple sensor measures named {measure_name}")
+        raise ValueError(f"Multiple sensor measures named '{measure_name}'")
     return result[0][0]
 
 
@@ -50,9 +50,9 @@ def type_id_from_name(type_name, session=None):
     query = sqla.select(SensorType.id).where(SensorType.name == type_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No sensor type named {type_name}")
+        raise ValueError(f"No sensor type named '{type_name}'")
     if len(result) > 1:
-        raise ValueError(f"Multiple sensor types named {type_name}")
+        raise ValueError(f"Multiple sensor types named '{type_name}'")
     return result[0][0]
 
 
@@ -70,9 +70,9 @@ def sensor_id_from_unique_identifier(unique_identifier, session=None):
     query = sqla.select(Sensor.id).where(Sensor.unique_identifier == unique_identifier)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No sensor type {unique_identifier}")
+        raise ValueError(f"No sensor '{unique_identifier}'")
     if len(result) > 1:
-        raise ValueError(f"Multiple sensors {unique_identifier}")
+        raise ValueError(f"Multiple sensors '{unique_identifier}'")
     return result[0][0]
 
 
@@ -153,16 +153,16 @@ def insert_sensor(type_name, unique_identifier, name=None, notes=None, session=N
 
 @add_default_session
 def insert_sensor_readings(
-    readings, timestamps, sensor_uniq_id, measure_name, session=None
+    measure_name, sensor_uniq_id, readings, timestamps, session=None
 ):
     """Insert sensor readings to the database.
 
     Args:
+        measure_name: Name of the sensor measure that these are readings for.
+        sensor_uniq_id: Unique identifier for the sensor that reports these readings.
         readings: Readings to insert. An iterable.
         timestamps: Timestamps associated with the readings. An iterable of the same
             length as readings.
-        sensor_uniq_id: Unique identifier for the sensor that reports these readings.
-        measure_name: Name of the sensor measure that these are readings for.
         session: SQLAlchemy session. Optional.
 
     Returns:
@@ -170,19 +170,19 @@ def insert_sensor_readings(
     """
     if len(readings) != len(timestamps):
         raise ValueError(
-            f"There should be as many readings as there are timestamps, but got {len(readings)} and {len(timestamps)}"
+            "There should be as many readings as there are timestamps,"
+            f" but got {len(readings)} and {len(timestamps)}"
         )
     if len(readings) == 0:
         return None
 
     # Check the type of readings to insert.
     example_element = readings[0]
-    readings_class = utils.get_value_class_from_instance_type(example_element)
-    if readings_class is None:
-        msg = (
-            f"Don't know how to insert sensor readings of type {type(example_element)}."
-        )
+    element_type = type(example_element)
+    if element_type not in utils.sensor_reading_class_dict:
+        msg = f"Don't know how to insert sensor readings of type {element_type}."
         raise ValueError(msg)
+    readings_class = utils.sensor_reading_class_dict[element_type]
 
     # Check that this is a valid measure for the given sensor_type.
     measures_sq = queries.sensor_measures_by_type().subquery()
@@ -198,16 +198,17 @@ def insert_sensor_readings(
     valid_measure = len(measures_result) > 0
     if not valid_measure:
         raise ValueError(
-            f"Measure '{measure_name}' is not a valid measure for sensor {sensor_uniq_id}."
+            f"Measure '{measure_name}' is not a valid measure for sensor "
+            f"'{sensor_uniq_id}'."
         )
     expected_datatype = measures_result[0][0]
 
     # Check that the data type is correct
-    datatype_matches = utils.check_datatype(example_element, datatype_expected)
+    datatype_matches = utils.check_datatype(example_element, expected_datatype)
     if not datatype_matches:
         raise ValueError(
             f"For sensor measure '{measure_name}' expected a readings of type "
-            f"{datatype_expected} but got a {type(example_element)}."
+            f"{expected_datatype} but got a {element_type}."
         )
 
     # All seems well, insert the values.
@@ -226,3 +227,55 @@ def insert_sensor_readings(
     ]
     session.execute(readings_class.__table__.insert(), rows)
     session.flush()
+
+
+@add_default_session
+def get_datatype_by_measure_name(measure_name, session=None):
+    """Get the datatype of the sensor measure named.
+
+    Args:
+        measure_name: Name of the sensor measure.
+        session: SQLAlchemy session. Optional.
+
+    Return:
+        Name of the datatype, as a string.
+    """
+    query = sqla.select(SensorMeasure.datatype).where(
+        SensorMeasure.name == measure_name
+    )
+    result = session.execute(query).fetchall()
+    if len(result) == 0:
+        raise ValueError("No sensor measure called '{measure_name}'")
+    datatype = result[0][0]
+    return datatype
+
+
+@add_default_session
+def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=None):
+    """Insert sensor readings to the database.
+
+    Args:
+        measure_name: Name of the sensor measure to get readings for.
+        sensor_uniq_id: Unique identifier for the sensor to get readings for.
+        dt_from: Datetime object for earliest readings to get. Inclusive.
+        dt_to: Datetime object for last readings to get. Inclusive.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Readings from the database.
+    """
+    datatype_name = get_datatype_by_measure_name(measure_name, session=session)
+    value_class = utils.sensor_reading_class_dict[datatype_name]
+    query = (
+        sqla.select(value_class.value, value_class.timestamp)
+        .join(Sensor, Sensor.id == value_class.sensor_id)
+        .join(SensorMeasure, SensorMeasure.id == value_class.measure_id)
+        .where(
+            (Sensor.unique_identifier == sensor_uniq_id)
+            & (SensorMeasure.name == measure_name)
+            & (value_class.timestamp >= dt_from)
+            & (value_class.timestamp <= dt_to)
+        )
+    )
+    result = session.execute(query).fetchall()
+    return result

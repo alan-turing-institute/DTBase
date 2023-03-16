@@ -25,6 +25,14 @@ from dtbase.core.structure import (
     LocationSchema,
     LocationSchemaIdentifierRelation,
     LocationStringValue,
+    Sensor,
+    SensorBooleanReading,
+    SensorFloatReading,
+    SensorIntegerReading,
+    SensorMeasure,
+    SensorStringReading,
+    SensorType,
+    SensorTypeMeasureRelation,
 )
 
 
@@ -290,34 +298,28 @@ def insert_to_db_from_df(engine, df, DbClass):
     print(f"Inserted {len(df.index)} rows to table {DbClass.__tablename__}")
 
 
-def get_value_class_from_instance_type(value):
-    value_class = (
-        LocationBooleanValue
-        if isinstance(value, bool)
-        else LocationFloatValue
-        if isinstance(value, float)
-        else LocationIntegerValue
-        if isinstance(value, int)
-        else LocationStringValue
-        if isinstance(value, str)
-        else None
-    )
-    return value_class
+location_value_class_dict = {
+    bool: LocationBooleanValue,
+    float: LocationFloatValue,
+    int: LocationIntegerValue,
+    str: LocationStringValue,
+    "boolean": LocationBooleanValue,
+    "float": LocationFloatValue,
+    "integer": LocationIntegerValue,
+    "string": LocationStringValue,
+}
 
 
-def get_value_class_from_type_name(name):
-    value_class = (
-        LocationBooleanValue
-        if name == "bool"
-        else LocationFloatValue
-        if name == "float"
-        else LocationIntegerValue
-        if name == "integer"
-        else LocationStringValue
-        if name == "string"
-        else None
-    )
-    return value_class
+sensor_reading_class_dict = {
+    bool: SensorBooleanReading,
+    float: SensorFloatReading,
+    int: SensorIntegerReading,
+    str: SensorStringReading,
+    "boolean": SensorBooleanReading,
+    "float": SensorFloatReading,
+    "integer": SensorIntegerReading,
+    "string": SensorStringReading,
+}
 
 
 def check_datatype(value, datatype_name):

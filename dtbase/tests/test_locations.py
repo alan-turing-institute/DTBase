@@ -62,7 +62,7 @@ def test_insert_location_identifier(rollback_session):
 
 
 def test_insert_location_identifier_duplicate(rollback_session):
-    """Try to add a location identifier that conflicts with one that exists."""
+    """Try to insert a location identifier that conflicts with one that exists."""
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=rollback_session
     )
@@ -86,7 +86,7 @@ def test_insert_location_schema(rollback_session):
 
 
 def test_insert_location_schema_duplicate(rollback_session):
-    """Try to add a location schema that conflicts with one that exists."""
+    """Try to insert a location schema that conflicts with one that exists."""
     insert_schema(rollback_session)
     error_msg = (
         'duplicate key value violates unique constraint "location_schema_name_key"'
@@ -101,7 +101,7 @@ def test_insert_location_schema_duplicate(rollback_session):
 
 
 def test_insert_location_schema_no_identifierr(rollback_session):
-    """Try to add a location schema that uses identifiers that don't exist."""
+    """Try to insert a location schema that uses identifiers that don't exist."""
     insert_schema(rollback_session)
     error_msg = "No location identifier named longitude_misspelled"
     with pytest.raises(ValueError, match=error_msg):
@@ -123,7 +123,7 @@ def test_insert_location(rollback_session):
 
 
 def test_insert_location_duplicate(rollback_session):
-    """Try to add a location that already exists."""
+    """Try to insert a location that already exists."""
     insert_locations(rollback_session)
     error_msg = (
         "Location with schema 'latlong' and coordinates "
@@ -139,7 +139,7 @@ def test_insert_location_duplicate(rollback_session):
 
 
 def test_insert_location_no_schema(rollback_session):
-    """Try to add a location with a non-existing schema."""
+    """Try to insert a location with a non-existing schema."""
     insert_schema(rollback_session)
     with pytest.raises(ValueError, match="No location schema named heightitude"):
         locations.insert_location(
@@ -148,7 +148,7 @@ def test_insert_location_no_schema(rollback_session):
 
 
 def test_insert_location_wrong_identifier(rollback_session):
-    """Try to add a location with the wrong identifier."""
+    """Try to insert a location with the wrong identifier."""
     insert_schema(rollback_session)
     # The (|) or clauses are needed because order isn't guaranteed.
     error_msg = (
@@ -163,7 +163,7 @@ def test_insert_location_wrong_identifier(rollback_session):
 
 
 def test_insert_location_wrong_data_type(rollback_session):
-    """Try to add a location with the wrong datatype."""
+    """Try to insert a location with the wrong datatype."""
     insert_schema(rollback_session)
     error_msg = (
         "For location identifier 'latitude' expected a value of type float but "

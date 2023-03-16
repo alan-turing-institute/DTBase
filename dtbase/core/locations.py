@@ -29,10 +29,11 @@ def insert_location_value(value, location_id, identifier_id, session=None):
     Returns:
         None
     """
-    value_class = utils.get_value_class_from_instance_type(value)
-    if value_class is None:
-        msg = f"Don't know how to insert location values of type {type(value)}."
+    value_type = type(value)
+    if value_type not in utils.location_value_class_dict:
+        msg = f"Don't know how to insert location values of type {value_type}."
         raise ValueError(msg)
+    value_class = utils.location_value_class_dict[value_type]
     session.add(
         value_class(location_id=location_id, identifier_id=identifier_id, value=value)
     )
@@ -211,12 +212,7 @@ def delete_location_by_id(location_id, session=None):
     Returns:
         None
     """
-    for value_class in (
-        LocationStringValue,
-        LocationIntegerValue,
-        LocationFloatValue,
-        LocationBooleanValue,
-    ):
+    for value_class in set(utils.location_value_class_dict.values()):
         session.execute(
             sqla.delete(value_class).where(value_class.location_id == location_id)
         )

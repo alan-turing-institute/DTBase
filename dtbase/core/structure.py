@@ -229,10 +229,10 @@ class Sensor(BASE):
     notes = Column(Text, nullable=True)
 
     # relationshionships (One-To-Many)
-    string_values_relationship = relationship("SensorStringValue")
-    integer_values_relationship = relationship("SensorIntegerValue")
-    float_values_relationship = relationship("SensorFloatValue")
-    boolean_values_relationship = relationship("SensorFloatValue")
+    string_values_relationship = relationship("SensorStringReading")
+    integer_values_relationship = relationship("SensorIntegerReading")
+    float_values_relationship = relationship("SensorFloatReading")
+    boolean_values_relationship = relationship("SensorFloatReading")
 
     # arguments
     __table_args__ = (UniqueConstraint("unique_identifier"),)
