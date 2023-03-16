@@ -82,6 +82,38 @@ class LocationIdentifier(BASE):
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
+class LocationSchema(BASE):
+    """Types of locations."""
+
+    __tablename__ = "location_schema"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    __table_args__ = (UniqueConstraint("name"),)
+
+
+class LocationSchemaIdentifierRelation(BASE):
+    """Relations on which location identifiers can and should be specified for which
+    location schemas.
+    """
+
+    __tablename__ = "location_schema_identifier_relation"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    schema_id = Column(
+        Integer,
+        ForeignKey("location_schema.id"),
+        nullable=False,
+    )
+    identifier_id = Column(
+        Integer,
+        ForeignKey("location_identifier.id"),
+        nullable=False,
+    )
+    __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)
+
+
 class LocationStringValue(BASE):
     """
     The value of a string variable that can be used to identify locations in the digital
@@ -178,38 +210,6 @@ class LocationBooleanValue(BASE):
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationSchema(BASE):
-    """Types of locations."""
-
-    __tablename__ = "location_schema"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    description = Column(Text, nullable=True)
-    __table_args__ = (UniqueConstraint("name"),)
-
-
-class LocationSchemaIdentifierRelation(BASE):
-    """Relations on which location identifiers can and should be specified for which
-    location schemas.
-    """
-
-    __tablename__ = "location_schema_identifier_relation"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    schema_id = Column(
-        Integer,
-        ForeignKey("location_schema.id"),
-        nullable=False,
-    )
-    identifier_id = Column(
-        Integer,
-        ForeignKey("location_identifier.id"),
-        nullable=False,
-    )
-    __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)
-
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Sensors
 
@@ -254,6 +254,38 @@ class SensorMeasure(BASE):
         nullable=False,
     )
     __table_args__ = (UniqueConstraint("name", "units"),)
+
+
+class SensorType(BASE):
+    """Types of sensors."""
+
+    __tablename__ = "sensor_type"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    __table_args__ = (UniqueConstraint("name"),)
+
+
+class SensorTypeMeasureRelation(BASE):
+    """Relations on which sensor measures can and should have readings for which
+    sensor types.
+    """
+
+    __tablename__ = "sensor_type_measure_relation"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type_id = Column(
+        Integer,
+        ForeignKey("sensor_type.id"),
+        nullable=False,
+    )
+    measure_id = Column(
+        Integer,
+        ForeignKey("sensor_measure.id"),
+        nullable=False,
+    )
+    __table_args__ = (UniqueConstraint("type_id", "measure_id"),)
 
 
 class SensorStringReading(BASE):
@@ -350,38 +382,6 @@ class SensorBooleanReading(BASE):
     )
     timestamp = Column(DateTime(), nullable=False)
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
-
-
-class SensorType(BASE):
-    """Types of sensors."""
-
-    __tablename__ = "sensor_type"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-    description = Column(Text, nullable=True)
-    __table_args__ = (UniqueConstraint("name"),)
-
-
-class SensorTypeMeasureRelation(BASE):
-    """Relations on which sensor measures can and should have readings for which
-    sensor types.
-    """
-
-    __tablename__ = "sensor_type_measure_relation"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    type_id = Column(
-        Integer,
-        ForeignKey("sensor_type.id"),
-        nullable=False,
-    )
-    measure_id = Column(
-        Integer,
-        ForeignKey("sensor_measure.id"),
-        nullable=False,
-    )
-    __table_args__ = (UniqueConstraint("type_id", "measure_id"),)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -86,7 +86,7 @@ def insert_sensor_measure(name, units, datatype, session=None):
     Args:
         name: Name of this measure, e.g. "temperature".
         units: Units in which this measure is specified.
-        datatype: Value type of this location identifier. Has to be one of "string",
+        datatype: Value type of this sensor measure. Has to be one of "string",
             "integer", "float", or "boolean".
         session: SQLAlchemy session. Optional.
 
@@ -279,3 +279,87 @@ def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=No
     )
     result = session.execute(query).fetchall()
     return result
+
+
+@add_default_session
+def delete_sensor(unique_identifier, session=None):
+    """Delete a sensor from the database.
+
+    Also deletes any readings for this sensor.
+
+    Args:
+        unique_identifier: Unique identifier by which the sensor is recognised.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    sensor_id = sensor_id_from_unique_identifier(unique_identifier, session=session)
+    for value_class in set(utils.sensor_reading_class_dict.values()):
+        session.execute(
+            sqla.delete(value_class).where(value_class.sensor_id == sensor_id)
+        )
+    session.execute(
+        sqla.delete(Sensor).where(Sensor.unique_identifier == unique_identifier)
+    )
+
+
+@add_default_session
+def delete_sensor_measure(measure_name, session=None):
+    """Delete a sensor measure from the database.
+
+    Refuses to proceed if there are sensor readings or sensor types attached to this
+    measure.
+
+    Args:
+        measure_name: Name of the measure to delete.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    session.execute(
+        sqla.delete(SensorMeasure).where(SensorMeasure.measure_name == measure_name)
+    )
+
+
+@add_default_session
+def delete_sensor_type(type_name, session=None):
+    """Delete a sensor type from the database.
+
+    Refuses to proceed if there are sensors of this type in the database.
+
+    Args:
+        type_name: Name of the measure to delete.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    session.execute(sqla.delete(SensorType).where(SensorType.type_name == type_name))
+
+
+@add_default_session
+def list_sensors(type_name=None, session=None):
+    """List all sensors, optionally filtering by sensor type.
+
+    Args:
+        type_name: Name of the sensor type to list instances of. Optional, by default
+            list all sensors.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        List of all the sensors that match the provided criteria.
+    """
+    query = sqla.select(
+        Sensor.id,
+        Sensor.type_id.label("sensor_type_id"),
+        Sensor.unique_identifier,
+        Sensor.name,
+        Sensor.notes,
+        SensorType.name.label("sensor_type_name"),
+    ).where(Sensor.type_id == SensorType.id)
+    if type_name is not None:
+        query = query.where(SensorType.name == type_name)
+    sensors = session.execute(query).mappings().all()
+    return sensors

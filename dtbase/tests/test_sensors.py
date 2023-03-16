@@ -17,6 +17,7 @@ from dtbase.core import sensors
 # Some example values used for testing.
 SENSOR_ID1 = "ABCSERIALNUMBER"
 SENSOR_ID2 = "FAKEUUIDISFAKE"
+SENSOR_ID3 = "STRINGSTRINGSTRING"
 TEMPERATURES = [0.0, 1.0, 2.0]
 TIMESTAMPS = list(
     map(
@@ -45,6 +46,12 @@ def insert_type(session):
         measures=["temperature", "is raining"],
         session=session,
     )
+    sensors.insert_sensor_type(
+        name="temperature",
+        description="Temperature sensor",
+        measures=["temperature"],
+        session=session,
+    )
 
 
 def insert_sensors(session):
@@ -58,6 +65,7 @@ def insert_sensors(session):
         session=session,
     )
     sensors.insert_sensor("weather", SENSOR_ID2, session=session)
+    sensors.insert_sensor("temperature", SENSOR_ID3, session=session)
 
 
 def insert_readings(session):
@@ -288,61 +296,42 @@ def test_insert_sensor_readings_duplicate(rollback_session):
         )
 
 
-# def test_list_sensors(rollback_session):
-#    """Find the inserted sensors."""
-#    insert_sensors(rollback_session)
-#    all_sensors = sensors.list_sensors("weather", session=rollback_session)
-#    assert len(all_sensors) == 2
-#    assert all_sensors[0]["temperature"] == LATITUDE1
-#    assert all_sensors[0]["longitude"] == LONGITUDE1
-#    assert all_sensors[1]["temperature"] == LATITUDE2
-#    assert all_sensors[1]["longitude"] == LONGITUDE2
-#    some_sensors = sensors.list_sensors(
-#        "weather", session=rollback_session, temperature=LATITUDE1
-#    )
-#    assert len(some_sensors) == 1
-#    assert some_sensors[0]["temperature"] == LATITUDE1
-#    assert some_sensors[0]["longitude"] == LONGITUDE1
-#    no_sensors = sensors.list_sensors(
-#        "weather", session=rollback_session, temperature=-3.0
-#    )
-#    assert len(no_sensors) == 0
-#
-#
-# def test_delete_sensor(rollback_session):
-#    """Delete a sensor, and check that it is deleted and can't be redeleted."""
-#    insert_sensors(rollback_session)
-#    sensors.delete_sensor_by_coordinates(
-#        "weather", temperature=LATITUDE2, longitude=LONGITUDE2, session=rollback_session
-#    )
-#    all_sensors = sensors.list_sensors("weather", session=rollback_session)
-#    assert len(all_sensors) == 1
-#
-#    # Doing the same deletion again should fail, since that row is gone.
-#    error_msg = (
-#        "Location not found: weather, "
-#        f"{{'temperature': {LATITUDE2}, 'longitude': {LONGITUDE2}}}"
-#    )
-#    with pytest.raises(ValueError, match=error_msg):
-#        sensors.delete_sensor_by_coordinates(
-#            "weather",
-#            temperature=LATITUDE2,
-#            longitude=LONGITUDE2,
-#            session=rollback_session,
-#        )
-#
-#    sensors.delete_sensor_by_coordinates(
-#        "weather", temperature=LATITUDE1, longitude=LONGITUDE1, session=rollback_session
-#    )
-#    all_sensors = sensors.list_sensors("weather", session=rollback_session)
-#    assert len(all_sensors) == 0
-#
-#
-# def test_delete_sensor_nonexistent(rollback_session):
-#    """Try to delete a non-existent sensor."""
-#    insert_sensors(rollback_session)
-#    error_msg = "Location not found: weather, {'temperature': 0.0, 'longitude': 0.0}"
-#    with pytest.raises(ValueError, match=error_msg):
-#        sensors.delete_sensor_by_coordinates(
-#            "weather", temperature=0.0, longitude=0.0, session=rollback_session
-#        )
+def test_list_sensors(rollback_session):
+    """Find the inserted sensors."""
+    insert_sensors(rollback_session)
+    all_sensors = sensors.list_sensors(session=rollback_session)
+    print(all_sensors)
+    assert len(all_sensors) == 3
+    assert all_sensors[0]["unique_identifier"] == SENSOR_ID1
+    assert all_sensors[0]["sensor_type_name"] == "weather"
+    assert all_sensors[1]["unique_identifier"] == SENSOR_ID2
+    assert all_sensors[1]["sensor_type_name"] == "weather"
+    assert all_sensors[2]["unique_identifier"] == SENSOR_ID3
+    assert all_sensors[2]["sensor_type_name"] == "temperature"
+    weather_sensors = sensors.list_sensors("weather", session=rollback_session)
+    assert len(weather_sensors) == 2
+    assert weather_sensors[0]["unique_identifier"] == SENSOR_ID1
+    assert weather_sensors[0]["sensor_type_name"] == "weather"
+    assert weather_sensors[1]["unique_identifier"] == SENSOR_ID2
+    assert weather_sensors[1]["sensor_type_name"] == "weather"
+
+
+def test_delete_sensor(rollback_session):
+    """Delete a sensor, and check that it is deleted and can't be redeleted."""
+    insert_sensors(rollback_session)
+    sensors.delete_sensor(SENSOR_ID1, session=rollback_session)
+    all_sensors = sensors.list_sensors(session=rollback_session)
+    assert len(all_sensors) == 2
+
+    # Doing the same deletion again should fail, since that row is gone.
+    error_msg = f"No sensor '{SENSOR_ID1}'"
+    with pytest.raises(ValueError, match=error_msg):
+        sensors.delete_sensor(SENSOR_ID1, session=rollback_session)
+
+
+def test_delete_sensor_nonexistent(rollback_session):
+    """Try to delete a non-existent sensor."""
+    insert_sensors(rollback_session)
+    error_msg = "No sensor 'BLAHBLAH'"
+    with pytest.raises(ValueError, match=error_msg):
+        sensors.delete_sensor("BLAHBLAH", session=rollback_session)
