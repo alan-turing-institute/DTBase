@@ -332,3 +332,10 @@ def check_datatype(value, datatype_name):
     if datatype_name == "boolean":
         return isinstance(value, bool)
     raise ValueError(f"Unrecognised datatype: {datatype_name}")
+
+
+def row_mappings_to_dicts(rows):
+    """Convert the list of RowMappings that SQLAlchemy's mappings() returns into plain
+    dicts.
+    """
+    return [{k: v for k, v in row.items()} for row in rows]

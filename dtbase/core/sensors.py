@@ -366,8 +366,7 @@ def list_sensor_measures(session=None):
         SensorMeasure.datatype,
     )
     result = session.execute(query).mappings().all()
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
+    result = utils.row_mappings_to_dicts(result)
     return result
 
 
@@ -385,8 +384,7 @@ def list_sensor_types(session=None):
     all_measures = session.execute(measures_query).mappings().all()
     types_query = sqla.select(SensorType.id, SensorType.name, SensorType.description)
     result = session.execute(types_query).mappings().all()
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
+    result = utils.row_mappings_to_dicts(result)
     # To each sensor type, attach a list of measures
     for row in result:
         type_name = row["name"]
@@ -427,6 +425,5 @@ def list_sensors(type_name=None, session=None):
     if type_name is not None:
         query = query.where(SensorType.name == type_name)
     result = session.execute(query).mappings().all()
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
+    result = utils.row_mappings_to_dicts(result)
     return result

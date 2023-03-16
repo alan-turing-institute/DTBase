@@ -63,8 +63,7 @@ def test_insert_location_nonexisting_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_existing_schema(client, session):
-    #    with mock.patch("dtbase.backend.api.location.routes.db.session", session):
+def test_insert_location_existing_schema(client):
     with client:
         schema = {
             "name": "xy",

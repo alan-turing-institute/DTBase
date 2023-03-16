@@ -362,7 +362,7 @@ def test_delete_sensor_measure(rollback_session):
         sensors.delete_sensor_measure("temperature", session=rollback_session)
 
 
-def test_delete_sensor_type_readings_exists(rollback_session):
+def test_delete_sensor_measure_type_exists(rollback_session):
     """Try to delete a sensor measure for which a sensor type exists."""
     insert_types(rollback_session)
     error_msg = (

@@ -245,12 +245,95 @@ def delete_location_by_coordinates(schema_name, session=None, **kwargs):
 
 @add_default_session
 def delete_location_identifier(identifier_name, session=None):
-    raise NotImplemented("Deleting location identifiers not yet implemented.")
+    """Delete a location identifier from the database.
+
+    Raises an error if a schema exists that uses this identifier.
+
+    Args:
+        identifier_name: Name of the location identifier to delete.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    session.execute(
+        sqla.delete(LocationIdentifier).where(
+            LocationIdentifier.name == identifier_name
+        )
+    )
 
 
 @add_default_session
 def delete_location_schema(schema_name, session=None):
-    raise NotImplemented("Deleting location schemas not yet implemented.")
+    """Delete a location schema from the database.
+
+    Raises an error if a location exists that uses this schema.
+
+    Args:
+        identifier_name: Name of the location schema to delete.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    schema_id = schema_id_from_name(schema_name, session=session)
+    session.execute(
+        sqla.delete(LocationSchemaIdentifierRelation).where(
+            LocationSchemaIdentifierRelation.schema_id == schema_id
+        )
+    )
+    session.execute(
+        sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
+    )
+
+
+@add_default_session
+def list_location_identifiers(session=None):
+    """List all location identifiers
+
+    Args:
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        List of all location identifiers
+    """
+    result = (
+        session.execute(
+            sqla.select(
+                LocationIdentifier.id,
+                LocationIdentifier.name,
+                LocationIdentifier.units,
+                LocationIdentifier.datatype,
+            )
+        )
+        .mappings()
+        .all()
+    )
+    result = utils.row_mappings_to_dicts(result)
+    return result
+
+
+@add_default_session
+def list_location_schemas(session=None):
+    """List all location schemas
+
+    Args:
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        List of all location schemas
+    """
+    result = (
+        session.execute(
+            sqla.select(
+                LocationSchema.id, LocationSchema.name, LocationSchema.description
+            )
+        )
+        .mappings()
+        .all()
+    )
+    result = utils.row_mappings_to_dicts(result)
+    return result
 
 
 @add_default_session
@@ -274,6 +357,5 @@ def list_locations(schema_name, session=None, **kwargs):
     """
     query = queries.select_location_by_coordinates(schema_name, session, **kwargs)
     result = session.execute(query).mappings().all()
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
+    result = utils.row_mappings_to_dicts(result)
     return result
