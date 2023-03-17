@@ -42,15 +42,6 @@ def session():
 
 
 @pytest.fixture()
-def rollback_session(session):
-    # session.begin()
-    yield session
-    # session.rollback()
-    session.close()
-    reset_tables()
-
-
-@pytest.fixture()
 def app():
     config = config_dict["Test"]
     app = create_app(config)
