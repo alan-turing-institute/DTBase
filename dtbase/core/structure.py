@@ -35,6 +35,9 @@ SQLA = SQLAlchemy()
 BASE = SQLA.Model
 
 
+datatype_name = Enum("string", "float", "integer", "boolean", name="value_datatype")
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Locations
 
@@ -75,10 +78,7 @@ class LocationIdentifier(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    datatype = Column(
-        Enum("string", "float", "integer", "boolean", name="location_value_datatype"),
-        nullable=False,
-    )
+    datatype = Column(datatype_name, nullable=False)
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
@@ -249,10 +249,7 @@ class SensorMeasure(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
-    datatype = Column(
-        Enum("string", "float", "integer", "boolean", name="sensor_reading_datatype"),
-        nullable=False,
-    )
+    datatype = Column(datatype_name, nullable=False)
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 

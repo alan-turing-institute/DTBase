@@ -109,7 +109,7 @@ def test_insert_location_schema_duplicate(rollback_session):
 def test_insert_location_schema_no_identifierr(rollback_session):
     """Try to insert a location schema that uses identifiers that don't exist."""
     insert_schemas(rollback_session)
-    error_msg = "No location identifier named longitude_misspelled"
+    error_msg = "No location identifier 'longitude_misspelled'"
     with pytest.raises(ValueError, match=error_msg):
         locations.insert_location_schema(
             name="latlong_misspelled",
@@ -147,7 +147,7 @@ def test_insert_location_duplicate(rollback_session):
 def test_insert_location_no_schema(rollback_session):
     """Try to insert a location with a non-existing schema."""
     insert_schemas(rollback_session)
-    with pytest.raises(ValueError, match="No location schema named heightitude"):
+    with pytest.raises(ValueError, match="No location schema 'heightitude'"):
         locations.insert_location(
             "heightitude", latitude=12.0, longitude=0.0, session=rollback_session
         )
@@ -213,7 +213,7 @@ def test_delete_location_identifier(rollback_session):
     assert len(all_identifiers) == 1
 
     # Doing the same deletion again should fail, since that row is gone.
-    error_msg = "No location identifier named 'latitude'"
+    error_msg = "No location identifier 'latitude'"
     with pytest.raises(ValueError, match=error_msg):
         locations.delete_location_identifier("latitude", session=rollback_session)
 
@@ -238,7 +238,7 @@ def test_delete_location_schema(rollback_session):
     assert len(all_schemas) == 1
 
     # Doing the same deletion again should fail, since that row is gone.
-    error_msg = "No location schema named 'latlong'"
+    error_msg = "No location schema 'latlong'"
     with pytest.raises(ValueError, match=error_msg):
         locations.delete_location_schema("latlong", session=rollback_session)
 

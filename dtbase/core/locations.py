@@ -56,7 +56,7 @@ def identifier_id_from_name(identifier_name, session=None):
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No location identifier named {identifier_name}")
+        raise ValueError(f"No location identifier '{identifier_name}'")
     if len(result) > 1:
         raise ValueError(f"Multiple location identifiers named {identifier_name}")
     return result[0][0]
@@ -76,7 +76,7 @@ def schema_id_from_name(schema_name, session=None):
     query = sqla.select(LocationSchema.id).where(LocationSchema.name == schema_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No location schema named {schema_name}")
+        raise ValueError(f"No location schema '{schema_name}'")
     if len(result) > 1:
         raise ValueError(f"Multiple location schemas named {schema_name}")
     return result[0][0]
@@ -256,6 +256,10 @@ def delete_location_identifier(identifier_name, session=None):
     Returns:
         None
     """
+    # The identifier_id_from_name call is just a quick way to raise a ValueError if this
+    # measure doesn't exist. I'm lazy to write a more proper solution to check what the
+    # DELETE query returns.
+    identifier_id_from_name(identifier_name, session=session)
     session.execute(
         sqla.delete(LocationIdentifier).where(
             LocationIdentifier.name == identifier_name
