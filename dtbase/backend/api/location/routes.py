@@ -7,11 +7,10 @@ import json
 from flask import request, jsonify
 from flask_login import login_required
 
+from dtbase.backend.api.location import blueprint
+from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
-from dtbase.backend.api.location import blueprint
-
-from dtbase.core import locations
 
 
 @blueprint.route("/insert_location_schema", methods=["POST"])

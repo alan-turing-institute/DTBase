@@ -1,5 +1,5 @@
 """
-Test API endpoints
+Test API endpoints for locations
 """
 import json
 import pytest
