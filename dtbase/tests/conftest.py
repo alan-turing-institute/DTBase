@@ -6,21 +6,48 @@ import time
 
 import pytest
 
+from dtbase.backend.api import create_app
 from dtbase.backend.config import config_dict
 from dtbase.core.constants import SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME
 from dtbase.core.db import (
     connect_db,
     create_database,
+    create_tables,
     drop_db,
+    drop_tables,
     session_close,
     session_open,
 )
 from dtbase.core.utils import create_user
-from dtbase.backend.api import create_app
 
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
+
+
+def reset_tables():
+    """Reset the database by dropping all tables and recreating them."""
+    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    drop_tables(engine)
+    create_tables(engine)
+
+
+@pytest.fixture()
+def session():
+    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    session = session_open(engine)
+    yield session
+    session.close()
+    reset_tables()
+
+
+@pytest.fixture()
+def rollback_session(session):
+    # session.begin()
+    yield session
+    # session.rollback()
+    session.close()
+    reset_tables()
 
 
 @pytest.fixture()
@@ -28,6 +55,7 @@ def app():
     config = config_dict["Test"]
     app = create_app(config)
     yield app
+    reset_tables()
 
 
 @pytest.fixture()
@@ -45,21 +73,6 @@ def testuser(app):
 @pytest.fixture()
 def runner(app):
     return app.test_cli_runner()
-
-
-@pytest.fixture()
-def session():
-    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    session = session_open(engine)
-    yield session
-
-
-@pytest.fixture()
-def rollback_session(session):
-    session.begin()
-    yield session
-    session.rollback()
-    session.close()
 
 
 def check_for_docker():
