@@ -12,6 +12,11 @@ from .constants import SQL_DEFAULT_DBNAME
 from .structure import BASE
 
 
+def create_tables(engine):
+    """Create all the tables for the database."""
+    BASE.metadata.create_all(engine)
+
+
 def create_database(conn_string, db_name):
     """
     Function to create a new database
@@ -49,7 +54,7 @@ def create_database(conn_string, db_name):
         # Connects to the engine using the new database url
         _, _, engine = connect_db(conn_string, db_name)
         # Adds the tables and columns from the classes in module structure
-        BASE.metadata.create_all(engine)
+        create_tables(engine)
 
         conn.close()
         # except:
@@ -81,10 +86,15 @@ def connect_db(conn_string, db_name):
     return True, None, engine
 
 
+def drop_tables(engine):
+    """Drop all tables in the database."""
+    BASE.metadata.drop_all(engine)
+
+
 def drop_db(conn_string, db_name):
     """
     Function to drop db
-    *WHat it doesnt do: drop individual table/column/values
+    *What it doesnt do: drop individual table/column/values
     -conn_string: the string that holds the connection to postgres
     -dbname: name of the database
     return: True, None if the db is dropped.

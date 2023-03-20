@@ -32,4 +32,9 @@ jobs:
       - run: pip install .
       - run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          pytest -vv
+          pytest --cov -vv
+      - name: Upload coverage reports to Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}

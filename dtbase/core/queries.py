@@ -15,6 +15,14 @@ from dtbase.core.structure import (
     LocationSchema,
     LocationSchemaIdentifierRelation,
     LocationStringValue,
+    Sensor,
+    SensorBooleanReading,
+    SensorFloatReading,
+    SensorIntegerReading,
+    SensorMeasure,
+    SensorStringReading,
+    SensorType,
+    SensorTypeMeasureRelation,
 )
 from dtbase.core import utils
 
@@ -77,7 +85,7 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
     columns = [Location.id]
     joins = []
     for id_id, id_name, id_datatype in identifiers:
-        value_class = aliased(utils.get_value_class_from_type_name(id_datatype))
+        value_class = aliased(utils.location_value_class_dict[id_datatype])
         columns.append(value_class.value.label(id_name))
         join_conditions = [
             value_class.location_id == Location.id,
@@ -90,3 +98,26 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
     for join in joins:
         location_q = location_q.join(*join)
     return location_q
+
+
+def sensor_measures_by_type():
+    """Query for measures of sensors by sensor type."""
+    query = (
+        sqla.select(
+            SensorType.id.label("type_id"),
+            SensorType.name.label("type_name"),
+            SensorMeasure.id.label("measure_id"),
+            SensorMeasure.name.label("measure_name"),
+            SensorMeasure.units.label("measure_units"),
+            SensorMeasure.datatype.label("measure_datatype"),
+        )
+        .join(
+            SensorTypeMeasureRelation,
+            SensorTypeMeasureRelation.type_id == SensorType.id,
+        )
+        .join(
+            SensorMeasure,
+            SensorMeasure.id == SensorTypeMeasureRelation.measure_id,
+        )
+    )
+    return query

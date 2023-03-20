@@ -7,11 +7,10 @@ import json
 from flask import request, jsonify
 from flask_login import login_required
 
+from dtbase.backend.api.location import blueprint
+from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
-from dtbase.backend.api.location import blueprint
-
-from dtbase.core import locations
 
 
 @blueprint.route("/insert_location_schema", methods=["POST"])
@@ -148,6 +147,4 @@ def list_locations(schema_name):
         **payload,
         session=db.session,
     )
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
     return jsonify(result), 200
