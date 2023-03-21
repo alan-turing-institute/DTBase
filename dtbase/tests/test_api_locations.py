@@ -92,3 +92,39 @@ def test_list_locations_no_coords(client):
         response = client.get("/location/list/xy")
         assert response.status_code == 200
         assert isinstance(response.json, list)
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_location_schema(client):
+    with client:
+        # First, create a schema to be deleted
+        schema = {
+            "name": "temp-schema",
+            "description": "Temporary schema for testing deletion",
+            "identifiers": [
+                {"name": "lat", "units": "degrees", "datatype": "float"},
+                {"name": "lon", "units": "degrees", "datatype": "float"},
+            ],
+        }
+        response = client.post(
+            "/location/insert_location_schema", json=json.dumps(schema)
+        )
+        assert response.status_code == 201
+
+        # Now, delete the created schema
+        response = client.delete("/location/delete_location_schema/temp-schema")
+        assert response.status_code == 200
+        assert response.json["status"] == "success"
+        assert (
+            response.json["message"]
+            == "Location schema 'temp-schema' has been deleted."
+        )
+
+        # Try to delete the schema again, expecting a 404 error
+        response = client.delete("/location/delete_location_schema/temp-schema")
+        assert response.status_code == 404
+        assert response.json["status"] == "error"
+        assert (
+            response.json["message"]
+            == "Location schema 'temp-schema' not found or could not be deleted."
+        )
