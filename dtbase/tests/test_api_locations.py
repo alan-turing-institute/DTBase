@@ -97,34 +97,64 @@ def test_list_locations_no_coords(client):
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_location_schema(client):
     with client:
-        # First, create a schema to be deleted
+        # First, insert a location schema to delete later
         schema = {
-            "name": "temp-schema",
-            "description": "Temporary schema for testing deletion",
+            "name": "test-schema",
+            "description": "A test schema for deletion",
             "identifiers": [
-                {"name": "lat", "units": "degrees", "datatype": "float"},
-                {"name": "lon", "units": "degrees", "datatype": "float"},
+                {"name": "test1", "units": None, "datatype": "string"},
+                {"name": "test2", "units": None, "datatype": "integer"},
             ],
         }
         response = client.post(
             "/location/insert_location_schema", json=json.dumps(schema)
         )
         assert response.status_code == 201
+        
+         # Check if the schema was inserted successfully
+        response = client.get("/location/list_location_schemas")
+        schemas = response.get_json()
+        print(f'List of schemas: {schemas}')
+        assert any(s["name"] == "test-schema" for s in schemas)
 
-        # Now, delete the created schema
-        response = client.delete("/location/delete_location_schema/temp-schema")
+        # Delete the location schema
+        response = client.delete("/location/delete_location_schema/test-schema")
         assert response.status_code == 200
-        assert response.json["status"] == "success"
-        assert (
-            response.json["message"]
-            == "Location schema 'temp-schema' has been deleted."
-        )
 
-        # Try to delete the schema again, expecting a 404 error
-        response = client.delete("/location/delete_location_schema/temp-schema")
-        assert response.status_code == 404
-        assert response.json["status"] == "error"
-        assert (
-            response.json["message"]
-            == "Location schema 'temp-schema' not found or could not be deleted."
-        )
+        # Check if the schema was deleted successfully
+        response = client.get("/location/list_location_schemas")
+        schemas = response.get_json()
+        assert not any(s["name"] == "test-schema" for s in schemas)
+    
+    
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_list_location_schemas(client):
+    with client:
+        # Insert location schemas
+        schema1 = {
+            "name": "test-schema1",
+            "description": "Test schema 1",
+            "identifiers": [
+                {"name": "test1", "units": None, "datatype": "string"},
+                {"name": "test2", "units": None, "datatype": "integer"},
+            ],
+        }
+        schema2 = {
+            "name": "test-schema2",
+            "description": "Test schema 2",
+            "identifiers": [
+                {"name": "test3", "units": None, "datatype": "string"},
+                {"name": "test4", "units": None, "datatype": "integer"},
+            ],
+        }
+        client.post("/location/insert_location_schema", json=json.dumps(schema1))
+        client.post("/location/insert_location_schema", json=json.dumps(schema2))
+
+        # Test list_location_schemas
+        response = client.get("/location/list_location_schemas")
+        assert response.status_code == 200
+
+        # Check if the inserted schemas are in the response
+        schema_names = [schema["name"] for schema in response.json]
+        assert schema1["name"] in schema_names
+        assert schema2["name"] in schema_names

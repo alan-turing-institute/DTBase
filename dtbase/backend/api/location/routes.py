@@ -158,10 +158,25 @@ def delete_location_schema(schema_name):
     Endpoint URL: /delete_location_schema/<schema_name>
     """
 
-    result = locations.delete_location_schema(schema_name=schema_name, session=db.session)
+    locations.delete_location_schema(schema_name=schema_name, session=db.session)
     db.session.commit()
 
-    if result:
+    # Check if the schema still exists in the database
+    schemas = locations.list_location_schemas(session=db.session)
+    schema_names = [schema["name"] for schema in schemas]
+
+    if schema_name not in schema_names:
         return jsonify({"status": "success", "message": f"Location schema '{schema_name}' has been deleted."}), 200
     else:
         return jsonify({"status": "error", "message": f"Location schema '{schema_name}' not found or could not be deleted."}), 404
+
+
+@blueprint.route("/list_location_schemas", methods=["GET"])
+# @login_required
+def list_location_schemas():
+    """
+    List location schemas in the database.
+    """
+
+    result = locations.list_location_schemas(session=db.session)
+    return jsonify(result), 200
