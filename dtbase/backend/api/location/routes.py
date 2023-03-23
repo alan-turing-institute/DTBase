@@ -208,4 +208,3 @@ def delete_location_by_coordinates(schema_name):
         return jsonify({"message": "Location deleted successfully."}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
