@@ -192,9 +192,9 @@ def delete_location_schema(schema_name):
         return jsonify({"status": "error", "message": f"Location schema '{schema_name}' not found or could not be deleted."}), 404
 
 
-@blueprint.route("/delete_location/<schema_name>", methods=["DELETE"])
+@blueprint.route("/delete_location_by_coordinates/<schema_name>", methods=["DELETE"])
 # @login_required
-def delete_location(schema_name):
+def delete_location_by_coordinates(schema_name):
     """
     Delete a location with the specified schema name and coordinates.
     """
