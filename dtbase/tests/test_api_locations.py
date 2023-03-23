@@ -131,38 +131,6 @@ def test_list_location_identifiers(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location_schema(client):
-    with client:
-        # First, insert a location schema to delete later
-        schema = {
-            "name": "test-schema",
-            "description": "A test schema for deletion",
-            "identifiers": [
-                {"name": "test1", "units": None, "datatype": "string"},
-                {"name": "test2", "units": None, "datatype": "integer"},
-            ],
-        }
-        response = client.post(
-            "/location/insert_location_schema", json=json.dumps(schema)
-        )
-        assert response.status_code == 201
-        
-         # Check if the schema was inserted successfully
-        response = client.get("/location/list_location_schemas")
-        schemas = response.get_json()
-        assert any(s["name"] == "test-schema" for s in schemas)
-
-        # Delete the location schema
-        response = client.delete("/location/delete_location_schema/test-schema")
-        assert response.status_code == 200
-
-        # Check if the schema was deleted successfully
-        response = client.get("/location/list_location_schemas")
-        schemas = response.get_json()
-        assert not any(s["name"] == "test-schema" for s in schemas)
-    
-    
-@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_location_schemas(client):
     with client:
         # Insert location schemas
@@ -194,6 +162,38 @@ def test_list_location_schemas(client):
         assert schema1["name"] in schema_names
         assert schema2["name"] in schema_names
 
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_location_schema(client):
+    with client:
+        # First, insert a location schema to delete later
+        schema = {
+            "name": "test-schema",
+            "description": "A test schema for deletion",
+            "identifiers": [
+                {"name": "test1", "units": None, "datatype": "string"},
+                {"name": "test2", "units": None, "datatype": "integer"},
+            ],
+        }
+        response = client.post(
+            "/location/insert_location_schema", json=json.dumps(schema)
+        )
+        assert response.status_code == 201
+        
+         # Check if the schema was inserted successfully
+        response = client.get("/location/list_location_schemas")
+        schemas = response.get_json()
+        assert any(s["name"] == "test-schema" for s in schemas)
+
+        # Delete the location schema
+        response = client.delete("/location/delete_location_schema/test-schema")
+        assert response.status_code == 200
+
+        # Check if the schema was deleted successfully
+        response = client.get("/location/list_location_schemas")
+        schemas = response.get_json()
+        assert not any(s["name"] == "test-schema" for s in schemas)
+    
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_location(client):
