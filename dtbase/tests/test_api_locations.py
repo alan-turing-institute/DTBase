@@ -114,7 +114,6 @@ def test_delete_location_schema(client):
          # Check if the schema was inserted successfully
         response = client.get("/location/list_location_schemas")
         schemas = response.get_json()
-        print(f'List of schemas: {schemas}')
         assert any(s["name"] == "test-schema" for s in schemas)
 
         # Delete the location schema
@@ -158,3 +157,30 @@ def test_list_location_schemas(client):
         schema_names = [schema["name"] for schema in response.json]
         assert schema1["name"] in schema_names
         assert schema2["name"] in schema_names
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_location(client):
+    with client:
+        # Insert a location schema and a location
+        schema = {
+            "name": "test-schema",
+            "description": "Test schema for deletion",
+            "identifiers": [
+                {"name": "x", "units": "m", "datatype": "float"},
+                {"name": "y", "units": "m", "datatype": "float"},
+            ],
+        }
+        client.post("/location/insert_location_schema", json=json.dumps(schema))
+
+        location = {"x": 1.0, "y": 2.0}
+        client.post("/location/insert_location/test-schema", json=json.dumps(location))
+
+        # Test delete_location
+        response = client.delete("/location/delete_location/test-schema", json=json.dumps(location))
+        assert response.status_code == 200
+
+        # # Check if the location was deleted
+        response = client.get("/location/list/test-schema", json=json.dumps(location))
+        assert response.status_code == 200
+        assert len(response.json) == 0
