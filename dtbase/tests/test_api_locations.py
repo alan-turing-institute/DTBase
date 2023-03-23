@@ -95,6 +95,42 @@ def test_list_locations_no_coords(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_list_location_identifiers(client):
+    with client:
+        # Insert location schemas with unique identifiers
+        schema1 = {
+            "name": "test-schema1",
+            "description": "Test schema 1",
+            "identifiers": [
+                {"name": "test1", "units": None, "datatype": "string"},
+                {"name": "test2", "units": None, "datatype": "integer"},
+            ],
+        }
+        schema2 = {
+            "name": "test-schema2",
+            "description": "Test schema 2",
+            "identifiers": [
+                {"name": "test3", "units": None, "datatype": "string"},
+                {"name": "test4", "units": None, "datatype": "integer"},
+            ],
+        }
+        client.post("/location/insert_location_schema", json=json.dumps(schema1))
+        client.post("/location/insert_location_schema", json=json.dumps(schema2))
+
+        # Test list_location_identifiers
+        response = client.get("/location/list_location_identifiers")
+        assert response.status_code == 200
+
+        # Check if the inserted identifiers are in the response
+        identifier_names = [identifier["name"] for identifier in response.json]
+        for identifier in schema1["identifiers"]:
+            assert identifier["name"] in identifier_names
+
+        for identifier in schema2["identifiers"]:
+            assert identifier["name"] in identifier_names
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_location_schema(client):
     with client:
         # First, insert a location schema to delete later

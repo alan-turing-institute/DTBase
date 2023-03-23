@@ -160,6 +160,16 @@ def list_location_schemas():
     result = locations.list_location_schemas(session=db.session)
     return jsonify(result), 200
 
+@blueprint.route("/list_location_identifiers", methods=["GET"])
+# @login_required
+def list_location_identifiers():
+    """
+    List location identifiers in the database.
+    """
+
+    result = locations.list_location_identifiers(session=db.session)
+    return jsonify(result), 200
+
 
 @blueprint.route("/delete_location_schema/<schema_name>", methods=["DELETE"])
 # @login_required
