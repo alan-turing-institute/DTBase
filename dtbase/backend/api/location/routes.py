@@ -188,7 +188,15 @@ def delete_location_schema(schema_name):
     schema_names = [schema["name"] for schema in schemas]
 
     if schema_name not in schema_names:
-        return jsonify({"status": "success", "message": f"Location schema '{schema_name}' has been deleted."}), 200
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": f"Location schema '{schema_name}' has been deleted.",
+                }
+            ),
+            200,
+        )
     else:
         return jsonify({"status": "error", "message": f"Location schema '{schema_name}' not found or could not be deleted."}), 404
 
