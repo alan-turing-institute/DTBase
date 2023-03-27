@@ -160,6 +160,7 @@ def list_location_schemas():
     result = locations.list_location_schemas(session=db.session)
     return jsonify(result), 200
 
+
 @blueprint.route("/list_location_identifiers", methods=["GET"])
 # @login_required
 def list_location_identifiers():
@@ -186,7 +187,15 @@ def delete_location_schema(schema_name):
     if deletion_success:
         return jsonify({"status": "success", "message": f"Location schema '{schema_name}' has been deleted."}), 200
     else:
-        return jsonify({"status": "error", "message": f"Location schema '{schema_name}' not found or could not be deleted."}), 404
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Location schema '{schema_name}' not found or could not be deleted.",
+                }
+            ),
+            404,
+        )
 
 
 @blueprint.route("/delete_location_by_coordinates/<schema_name>", methods=["DELETE"])
@@ -196,7 +205,6 @@ def delete_location(schema_name):
     Delete a location with the specified schema name and coordinates.
     """
     payload = json.loads(request.get_json())
-    
     try:
         locations.delete_location_by_coordinates(
             schema_name, session=db.session, **payload

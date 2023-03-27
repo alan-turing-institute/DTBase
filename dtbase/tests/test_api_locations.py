@@ -179,8 +179,8 @@ def test_delete_location_schema(client):
             "/location/insert_location_schema", json=json.dumps(schema)
         )
         assert response.status_code == 201
-        
-         # Check if the schema was inserted successfully
+
+        # Check if the schema was inserted successfully
         response = client.get("/location/list_location_schemas")
         schemas = response.get_json()
         assert any(s["name"] == "test-schema" for s in schemas)
@@ -193,7 +193,6 @@ def test_delete_location_schema(client):
         response = client.get("/location/list_location_schemas")
         schemas = response.get_json()
         assert not any(s["name"] == "test-schema" for s in schemas)
-    
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_location(client):
@@ -213,7 +212,10 @@ def test_delete_location(client):
         client.post("/location/insert_location/test-schema", json=json.dumps(location))
 
         # Test delete_location
-        response = client.delete("/location/delete_location_by_coordinates/test-schema", json=json.dumps(location))
+        response = client.delete(
+            "/location/delete_location_by_coordinates/test-schema",
+            json=json.dumps(location),
+        )
         assert response.status_code == 200
 
         # # Check if the location was deleted
