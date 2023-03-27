@@ -216,7 +216,6 @@ def delete_location_by_coordinates(schema_name):
     Delete a location with the specified schema name and coordinates.
     """
     payload = json.loads(request.get_json())
-    
     try:
         locations.delete_location_by_coordinates(
             schema_name, session=db.session, **payload
