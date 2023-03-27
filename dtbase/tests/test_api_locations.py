@@ -194,6 +194,7 @@ def test_delete_location_schema(client):
         schemas = response.get_json()
         assert not any(s["name"] == "test-schema" for s in schemas)
 
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_location(client):
     with client:
