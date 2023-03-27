@@ -160,6 +160,7 @@ def list_location_schemas():
     result = locations.list_location_schemas(session=db.session)
     return jsonify(result), 200
 
+
 @blueprint.route("/list_location_identifiers", methods=["GET"])
 # @login_required
 def list_location_identifiers():
