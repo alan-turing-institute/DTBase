@@ -208,7 +208,7 @@ def delete_location_schema(schema_name):
         )
 
 
-@blueprint.route("/delete_location_by_coordinates/<schema_name>", methods=["DELETE"])
+@blueprint.route("/delete_location/<schema_name>", methods=["DELETE"])
 # @login_required
 def delete_location(schema_name):
     """
