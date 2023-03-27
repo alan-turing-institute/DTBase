@@ -179,14 +179,11 @@ def delete_location_schema(schema_name):
     Endpoint URL: /delete_location_schema/<schema_name>
     """
 
-    locations.delete_location_schema(schema_name=schema_name, session=db.session)
+    # Call delete_location_schema and check the returned value
+    deletion_success = locations.delete_location_schema(schema_name=schema_name, session=db.session)
     db.session.commit()
 
-    # Check if the schema still exists in the database
-    schemas = locations.list_location_schemas(session=db.session)
-    schema_names = [schema["name"] for schema in schemas]
-
-    if schema_name not in schema_names:
+    if deletion_success:
         return jsonify({"status": "success", "message": f"Location schema '{schema_name}' has been deleted."}), 200
     else:
         return jsonify({"status": "error", "message": f"Location schema '{schema_name}' not found or could not be deleted."}), 404
