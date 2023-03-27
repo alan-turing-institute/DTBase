@@ -286,9 +286,14 @@ def delete_location_schema(schema_name, session=None):
             LocationSchemaIdentifierRelation.schema_id == schema_id
         )
     )
-    session.execute(
+
+    # Get the number of rows affected by the delete operation
+    deleted_rows = session.execute(
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
-    )
+    ).rowcount
+
+    # If at least one row was affected, the deletion was successful
+    return deleted_rows > 0
 
 
 @add_default_session

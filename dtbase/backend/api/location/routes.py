@@ -148,3 +148,78 @@ def list_locations(schema_name):
         session=db.session,
     )
     return jsonify(result), 200
+
+
+@blueprint.route("/list_location_schemas", methods=["GET"])
+# @login_required
+def list_location_schemas():
+    """
+    List location schemas in the database.
+    """
+
+    result = locations.list_location_schemas(session=db.session)
+    return jsonify(result), 200
+
+
+@blueprint.route("/list_location_identifiers", methods=["GET"])
+# @login_required
+def list_location_identifiers():
+    """
+    List location identifiers in the database.
+    """
+
+    result = locations.list_location_identifiers(session=db.session)
+    return jsonify(result), 200
+
+
+@blueprint.route("/delete_location_schema/<schema_name>", methods=["DELETE"])
+# @login_required
+def delete_location_schema(schema_name):
+    """
+    Delete a location schema from the database.
+    Endpoint URL: /delete_location_schema/<schema_name>
+    """
+
+    # Call delete_location_schema and check the returned value
+    deletion_success = locations.delete_location_schema(
+        schema_name=schema_name, session=db.session
+    )
+    db.session.commit()
+
+    if deletion_success:
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": f"Location schema '{schema_name}' has been deleted.",
+                }
+            ),
+            200,
+        )
+    else:
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Location schema '{schema_name}' not found or could not be deleted.",
+                }
+            ),
+            404,
+        )
+
+
+@blueprint.route("/delete_location/<schema_name>", methods=["DELETE"])
+# @login_required
+def delete_location(schema_name):
+    """
+    Delete a location with the specified schema name and coordinates.
+    """
+    payload = json.loads(request.get_json())
+    try:
+        locations.delete_location_by_coordinates(
+            schema_name, session=db.session, **payload
+        )
+        db.session.commit()
+        return jsonify({"message": "Location deleted successfully."}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
