@@ -196,7 +196,7 @@ def test_delete_location_schema(client):
     
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location_by_coordinates(client):
+def test_delete_location(client):
     with client:
         # Insert a location schema and a location
         schema = {
