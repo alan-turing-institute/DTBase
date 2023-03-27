@@ -179,8 +179,8 @@ def test_delete_location_schema(client):
             "/location/insert_location_schema", json=json.dumps(schema)
         )
         assert response.status_code == 201
-        
-         # Check if the schema was inserted successfully
+
+        # Check if the schema was inserted successfully
         response = client.get("/location/list_location_schemas")
         schemas = response.get_json()
         assert any(s["name"] == "test-schema" for s in schemas)
