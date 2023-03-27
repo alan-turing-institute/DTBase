@@ -292,7 +292,6 @@ def delete_location_schema(schema_name, session=None):
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
     ).rowcount
 
-    print(f"The number of deleted rows is: {deleted_rows}")
 
     # If at least one row was affected, the deletion was successful
     return deleted_rows > 0
