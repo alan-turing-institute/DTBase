@@ -214,7 +214,7 @@ def test_delete_location(client):
 
         # Test delete_location
         response = client.delete(
-            "/location/delete_location_by_coordinates/test-schema",
+            "/location/delete_location/test-schema",
             json=json.dumps(location),
         )
         assert response.status_code == 200
