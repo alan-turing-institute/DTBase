@@ -213,7 +213,10 @@ def test_delete_location_by_coordinates(client):
         client.post("/location/insert_location/test-schema", json=json.dumps(location))
 
         # Test delete_location
-        response = client.delete("/location/delete_location_by_coordinates/test-schema", json=json.dumps(location))
+        response = client.delete(
+            "/location/delete_location_by_coordinates/test-schema",
+            json=json.dumps(location),
+        )
         assert response.status_code == 200
 
         # # Check if the location was deleted
