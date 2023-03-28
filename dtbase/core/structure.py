@@ -381,6 +381,25 @@ class SensorBooleanReading(BASE):
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
+class SensorLocation(BASE):
+    """
+    Location history of a sensor.
+    """
+
+    __tablename__ = "sensor_location"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    sensor_id = Column(Integer, ForeignKey("sensor.id"), nullable=False)
+    location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
+    installation_datetime = Column(DateTime, nullable=False)
+    time_created = Column(DateTime(), server_default=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("sensor_id", "installation_datetime"),)
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Other
 

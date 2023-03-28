@@ -54,3 +54,55 @@ def test_list_sensors_of_a_type(client):
         response = client.get("/sensor/list/weather")
         assert response.status_code == 200
         assert isinstance(response.json, list)
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_sensor_locations(client):
+    with client:
+        # Insert a sensor type
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+
+        # Insert a sensor
+        unique_id = "THISISAUUIDISWEAR"
+        sensor = {
+            "unique_identifier": unique_id,
+            "name": "Rooftop weather",
+            "notes": "The blue weather sensor on the roof",
+        }
+        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        assert response.status_code == 201
+
+        # Insert a location
+        x_coord = 0.23
+        y_coord = 1.44
+        location = {
+            "identifiers": [
+                {"name": "x", "units": "centimetres", "datatype": "float"},
+                {"name": "y", "units": "centimetres", "datatype": "float"},
+            ],
+            "values": [x_coord, y_coord],
+        }
+        response = client.post("/location/insert_location", json=json.dumps(location))
+        assert response.status_code == 201
+        schema_name = response.json["schema_name"]
+
+        # Set the sensor location
+        sensor_location = {
+            "sensor_identifier": unique_id,
+            "location_schema": schema_name,
+            "coordinates": {"x": x_coord, "y": y_coord},
+        }
+        response = client.post(
+            "/sensor/insert_sensor_location", json=json.dumps(sensor_location)
+        )
+        assert response.status_code == 201
+
+        # Check that the sensor location has been set
+        response = client.get(
+            "/sensor/list_sensor_locations",
+            json=json.dumps({"unique_identifier": unique_id}),
+        )
+        assert response.status_code == 200
+        assert response.json[0]["x"] == x_coord
+        assert response.json[0]["y"] == y_coord
