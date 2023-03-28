@@ -57,6 +57,35 @@ def test_list_sensors_of_a_type(client):
         
         
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_sensor_readings(client):
+    with client:
+        # Insert a sensor type and a sensor
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        sensor = {
+            "unique_identifier": "THISISAUUIDISWEAR",
+            "name": "Rooftop weather",
+            "notes": "The blue weather sensor on the roof",
+        }
+        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        assert response.status_code == 201
+
+        # Test the insert_sensor_readings API endpoint
+        sensor_readings_payload = {
+            "measure_name": "temperature",
+            "sensor_uniq_id": "THISISAUUIDISWEAR",
+            "readings": [290.5, 291.0, 291.5],
+            "timestamps": [
+                "2023-03-29T00:00:00",
+                "2023-03-29T01:00:00",
+                "2023-03-29T02:00:00",
+            ],
+        }
+        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings_payload))
+        assert response.status_code == 201
+
+        
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensor_measures(client):
     with client:
         

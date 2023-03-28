@@ -83,6 +83,55 @@ def insert_sensor(type_name):
     return jsonify(payload), 201
 
 
+@blueprint.route("/insert_sensor_readings", methods=["POST"])
+# @login_required
+def insert_sensor_readings():
+    """
+    Add sensor readings to the database.
+
+    POST request should have JSON data (mimetype "application/json") containing
+    {
+      "measure_name": <measure_name:str>,
+      "sensor_uniq_id": <sensor_unique_identifier:str>,
+      "readings": <list of readings>,
+      "timestamps": <list of timestamps>
+    }
+    """
+
+    payload = json.loads(request.get_json())
+    required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
+    for k in required_keys:
+        if not k in payload.keys():
+            raise RuntimeError(
+                f"Must include '{k}' in POST request to /insert_sensor_readings"
+            )
+
+    measure_name = payload["measure_name"]
+    sensor_uniq_id = payload["sensor_uniq_id"]
+    readings = payload["readings"]
+    timestamps = payload["timestamps"]
+
+    # Convert timestamps from strings to datetime objects
+    timestamps = [datetime.fromisoformat(ts) for ts in timestamps]
+
+    db.session.begin()
+    try:
+        sensors.insert_sensor_readings(
+            measure_name=measure_name,
+            sensor_uniq_id=sensor_uniq_id,
+            readings=readings,
+            timestamps=timestamps,
+            session=db.session,
+        )
+    except Exception:
+        db.session.rollback()
+        raise
+    db.session.commit()
+
+    return jsonify(payload), 201
+
+
+
 @blueprint.route("/list", methods=["GET"])
 # @login_required
 def list_sensors(type_name):
