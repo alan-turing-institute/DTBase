@@ -112,7 +112,11 @@ def insert_sensor_readings():
     timestamps = payload["timestamps"]
 
     # Convert timestamps from strings to datetime objects
-    timestamps = [datetime.fromisoformat(ts) for ts in timestamps]
+    dt_format = "%d-%m-%Y %H:%M:%S"
+    try:
+        timestamps = [datetime.strptime(ts, dt_format) for ts in timestamps]
+    except ValueError:
+        return jsonify({"error": "Invalid datetime format. Use '%d-%m-%Y %H:%M:%S'"}), 400
 
     db.session.begin()
     try:
@@ -129,7 +133,6 @@ def insert_sensor_readings():
     db.session.commit()
 
     return jsonify(payload), 201
-
 
 
 @blueprint.route("/list", methods=["GET"])
@@ -162,6 +165,54 @@ def list_sensor_measures():
     """List sensor measures in the database."""
     result = sensors.list_sensor_measures(session=db.session)
     return jsonify(result), 200
+
+
+@blueprint.route("/sensor_readings", methods=["POST"])
+# @login_required
+def get_sensor_readings():
+    """
+    Get sensor readings for a specific measure and sensor between two dates.
+
+    POST request should have JSON data (mimetype "application/json") containing:
+        measure_name: Name of the sensor measure to get readings for.
+        sensor_uniq_id: Unique identifier for the sensor to get readings for.
+        dt_from: Datetime string for earliest readings to get. Inclusive. Format: '%Y-%m-%dT%H:%M:%S'.
+        dt_to: Datetime string for last readings to get. Inclusive. Format: '%Y-%m-%dT%H:%M:%S'.
+    """
+
+    payload = json.loads(request.get_json())
+
+    required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
+    for k in required_keys:
+        if not k in payload.keys():
+            raise RuntimeError(
+                f"Must include '{k}' in POST request to /get_sensor_readings"
+            )
+            
+    measure_name = payload.get("measure_name")
+    sensor_uniq_id = payload.get("sensor_uniq_id")
+    dt_from = payload.get("dt_from")
+    dt_to = payload.get("dt_to")
+
+    # Convert dt_from and dt_to to datetime objects
+    dt_format = "%d-%m-%Y %H:%M:%S"
+    try:
+        dt_from = datetime.strptime(dt_from, dt_format)
+        dt_to = datetime.strptime(dt_to, dt_format)
+    except ValueError:
+        return jsonify({"error": "Invalid datetime format. Use '%d-%m-%Y %H:%M:%S'"}), 400
+
+    readings = sensors.get_sensor_readings(
+        measure_name, sensor_uniq_id, dt_from, dt_to, session=db.session
+    )
+
+    # Convert readings to JSON-friendly format
+    readings_json = [
+        {"value": reading[0], "timestamp": reading[1].strftime(dt_format)}
+        for reading in readings
+    ]
+
+    return jsonify(readings_json), 200
 
 
 @blueprint.route("/delete_sensor/<unique_identifier>", methods=["DELETE"])
