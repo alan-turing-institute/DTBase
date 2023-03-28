@@ -65,6 +65,18 @@ def test_list_sensor_measures(client):
         
         response = client.get("/sensor/list_measures")
         assert response.status_code == 200
+        assert isinstance(response.json, list)
+        
+        
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_list_sensor_types(client):
+    with client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        
+        response = client.get("/sensor/list_sensor_types")
+        assert response.status_code == 200
+        assert isinstance(response.json, list)
         
         
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
