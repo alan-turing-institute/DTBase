@@ -54,3 +54,24 @@ def test_list_sensors_of_a_type(client):
         response = client.get("/sensor/list/weather")
         assert response.status_code == 200
         assert isinstance(response.json, list)
+        
+        
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_sensor(client):
+    with client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        # Use that type to insert a sensor
+        sensor = {
+            "unique_identifier": "THISISAUUIDISWEAR",
+            "name": "Rooftop weather",
+            "notes": "The blue weather sensor on the roof",
+        }
+        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        assert response.status_code == 201
+        
+        response = client.delete("/sensor/delete_sensor/THISISAUUIDISWEAR")
+        assert response.status_code == 200
+        
+        
+        
