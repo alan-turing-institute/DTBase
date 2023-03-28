@@ -72,6 +72,14 @@ def test_delete_sensor(client):
         
         response = client.delete("/sensor/delete_sensor/THISISAUUIDISWEAR")
         assert response.status_code == 200
-        
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_sensor_type(client):
+    with client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        response = client.delete("/sensor/delete_sensor_type/weather")
+        assert response.status_code == 200
         
         

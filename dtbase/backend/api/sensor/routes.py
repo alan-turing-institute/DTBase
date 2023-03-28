@@ -106,3 +106,12 @@ def delete_sensor(unique_identifier):
     sensors.delete_sensor(unique_identifier=unique_identifier, session=db.session)
     db.session.commit()
     return jsonify({"message": "Sensor deleted"}), 200
+
+
+@blueprint.route("/delete_sensor_type/<type_name>", methods=["DELETE"])
+# @login_required
+def delete_sensor_type(type_name):
+    """Delete a sensor type from the database."""
+    sensors.delete_sensor_type(type_name=type_name, session=db.session)
+    db.session.commit()
+    return jsonify({"message": "Sensor type deleted"}), 200
