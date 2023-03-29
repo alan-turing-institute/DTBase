@@ -203,7 +203,7 @@ def insert_sensor_readings(
     datatype_matches = utils.check_datatype(example_element, expected_datatype)
     if not datatype_matches:
         raise ValueError(
-            f"For sensor measure '{measure_name}' expected a readings of type "
+            f"For sensor measure '{measure_name}' expected readings of type "
             f"{expected_datatype} but got a {element_type}."
         )
 

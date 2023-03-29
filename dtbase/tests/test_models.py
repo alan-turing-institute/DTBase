@@ -9,7 +9,7 @@ import pytest
 from dtbase.core import models
 
 # We use this in many places, and I don't want to type out the whole thing every time.
-NOW = dt.datetime.now()
+NOW = dt.datetime.now(dt.timezone.utc)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Functions for inserting some data into the database. These will called at the
@@ -26,6 +26,33 @@ MEASURE_NAME1 = "mean temperature"
 MEASURE_UNITS1 = "Kelvin"
 MEASURE_NAME2 = "likely to rain"
 MEASURE_UNITS2 = ""
+PRODUCT1 = {
+    "measure_name": MEASURE_NAME1,
+    "values": [-23.0, -23.0, -23.1],
+    "timestamps": [
+        NOW + dt.timedelta(days=1),
+        NOW + dt.timedelta(days=2),
+        NOW + dt.timedelta(days=3),
+    ],
+}
+PRODUCT2 = {
+    "measure_name": MEASURE_NAME2,
+    "values": [True, True, True],
+    "timestamps": [
+        NOW + dt.timedelta(days=1),
+        NOW + dt.timedelta(days=2),
+        NOW + dt.timedelta(days=3),
+    ],
+}
+PRODUCT3 = {
+    "measure_name": MEASURE_NAME2,
+    "values": [False, True, False],
+    "timestamps": [
+        NOW + dt.timedelta(weeks=1),
+        NOW + dt.timedelta(weeks=2),
+        NOW + dt.timedelta(weeks=3),
+    ],
+}
 
 
 def insert_models(session):
@@ -64,49 +91,29 @@ def insert_measures(session):
     )
 
 
-def insert_runs(session, time_created=NOW):
+def insert_runs(session):
     """Insert some model runs into the database."""
     insert_scenarios(session)
     insert_measures(session)
-    product1 = {
-        "measure_name": MEASURE_NAME2,
-        "values": [True, True, True],
-        "timestamps": [
-            NOW + dt.timedelta(days=1),
-            NOW + dt.timedelta(days=2),
-            NOW + dt.timedelta(days=3),
-        ],
-    }
-    product2 = {
-        "measure_name": MEASURE_NAME1,
-        "values": [-23.0, -23.0, -23.1],
-        "timestamps": [
-            NOW + dt.timedelta(days=1),
-            NOW + dt.timedelta(days=2),
-            NOW + dt.timedelta(days=3),
-        ],
-    }
-    product3 = {
-        "measure_name": MEASURE_NAME2,
-        "values": [False, True, False],
-        "timestamps": [
-            NOW + dt.timedelta(weeks=1),
-            NOW + dt.timedelta(weeks=2),
-            NOW + dt.timedelta(weeks=3),
-        ],
-    }
     models.insert_model_run(
         model_name=MODEL_NAME1,
         scenario_description=SCENARIO1,
-        measures_and_values=[product1, product2],
-        time_created=time_created,
+        measures_and_values=[PRODUCT1, PRODUCT2],
+        time_created=NOW,
+        session=session,
+    )
+    models.insert_model_run(
+        model_name=MODEL_NAME1,
+        scenario_description=SCENARIO2,
+        measures_and_values=[PRODUCT1, PRODUCT2],
+        time_created=NOW + dt.timedelta(days=1),
         session=session,
     )
     models.insert_model_run(
         model_name=MODEL_NAME2,
         scenario_description=SCENARIO3,
-        measures_and_values=[product3],
-        time_created=time_created,
+        measures_and_values=[PRODUCT3],
+        time_created=NOW,
         session=session,
     )
 
@@ -280,129 +287,213 @@ def test_delete_model_run_exists(session):
     insert_runs(session)
     error_msg = (
         'update or delete on table "model" violates foreign key constraint '
-        '"model_measure_relation_measure_id_fkey" on table '
-        '"model_measure_relation"'
+        '"model_run_model_id_fkey" on table "model_run"'
     )
     with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
         models.delete_model(MODEL_NAME1, session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Tests for model values
+# Tests for model runs
 
 
-def test_insert_model_values(session):
-    """Test inserting model values"""
-    insert_values(session)
-    read_values = models.get_model_values(
-        "temperature",
-        SENSOR_ID1,
-        dt_from=TIMESTAMPS[0],
-        dt_to=TIMESTAMPS[-1],
-        session=session,
+def test_insert_model_runs(session):
+    """Test inserting model runs"""
+    insert_runs(session)
+
+
+def test_insert_model_runs_duplicate(session):
+    """Try to insert a model run that already exists."""
+    insert_runs(session)
+    error_msg = (
+        "duplicate key value violates unique constraint "
+        '"model_run_model_id_scenario_id_time_created_key"'
     )
-    assert read_values == list(zip(TEMPERATURES, TIMESTAMPS))
+    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+        models.insert_model_run(
+            model_name=MODEL_NAME1,
+            scenario_description=SCENARIO1,
+            measures_and_values=[PRODUCT1, PRODUCT2],
+            time_created=NOW,
+            session=session,
+        )
 
 
-def test_read_partial_model_values(session):
-    """Test inserting model values"""
-    insert_values(session)
-    # Read all except first value.
-    read_values = models.get_model_values(
-        "temperature",
-        SENSOR_ID1,
-        dt_from=TIMESTAMPS[1],
-        dt_to=TIMESTAMPS[-1],
-        session=session,
+def test_list_model_runs(session):
+    """Test listing model runs."""
+    insert_runs(session)
+    # Get all runs for MODEL_NAME1
+    runs = models.list_model_runs(MODEL_NAME1, session=session)
+    expected_keys = {
+        "id",
+        "model_id",
+        "model_name",
+        "scenario_id",
+        "scenario_description",
+        "time_created",
+    }
+    assert len(runs) == 2
+    for run in runs:
+        assert set(run.keys()) == expected_keys
+
+    # Similarly for MODEL_NAME2
+    runs = models.list_model_runs(MODEL_NAME2, session=session)
+    expected_keys = {
+        "id",
+        "model_id",
+        "model_name",
+        "scenario_id",
+        "scenario_description",
+        "time_created",
+    }
+    assert len(runs) == 1
+    for run in runs:
+        assert set(run.keys()) == expected_keys
+
+
+def test_list_model_runs_by_scenario(session):
+    """Test listing model runs."""
+    insert_runs(session)
+    runs = models.list_model_runs(MODEL_NAME1, scenario=SCENARIO1, session=session)
+    expected_keys = {
+        "id",
+        "model_id",
+        "model_name",
+        "scenario_id",
+        "scenario_description",
+        "time_created",
+    }
+    assert len(runs) == 1
+    for run in runs:
+        assert set(run.keys()) == expected_keys
+
+
+def test_list_model_runs_by_time(session):
+    """Test listing model runs."""
+    insert_runs(session)
+    # Exclude one run using dt_from
+    runs = models.list_model_runs(
+        MODEL_NAME1, dt_from=NOW + dt.timedelta(hours=12), session=session
     )
-    assert read_values == list(zip(TEMPERATURES[1:], TIMESTAMPS[1:]))
+    expected_keys = {
+        "id",
+        "model_id",
+        "model_name",
+        "scenario_id",
+        "scenario_description",
+        "time_created",
+    }
+    assert len(runs) == 1
+    for run in runs:
+        assert set(run.keys()) == expected_keys
+
+    # Exclude one run using dt_to
+    runs = models.list_model_runs(
+        MODEL_NAME1, dt_to=NOW + dt.timedelta(hours=12), session=session
+    )
+    expected_keys = {
+        "id",
+        "model_id",
+        "model_name",
+        "scenario_id",
+        "scenario_description",
+        "time_created",
+    }
+    assert len(runs) == 1
+    for run in runs:
+        assert set(run.keys()) == expected_keys
 
 
-def test_insert_model_values_wrong_measure(session):
+def test_get_model_run(session):
+    """Test getting the results of a model run."""
+    insert_runs(session)
+    # Find the ID of one of the runs
+    runs = models.list_model_runs(
+        MODEL_NAME1, dt_to=NOW + dt.timedelta(hours=12), session=session
+    )
+    run_id = next(r["id"] for r in runs if r["scenario_description"] == SCENARIO1)
+    # Get the run
+    values = models.get_model_run(run_id, MEASURE_NAME1, session=session)
+    assert values == list(zip(PRODUCT1["values"], PRODUCT1["timestamps"]))
+
+
+def test_insert_model_run_no_scenario(session):
     """Try to insert model values with the wrong measure."""
-    insert_models(session)
-    error_msg = (
-        "Measure 'temperature misspelled' is not a valid measure for model "
-        f"'{SENSOR_ID1}'."
-    )
+    insert_scenarios(session)
+    insert_measures(session)
+    scenario_description = "A best case scenario"
+    error_msg = f"No model scenario '{scenario_description}' for model '{MODEL_NAME1}'."
     with pytest.raises(ValueError, match=error_msg):
-        models.insert_model_values(
-            "temperature misspelled",
-            SENSOR_ID1,
-            TEMPERATURES,
-            TIMESTAMPS,
+        models.insert_model_run(
+            model_name=MODEL_NAME1,
+            scenario_description=scenario_description,
+            measures_and_values=[PRODUCT1, PRODUCT2],
+            time_created=NOW,
             session=session,
         )
+    # The above fails because the scenario doesn't exist, but the below passes because
+    # we instruct insert_model_run to create the scenario if necessary.
+    models.insert_model_run(
+        model_name=MODEL_NAME1,
+        scenario_description=scenario_description,
+        measures_and_values=[PRODUCT1, PRODUCT2],
+        time_created=NOW,
+        create_scenario=True,
+        session=session,
+    )
+
+    scenarios = models.list_model_scenarios(session=session)
+    assert any(s["description"] == scenario_description for s in scenarios)
 
 
-def test_insert_model_values_wrong_number(session):
+def test_insert_model_run_wrong_number(session):
     """Try to insert too few or too many model values."""
-    insert_models(session)
-    error_msg = (
-        "There should be as many values as there are timestamps, but got 4 and 3"
-    )
-    with pytest.raises(ValueError, match=error_msg):
-        models.insert_model_values(
-            "temperature",
-            SENSOR_ID1,
-            TEMPERATURES + [23.0],
-            TIMESTAMPS,
-            session=session,
-        )
+    insert_scenarios(session)
+    insert_measures(session)
+    product = {
+        "measure_name": MEASURE_NAME1,
+        "values": [-23.0, -23.0],
+        "timestamps": [
+            NOW + dt.timedelta(days=1),
+            NOW + dt.timedelta(days=2),
+            NOW + dt.timedelta(days=3),
+        ],
+    }
     error_msg = (
         "There should be as many values as there are timestamps, but got 2 and 3"
     )
     with pytest.raises(ValueError, match=error_msg):
-        models.insert_model_values(
-            "temperature",
-            SENSOR_ID1,
-            TEMPERATURES[:-1],
-            TIMESTAMPS,
+        models.insert_model_run(
+            model_name=MODEL_NAME1,
+            scenario_description=SCENARIO1,
+            measures_and_values=[PRODUCT1, product],
+            time_created=NOW,
             session=session,
         )
 
 
-def test_insert_model_values_wrong_type(session):
+def test_insert_model_run_wrong_type(session):
     """Try to insert model values of the wrong type."""
-    insert_models(session)
+    insert_scenarios(session)
+    insert_measures(session)
+    product = {
+        "measure_name": MEASURE_NAME1,
+        "values": ["dada", "is", "king"],
+        "timestamps": [
+            NOW + dt.timedelta(days=1),
+            NOW + dt.timedelta(days=2),
+            NOW + dt.timedelta(days=3),
+        ],
+    }
     error_msg = (
-        "For model measure 'temperature' expected a values of type float "
-        "but got a <class 'bool'>."
+        f"For model measure '{MEASURE_NAME1}' expected values of type float "
+        "but got <class 'str'>."
     )
     with pytest.raises(ValueError, match=error_msg):
-        models.insert_model_values(
-            "temperature",
-            SENSOR_ID1,
-            [True, False, False],
-            TIMESTAMPS,
-            session=session,
-        )
-    error_msg = (
-        'column "timestamp" is of type timestamp without time zone but '
-        "expression is of type boolean"
-    )
-    with pytest.raises(sqla.exc.ProgrammingError, match=error_msg):
-        models.insert_model_values(
-            "temperature",
-            SENSOR_ID1,
-            TEMPERATURES,
-            [True, False, False],
-            session=session,
-        )
-
-
-def test_insert_model_values_duplicate(session):
-    """Try to insert model values of the wrong type."""
-    insert_values(session)
-    error_msg = (
-        "duplicate key value violates unique constraint "
-        '"model_float_value_measure_id_model_id_timestamp_key"'
-    )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
-        models.insert_model_values(
-            "temperature",
-            SENSOR_ID1,
-            [23.0, 23.0, 23.0],
-            TIMESTAMPS,
+        models.insert_model_run(
+            model_name=MODEL_NAME1,
+            scenario_description=SCENARIO1,
+            measures_and_values=[PRODUCT1, product],
+            time_created=NOW,
             session=session,
         )

@@ -185,7 +185,7 @@ def insert_model_product(model_run, measure_name, values, timestamps, session=No
     datatype_matches = utils.check_datatype(example_element, expected_datatype)
     if not datatype_matches:
         raise ValueError(
-            f"For model measure '{measure_name}' expected a values of type "
+            f"For model measure '{measure_name}' expected values of type "
             f"{expected_datatype} but got {element_type}."
         )
 
@@ -214,7 +214,7 @@ def insert_model_run(
     model_name,
     scenario_description,
     measures_and_values,
-    time_created=dt.datetime.now(),
+    time_created=dt.datetime.now(dt.timezone.utc),
     create_scenario=False,
     session=None,
 ):
@@ -257,10 +257,12 @@ def insert_model_run(
     model_run = ModelRun(
         model_id=model_id, scenario_id=scenario_id, time_created=time_created
     )
+    session.add(model_run)
+    session.flush()
     for mnv in measures_and_values:
         measure_name = mnv["measure_name"]
         values = mnv["values"]
-        timestamps = mnv["values"]
+        timestamps = mnv["timestamps"]
         insert_model_product(
             model_run, measure_name, values, timestamps, session=session
         )
@@ -287,13 +289,14 @@ def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session
         sqla.select(
             ModelRun.id,
             ModelRun.model_id,
-            Model.name,
+            Model.name.label("model_name"),
             ModelRun.scenario_id,
-            ModelScenario.description,
+            ModelScenario.description.label("scenario_description"),
             ModelRun.time_created,
         )
         .join(Model, Model.id == ModelRun.model_id)
         .join(ModelScenario, ModelScenario.id == ModelRun.scenario_id)
+        .where(Model.name == model_name)
     )
     if dt_from is not None:
         query = query.where(ModelRun.time_created >= dt_from)

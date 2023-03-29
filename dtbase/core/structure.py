@@ -309,7 +309,7 @@ class SensorStringReading(BASE):
         ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -333,7 +333,7 @@ class SensorIntegerReading(BASE):
         ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -357,7 +357,7 @@ class SensorFloatReading(BASE):
         ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -381,7 +381,7 @@ class SensorBooleanReading(BASE):
         ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -401,8 +401,8 @@ class SensorLocation(BASE):
         nullable=False,
     )
     location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
-    installation_datetime = Column(DateTime, nullable=False)
-    time_created = Column(DateTime, server_default=func.now())
+    installation_datetime = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
 
     # arguments
     __table_args__ = (UniqueConstraint("sensor_id", "installation_datetime"),)
@@ -481,7 +481,7 @@ class ModelRun(BASE):
     id = Column(Integer, primary_key=True)
     model_id = Column(Integer, ForeignKey("model.id"), nullable=False)
     scenario_id = Column(Integer, ForeignKey("model_scenario.id"), nullable=True)
-    time_created = Column(DateTime, server_default=func.now())
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
 
     # arguments
     __table_args__ = (UniqueConstraint("model_id", "scenario_id", "time_created"),)
@@ -522,7 +522,7 @@ class ModelStringValue(BASE):
         ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     value = Column(String, nullable=False)
     # arguments
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
@@ -542,7 +542,7 @@ class ModelIntegerValue(BASE):
         ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     value = Column(Integer, nullable=False)
     # arguments
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
@@ -558,7 +558,7 @@ class ModelFloatValue(BASE):
     # columns
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey("model_product.id"), nullable=False)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     value = Column(Float, nullable=False)
     # arguments
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
@@ -578,7 +578,7 @@ class ModelBooleanValue(BASE):
         ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     value = Column(Boolean, nullable=False)
     # arguments
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
@@ -600,8 +600,8 @@ class User(BASE, UserMixin):
     email = Column(String, nullable=False, unique=True)
     password = Column(LargeBinary, nullable=False)
 
-    time_created = Column(DateTime, server_default=func.now())
-    time_updated = Column(DateTime, onupdate=func.now())
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     def __init__(self, **kwargs):
         for prop, value in kwargs.items():

@@ -19,7 +19,7 @@ def test_sensor_locations(session):
         "latitude": test_locations.LATITUDE1,
         "longitude": test_locations.LONGITUDE1,
     }
-    date1 = dt.datetime.now() - dt.timedelta(days=2)
+    date1 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=2)
     sensor_locations.insert_sensor_location(
         uniq_id, "latlong", coordinates1, date1, session=session
     )
@@ -30,7 +30,7 @@ def test_sensor_locations(session):
     assert locations[0]["installation_datetime"] == date1
 
     coordinates2 = {"latitude": test_locations.LATITUDE3}
-    date2 = dt.datetime.now() - dt.timedelta(days=1)
+    date2 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
     sensor_locations.insert_sensor_location(
         uniq_id, "lat only", coordinates2, date2, session=session
     )

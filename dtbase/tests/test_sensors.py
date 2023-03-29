@@ -21,8 +21,12 @@ SENSOR_ID3 = "STRINGSTRINGSTRING"
 TEMPERATURES = [0.0, 1.0, 2.0]
 TIMESTAMPS = list(
     map(
-        lambda x: dt.datetime.strptime(x, "%Y-%m-%d"),
-        ["2022-10-10", "2022-10-11", "2022-10-12"],
+        dt.datetime.fromisoformat,
+        [
+            "2022-10-10T01:00:00+00:00",
+            "2022-10-11T01:00:00+00:00",
+            "2022-10-12T01:00:00+00:00",
+        ],
     )
 )
 
@@ -252,7 +256,7 @@ def test_insert_sensor_readings_wrong_type(session):
     """Try to insert sensor readings of the wrong type."""
     insert_sensors(session)
     error_msg = (
-        "For sensor measure 'temperature' expected a readings of type float "
+        "For sensor measure 'temperature' expected readings of type float "
         "but got a <class 'bool'>."
     )
     with pytest.raises(ValueError, match=error_msg):
@@ -264,7 +268,7 @@ def test_insert_sensor_readings_wrong_type(session):
             session=session,
         )
     error_msg = (
-        'column "timestamp" is of type timestamp without time zone but '
+        'column "timestamp" is of type timestamp with time zone but '
         "expression is of type boolean"
     )
     with pytest.raises(sqla.exc.ProgrammingError, match=error_msg):
@@ -278,7 +282,7 @@ def test_insert_sensor_readings_wrong_type(session):
 
 
 def test_insert_sensor_readings_duplicate(session):
-    """Try to insert sensor readings of the wrong type."""
+    """Try to insert sensor readings that conflict with existing ones."""
     insert_readings(session)
     error_msg = (
         "duplicate key value violates unique constraint "
