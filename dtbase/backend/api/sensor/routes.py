@@ -94,7 +94,7 @@ def insert_sensor_readings():
       "measure_name": <measure_name:str>,
       "sensor_uniq_id": <sensor_unique_identifier:str>,
       "readings": <list of readings>,
-      "timestamps": <list of timestamps in format '%d-%m-%Y %H:%M:%S', e.g: '29-03-2023 02:00:00'>
+      "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
     }
     """
 
@@ -112,11 +112,10 @@ def insert_sensor_readings():
     timestamps = payload["timestamps"]
 
     # Convert timestamps from strings to datetime objects
-    dt_format = "%d-%m-%Y %H:%M:%S"
     try:
-        timestamps = [datetime.strptime(ts, dt_format) for ts in timestamps]
+        timestamps = [datetime.fromisoformat(ts) for ts in timestamps]
     except ValueError:
-        return jsonify({"error": "Invalid datetime format. Use '%d-%m-%Y %H:%M:%S', e.g: '29-03-2023 02:00:00'"}), 400
+        return jsonify({"error": "Invalid datetime format. Use '%Y-%m-%dT%H:%M:%S'"}), 400
 
     db.session.begin()
     try:
@@ -176,8 +175,8 @@ def get_sensor_readings():
     POST request should have JSON data (mimetype "application/json") containing:
         measure_name: Name of the sensor measure to get readings for.
         sensor_uniq_id: Unique identifier for the sensor to get readings for.
-        dt_from: Datetime string for earliest readings to get. Inclusive. Format: '%d-%m-%Y %H:%M:%S'.
-        dt_to: Datetime string for last readings to get. Inclusive. Format: '%d-%m-%Y %H:%M:%S'.
+        dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
+        dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
     """
 
     payload = json.loads(request.get_json())
@@ -195,12 +194,11 @@ def get_sensor_readings():
     dt_to = payload.get("dt_to")
 
     # Convert dt_from and dt_to to datetime objects
-    dt_format = "%d-%m-%Y %H:%M:%S"
     try:
-        dt_from = datetime.strptime(dt_from, dt_format)
-        dt_to = datetime.strptime(dt_to, dt_format)
+        dt_from = datetime.fromisoformat(dt_from)
+        dt_to = datetime.fromisoformat(dt_to)
     except ValueError:
-        return jsonify({"error": "Invalid datetime format. Use '%d-%m-%Y %H:%M:%S',  e.g: '29-03-2023 02:00:00'"}), 400
+        return jsonify({"error": "Invalid datetime format. Use ISO format: '%Y-%m-%dT%H:%M:%S'"}), 400
 
     readings = sensors.get_sensor_readings(
         measure_name, sensor_uniq_id, dt_from, dt_to, session=db.session
@@ -208,7 +206,7 @@ def get_sensor_readings():
 
     # Convert readings to JSON-friendly format
     readings_json = [
-        {"value": reading[0], "timestamp": reading[1].strftime(dt_format)}
+        {"value": reading[0], "timestamp": reading[1]}
         for reading in readings
     ]
 

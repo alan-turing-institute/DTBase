@@ -71,17 +71,17 @@ def test_insert_sensor_readings(client):
         assert response.status_code == 201
 
         # Test the insert_sensor_readings API endpoint
-        sensor_readings_payload = {
+        sensor_readings = {
             "measure_name": "temperature",
             "sensor_uniq_id": "THISISAUUIDISWEAR",
             "readings": [290.5, 291.0, 291.5],
             "timestamps": [
-                "29-03-2023 00:00:00",
-                "29-03-2023 01:00:00",
-                "29-03-2023 02:00:00",
+                "2023-03-29T00:00:00",
+                "2023-03-29T01:00:00",
+                "2023-03-29T02:00:00"
             ],
         }
-        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings_payload))
+        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings))
         assert response.status_code == 201
 
 
@@ -100,27 +100,27 @@ def test_get_sensor_readings(client):
         assert response.status_code == 201
 
         # Insert sensor readings
-        sensor_readings_payload = {
+        sensor_readings = {
             "measure_name": "temperature",
             "sensor_uniq_id": "THISISAUUIDISWEAR",
             "readings": [290.5, 291.0, 291.5],
             "timestamps": [
-                "29-03-2023 00:00:00",
-                "29-03-2023 01:00:00",
-                "29-03-2023 02:00:00",
+                "2023-03-29T00:00:00",
+                "2023-03-29T01:00:00",
+                "2023-03-29T02:00:00"
             ],
         }
-        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings_payload))
+        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings))
         assert response.status_code == 201
 
         # Test the get_sensor_readings API endpoint
-        get_readings_payload = {
+        get_readings = {
             "measure_name": "temperature",
             "sensor_uniq_id": "THISISAUUIDISWEAR",
-            "dt_from": "29-03-2023 00:00:00",
-            "dt_to": "29-03-2023 02:00:00",
+            "dt_from": "2023-03-29T00:00:00",
+            "dt_to": "2023-03-29T02:00:00",
         }
-        response = client.post("/sensor/sensor_readings", json=json.dumps(get_readings_payload))
+        response = client.post("/sensor/sensor_readings", json=json.dumps(get_readings))
         assert response.status_code == 200
         assert len(response.json) == 3
         for reading in response.json:
