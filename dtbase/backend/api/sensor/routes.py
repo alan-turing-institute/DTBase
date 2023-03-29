@@ -33,7 +33,9 @@ def insert_sensor_type():
 
     payload = json.loads(request.get_json())
     required_keys = ["name", "description", "measures"]
-    check_keys(payload, required_keys, "/insert_sensor_type")
+    error_response = check_keys(payload, required_keys, "/insert_sensor_type")
+    if error_response:
+        return error_response
 
     idnames = []
     db.session.begin()
@@ -99,8 +101,10 @@ def insert_sensor_readings():
 
     payload = json.loads(request.get_json())
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
-    check_keys(payload, required_keys, "/insert_sensor_readings")
-
+    error_response = check_keys(payload, required_keys, "/insert_sensor_readings")
+    if error_response:
+        return error_response
+    
     measure_name = payload["measure_name"]
     sensor_uniq_id = payload["sensor_uniq_id"]
     readings = payload["readings"]
@@ -180,7 +184,9 @@ def get_sensor_readings():
     payload = json.loads(request.get_json())
 
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
-    check_keys(payload, required_keys, "/get_sensor_readings")
+    error_response = check_keys(payload, required_keys, "/get_sensor_readings")
+    if error_response:
+        return error_response
 
     measure_name = payload.get("measure_name")
     sensor_uniq_id = payload.get("sensor_uniq_id")
