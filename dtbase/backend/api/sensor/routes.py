@@ -33,9 +33,7 @@ def insert_sensor_type():
     payload = json.loads(request.get_json())
     for k in ["name", "description", "measures"]:
         if not k in payload.keys():
-            raise RuntimeError(
-                f"Must include '{k}' in POST request to /insert_sensor_type"
-            )
+            return jsonify({"error": f"Must include '{k}' in POST request to /insert_sensor_type"}), 400
     idnames = []
     db.session.begin()
     try:
@@ -102,9 +100,7 @@ def insert_sensor_readings():
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
     for k in required_keys:
         if not k in payload.keys():
-            raise RuntimeError(
-                f"Must include '{k}' in POST request to /insert_sensor_readings"
-            )
+            return jsonify({"error": f"Must include '{k}' in POST request to /insert_sensor_readings"}), 400
 
     measure_name = payload["measure_name"]
     sensor_uniq_id = payload["sensor_uniq_id"]
@@ -184,9 +180,7 @@ def get_sensor_readings():
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
     for k in required_keys:
         if not k in payload.keys():
-            raise RuntimeError(
-                f"Must include '{k}' in POST request to /get_sensor_readings"
-            )
+            return jsonify({"error": f"Must include '{k}' in POST request to /get_sensor_readings"}), 400
             
     measure_name = payload.get("measure_name")
     sensor_uniq_id = payload.get("sensor_uniq_id")
