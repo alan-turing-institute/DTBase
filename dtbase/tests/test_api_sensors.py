@@ -135,7 +135,6 @@ def test_get_sensor_readings(client):
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensor_measures(client):
     with client:
-
         response = insert_weather_type(client)
         assert response.status_code == 201
 

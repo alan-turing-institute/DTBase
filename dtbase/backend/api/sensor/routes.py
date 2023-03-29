@@ -11,6 +11,7 @@ from dtbase.backend.api.sensor import blueprint
 from dtbase.core import sensors
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
+from dtbase.backend.utils import check_keys
 
 
 @blueprint.route("/insert_sensor_type", methods=["POST"])
@@ -31,16 +32,9 @@ def insert_sensor_type():
     """
 
     payload = json.loads(request.get_json())
-    for k in ["name", "description", "measures"]:
-        if not k in payload.keys():
-            return (
-                jsonify(
-                    {
-                        "error": f"Must include '{k}' in POST request to /insert_sensor_type"
-                    }
-                ),
-                400,
-            )
+    required_keys = ["name", "description", "measures"]
+    check_keys(payload, required_keys, "/insert_sensor_type")
+
     idnames = []
     db.session.begin()
     try:
@@ -105,16 +99,7 @@ def insert_sensor_readings():
 
     payload = json.loads(request.get_json())
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
-    for k in required_keys:
-        if not k in payload.keys():
-            return (
-                jsonify(
-                    {
-                        "error": f"Must include '{k}' in POST request to /insert_sensor_readings"
-                    }
-                ),
-                400,
-            )
+    check_keys(payload, required_keys, "/insert_sensor_readings")
 
     measure_name = payload["measure_name"]
     sensor_uniq_id = payload["sensor_uniq_id"]
@@ -195,16 +180,7 @@ def get_sensor_readings():
     payload = json.loads(request.get_json())
 
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
-    for k in required_keys:
-        if not k in payload.keys():
-            return (
-                jsonify(
-                    {
-                        "error": f"Must include '{k}' in POST request to /get_sensor_readings"
-                    }
-                ),
-                400,
-            )
+    check_keys(payload, required_keys, "/get_sensor_readings")
 
     measure_name = payload.get("measure_name")
     sensor_uniq_id = payload.get("sensor_uniq_id")
