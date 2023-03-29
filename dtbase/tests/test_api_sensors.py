@@ -54,8 +54,8 @@ def test_list_sensors_of_a_type(client):
         response = client.get("/sensor/list/weather")
         assert response.status_code == 200
         assert isinstance(response.json, list)
-        
-        
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_sensor_readings(client):
     with client:
@@ -78,10 +78,12 @@ def test_insert_sensor_readings(client):
             "timestamps": [
                 "2023-03-29T00:00:00",
                 "2023-03-29T01:00:00",
-                "2023-03-29T02:00:00"
+                "2023-03-29T02:00:00",
             ],
         }
-        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings))
+        response = client.post(
+            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
+        )
         assert response.status_code == 201
 
 
@@ -107,10 +109,12 @@ def test_get_sensor_readings(client):
             "timestamps": [
                 "2023-03-29T00:00:00",
                 "2023-03-29T01:00:00",
-                "2023-03-29T02:00:00"
+                "2023-03-29T02:00:00",
             ],
         }
-        response = client.post("/sensor/insert_sensor_readings", json=json.dumps(sensor_readings))
+        response = client.post(
+            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
+        )
         assert response.status_code == 201
 
         # Test the get_sensor_readings API endpoint
@@ -127,30 +131,30 @@ def test_get_sensor_readings(client):
             assert "value" in reading
             assert "timestamp" in reading
 
-        
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensor_measures(client):
     with client:
-        
+
         response = insert_weather_type(client)
         assert response.status_code == 201
-        
+
         response = client.get("/sensor/list_measures")
         assert response.status_code == 200
         assert isinstance(response.json, list)
-        
-        
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensor_types(client):
     with client:
         response = insert_weather_type(client)
         assert response.status_code == 201
-        
+
         response = client.get("/sensor/list_sensor_types")
         assert response.status_code == 200
         assert isinstance(response.json, list)
-        
-        
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_sensor(client):
     with client:
@@ -164,7 +168,7 @@ def test_delete_sensor(client):
         }
         response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
         assert response.status_code == 201
-        
+
         response = client.delete("/sensor/delete_sensor/THISISAUUIDISWEAR")
         assert response.status_code == 200
 
@@ -176,5 +180,3 @@ def test_delete_sensor_type(client):
         assert response.status_code == 201
         response = client.delete("/sensor/delete_sensor_type/weather")
         assert response.status_code == 200
-        
-        

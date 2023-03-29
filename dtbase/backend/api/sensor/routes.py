@@ -33,7 +33,14 @@ def insert_sensor_type():
     payload = json.loads(request.get_json())
     for k in ["name", "description", "measures"]:
         if not k in payload.keys():
-            return jsonify({"error": f"Must include '{k}' in POST request to /insert_sensor_type"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Must include '{k}' in POST request to /insert_sensor_type"
+                    }
+                ),
+                400,
+            )
     idnames = []
     db.session.begin()
     try:
@@ -100,7 +107,14 @@ def insert_sensor_readings():
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
     for k in required_keys:
         if not k in payload.keys():
-            return jsonify({"error": f"Must include '{k}' in POST request to /insert_sensor_readings"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Must include '{k}' in POST request to /insert_sensor_readings"
+                    }
+                ),
+                400,
+            )
 
     measure_name = payload["measure_name"]
     sensor_uniq_id = payload["sensor_uniq_id"]
@@ -111,7 +125,10 @@ def insert_sensor_readings():
     try:
         timestamps = [datetime.fromisoformat(ts) for ts in timestamps]
     except ValueError:
-        return jsonify({"error": "Invalid datetime format. Use '%Y-%m-%dT%H:%M:%S'"}), 400
+        return (
+            jsonify({"error": "Invalid datetime format. Use '%Y-%m-%dT%H:%M:%S'"}),
+            400,
+        )
 
     db.session.begin()
     try:
@@ -180,8 +197,15 @@ def get_sensor_readings():
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
     for k in required_keys:
         if not k in payload.keys():
-            return jsonify({"error": f"Must include '{k}' in POST request to /get_sensor_readings"}), 400
-            
+            return (
+                jsonify(
+                    {
+                        "error": f"Must include '{k}' in POST request to /get_sensor_readings"
+                    }
+                ),
+                400,
+            )
+
     measure_name = payload.get("measure_name")
     sensor_uniq_id = payload.get("sensor_uniq_id")
     dt_from = payload.get("dt_from")
@@ -192,7 +216,14 @@ def get_sensor_readings():
         dt_from = datetime.fromisoformat(dt_from)
         dt_to = datetime.fromisoformat(dt_to)
     except ValueError:
-        return jsonify({"error": "Invalid datetime format. Use ISO format: '%Y-%m-%dT%H:%M:%S'"}), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid datetime format. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+                }
+            ),
+            400,
+        )
 
     readings = sensors.get_sensor_readings(
         measure_name, sensor_uniq_id, dt_from, dt_to, session=db.session
@@ -200,8 +231,7 @@ def get_sensor_readings():
 
     # Convert readings to JSON-friendly format
     readings_json = [
-        {"value": reading[0], "timestamp": reading[1]}
-        for reading in readings
+        {"value": reading[0], "timestamp": reading[1]} for reading in readings
     ]
 
     return jsonify(readings_json), 200
