@@ -30,14 +30,11 @@ def scenario_id_from_description(model_name, description, session=None):
     query = (
         sqla.select(ModelScenario.id)
         .join(Model, Model.id == ModelScenario.model_id)
-        .where(
-            (ModelScenario.model_id == model_id)
-            & (ModelScenario.description == description)
-        )
+        .where((Model.name == model_name) & (ModelScenario.description == description))
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model scenario '{description}' for model {model_name}.")
+        raise ValueError(f"No model scenario '{description}' for model '{model_name}'.")
     return result[0][0]
 
 
@@ -175,7 +172,7 @@ def insert_model_product(model_run, measure_name, values, timestamps, session=No
     measure_query = sqla.select(ModelMeasure.datatype).where(
         ModelMeasure.name == measure_name
     )
-    measure_result = session.execute(measure_query)
+    measure_result = session.execute(measure_query).fetchall()
     if measure_result is None:
         msg = f"Unknown model measure '{measure_name}'"
         raise ValueError(msg)
@@ -256,7 +253,7 @@ def insert_model_run(
             raise
 
     # Create the ModelRun
-    model_id = model_id_from_name(model_name)
+    model_id = model_id_from_name(model_name, session=session)
     model_run = ModelRun(
         model_id=model_id, scenario_id=scenario_id, time_created=time_created
     )
@@ -340,7 +337,7 @@ def get_model_run(run_id, measure_name, session=None):
     Returns:
         A list of tuples (values, timestamp) that are the results of the model run.
     """
-    measure_id = measure_id_from_name(measure_name)
+    measure_id = measure_id_from_name(measure_name, session=session)
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.model_value_class_dict[datatype_name]
     query = (
@@ -367,8 +364,9 @@ def delete_model(model_name, session=None):
     Returns:
         None
     """
-    model_id = model_id_from_name(model_name, session=session)
-    session.execute(sqla.delete(Model).where(Model.name == model_name))
+    result = session.execute(sqla.delete(Model).where(Model.name == model_name))
+    if result.rowcount == 0:
+        raise ValueError(f"No model named '{model_name}'.")
 
 
 @add_default_session
@@ -385,13 +383,15 @@ def delete_model_scenario(model_name, description, session=None):
     Returns:
         None
     """
-    model_id = model_id_from_name(model_name)
-    session.execute(
-        sqla.delete(ModelMeasure).where(
-            (ModelMeasure.description == description)
-            & (ModelMeasure.model_id == model_id)
+    model_id = model_id_from_name(model_name, session=session)
+    result = session.execute(
+        sqla.delete(ModelScenario).where(
+            (ModelScenario.description == description)
+            & (ModelScenario.model_id == model_id)
         )
     )
+    if result.rowcount == 0:
+        raise ValueError(f"No model scenario '{description}' for model '{model_name}'.")
 
 
 @add_default_session
@@ -407,7 +407,11 @@ def delete_model_measure(measure_name, session=None):
     Returns:
         None
     """
-    session.execute(sqla.delete(ModelMeasure).where(ModelMeasure.name == measure_name))
+    result = session.execute(
+        sqla.delete(ModelMeasure).where(ModelMeasure.name == measure_name)
+    )
+    if result.rowcount == 0:
+        raise ValueError(f"No model measure named '{measure_name}'.")
 
 
 @add_default_session
@@ -421,7 +425,9 @@ def delete_model_run(run_id, session=None):
     Returns:
         None
     """
-    session.execute(sqla.delete(ModelRun).where(ModelRun.id == run_id))
+    result = session.execute(sqla.delete(ModelRun).where(ModelRun.id == run_id))
+    if result.rowcount == 0:
+        raise ValueError(f"No model run with ID {run_id}")
 
 
 @add_default_session

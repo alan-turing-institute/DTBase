@@ -90,9 +90,9 @@ def insert_runs(session, time_created=NOW):
         "measure_name": MEASURE_NAME2,
         "values": [False, True, False],
         "timestamps": [
-            NOW + dt.timedelta(months=1),
-            NOW + dt.timedelta(months=2),
-            NOW + dt.timedelta(months=3),
+            NOW + dt.timedelta(weeks=1),
+            NOW + dt.timedelta(weeks=2),
+            NOW + dt.timedelta(weeks=3),
         ],
     }
     models.insert_model_run(
@@ -109,42 +109,6 @@ def insert_runs(session, time_created=NOW):
         time_created=time_created,
         session=session,
     )
-
-
-def test_list_model_measures(session):
-    """Find the inserted model measures."""
-    insert_measures(session)
-    all_measures = models.list_model_measures(session=session)
-    expected_keys = {"id", "name", "units", "datatype"}
-    assert len(all_measures) == 2
-    assert all_measures[0]["name"] == "temperature"
-    assert set(all_measures[0].keys()) == expected_keys
-    assert all_measures[1]["name"] == "is raining"
-
-
-def test_delete_model_measure(session):
-    """Delete a model measure, and check that it is deleted and can't be redeleted."""
-    insert_measures(session)
-    models.delete_model_measure("temperature", session=session)
-    all_measures = models.list_model_measures(session=session)
-    assert len(all_measures) == 1
-
-    # Doing the same deletion again should fail, since that row is gone.
-    error_msg = "No model measure named 'temperature'"
-    with pytest.raises(ValueError, match=error_msg):
-        models.delete_model_measure("temperature", session=session)
-
-
-def test_delete_model_measure_type_exists(session):
-    """Try to delete a model measure for which a model type exists."""
-    insert_types(session)
-    error_msg = (
-        'update or delete on table "model_measure" violates foreign key constraint '
-        '"model_type_measure_relation_measure_id_fkey" on table '
-        '"model_type_measure_relation"'
-    )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
-        models.delete_model_measure("temperature", session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -233,39 +197,31 @@ def test_list_model_scenarios(session):
     insert_scenarios(session)
     all_scenarios = models.list_model_scenarios(session=session)
     expected_keys = {"id", "model_id", "description"}
-    assert len(all_scenarios) == 2
-    assert all_scenarios[0]["name"] == "weather"
-    assert {
-        "name": "temperature",
-        "units": "Kelvin",
-        "datascenario": "float",
-    } in all_scenarios[0]["measures"]
+    assert len(all_scenarios) == 3
     assert set(all_scenarios[0].keys()) == expected_keys
-    assert all_scenarios[1]["name"] == "temperature"
+    assert set(all_scenarios[1].keys()) == expected_keys
+    assert all_scenarios[0]["description"] == SCENARIO1
 
 
 def test_delete_model_scenario(session):
     """Delete a model scenario, and check that it is deleted and can't be redeleted."""
     insert_scenarios(session)
-    models.delete_model_scenario("weather", session=session)
+    models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
     all_scenarios = models.list_model_scenarios(session=session)
-    assert len(all_scenarios) == 1
+    assert len(all_scenarios) == 2
 
     # Doing the same deletion again should fail, since that row is gone.
-    error_msg = "No model scenario named 'weather'"
+    error_msg = f"No model scenario '{SCENARIO1}' for model '{MODEL_NAME1}'"
     with pytest.raises(ValueError, match=error_msg):
-        models.delete_model_scenario("weather", session=session)
+        models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
 
 
 def test_delete_model_scenario_model_exists(session):
     """Try to delete a model scenario for which a model exists."""
     insert_models(session)
-    error_msg = (
-        'update or delete on table "model_scenario" violates foreign key '
-        'constraint "model_scenario_id_fkey" on table "model"'
-    )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
-        models.delete_model_scenario("weather", session=session)
+    error_msg = f"No model scenario '{SCENARIO1}' for model '{MODEL_NAME1}'"
+    with pytest.raises(ValueError, match=error_msg):
+        models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -292,6 +248,43 @@ def test_insert_model_measure_duplicate(session):
         models.insert_model_measure(
             name=MEASURE_NAME1, units="Kelvin", datatype="integer", session=session
         )
+
+
+def test_list_model_measures(session):
+    """Find the inserted model measures."""
+    insert_measures(session)
+    all_measures = models.list_model_measures(session=session)
+    expected_keys = {"id", "name", "units", "datatype"}
+    assert len(all_measures) == 2
+    assert set(all_measures[0].keys()) == expected_keys
+    assert set(all_measures[1].keys()) == expected_keys
+    assert all_measures[0]["name"] == MEASURE_NAME1
+    assert all_measures[1]["name"] == MEASURE_NAME2
+
+
+def test_delete_model_measure(session):
+    """Delete a model measure, and check that it is deleted and can't be redeleted."""
+    insert_measures(session)
+    models.delete_model_measure(MEASURE_NAME1, session=session)
+    all_measures = models.list_model_measures(session=session)
+    assert len(all_measures) == 1
+
+    # Doing the same deletion again should fail, since that row is gone.
+    error_msg = f"No model measure named '{MEASURE_NAME1}'"
+    with pytest.raises(ValueError, match=error_msg):
+        models.delete_model_measure(MEASURE_NAME1, session=session)
+
+
+def test_delete_model_run_exists(session):
+    """Try to delete a model measure for which a model run exists."""
+    insert_runs(session)
+    error_msg = (
+        'update or delete on table "model" violates foreign key constraint '
+        '"model_measure_relation_measure_id_fkey" on table '
+        '"model_measure_relation"'
+    )
+    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+        models.delete_model(MODEL_NAME1, session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
