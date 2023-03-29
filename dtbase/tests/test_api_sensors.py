@@ -124,7 +124,7 @@ def test_get_sensor_readings(client):
             "dt_from": "2023-03-29T00:00:00",
             "dt_to": "2023-03-29T02:00:00",
         }
-        response = client.post("/sensor/sensor_readings", json=json.dumps(get_readings))
+        response = client.get("/sensor/sensor_readings", json=json.dumps(get_readings))
         assert response.status_code == 200
         assert len(response.json) == 3
         for reading in response.json:

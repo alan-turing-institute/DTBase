@@ -164,13 +164,13 @@ def list_sensor_measures():
     return jsonify(result), 200
 
 
-@blueprint.route("/sensor_readings", methods=["POST"])
+@blueprint.route("/sensor_readings", methods=["GET"])
 # @login_required
 def get_sensor_readings():
     """
     Get sensor readings for a specific measure and sensor between two dates.
 
-    POST request should have JSON data (mimetype "application/json") containing:
+    GET request should have JSON data (mimetype "application/json") containing:
         measure_name: Name of the sensor measure to get readings for.
         sensor_uniq_id: Unique identifier for the sensor to get readings for.
         dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
