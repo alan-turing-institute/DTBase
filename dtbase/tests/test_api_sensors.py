@@ -50,7 +50,7 @@ def test_insert_sensor(client):
         # Use that type to insert a sensor
         response = insert_weather_sensor(client)
         assert response.status_code == 201
-        
+
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensors_of_a_type(client):
