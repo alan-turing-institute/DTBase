@@ -79,6 +79,10 @@ def insert_sensor(type_name):
     """
 
     payload = json.loads(request.get_json())
+    required_keys = {"unique_identifier"}
+    error_response = check_keys(payload, required_keys, "/insert_sensor")
+    if error_response:
+        return error_response
     sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
     db.session.commit()
     return jsonify(payload), 201
@@ -104,6 +108,10 @@ def insert_sensor_location():
     """
 
     payload = json.loads(request.get_json())
+    required_keys = {"sensor_identifier", "location_schema", "coordinates"}
+    error_response = check_keys(payload, required_keys, "/insert_sensor_location")
+    if error_response:
+        return error_response
     if "installation_datetime" not in payload:
         payload["installation_datetime"] = datetime.now()
     sensor_locations.insert_sensor_location(
@@ -130,6 +138,10 @@ def list_sensor_locations():
     """
 
     payload = json.loads(request.get_json())
+    required_keys = {"unique_identifier"}
+    error_response = check_keys(payload, required_keys, "/list_sensor_location")
+    if error_response:
+        return error_response
     result = sensor_locations.get_location_history(
         sensor_uniq_id=payload["unique_identifier"], session=db.session
     )
