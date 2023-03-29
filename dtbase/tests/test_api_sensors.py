@@ -31,20 +31,26 @@ def test_insert_sensor_type(client):
         assert response.status_code == 201
 
 
+def insert_weather_sensor(client):
+    # Use that type to insert a sensor
+    sensor = {
+        "unique_identifier": "THISISAUUIDISWEAR",
+        "name": "Rooftop weather",
+        "notes": "The blue weather sensor on the roof",
+    }
+    response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+    return response
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_sensor(client):
     with client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         # Use that type to insert a sensor
-        sensor = {
-            "unique_identifier": "THISISAUUIDISWEAR",
-            "name": "Rooftop weather",
-            "notes": "The blue weather sensor on the roof",
-        }
-        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        response = insert_weather_sensor(client)
         assert response.status_code == 201
-
+        
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensors_of_a_type(client):
@@ -62,12 +68,7 @@ def test_insert_sensor_readings(client):
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
         assert response.status_code == 201
-        sensor = {
-            "unique_identifier": "THISISAUUIDISWEAR",
-            "name": "Rooftop weather",
-            "notes": "The blue weather sensor on the roof",
-        }
-        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        response = insert_weather_sensor(client)
         assert response.status_code == 201
 
         # Test the insert_sensor_readings API endpoint
@@ -93,12 +94,7 @@ def test_get_sensor_readings(client):
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
         assert response.status_code == 201
-        sensor = {
-            "unique_identifier": "THISISAUUIDISWEAR",
-            "name": "Rooftop weather",
-            "notes": "The blue weather sensor on the roof",
-        }
-        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        response = insert_weather_sensor(client)
         assert response.status_code == 201
 
         # Insert sensor readings
@@ -160,12 +156,7 @@ def test_delete_sensor(client):
         response = insert_weather_type(client)
         assert response.status_code == 201
         # Use that type to insert a sensor
-        sensor = {
-            "unique_identifier": "THISISAUUIDISWEAR",
-            "name": "Rooftop weather",
-            "notes": "The blue weather sensor on the roof",
-        }
-        response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+        response = insert_weather_sensor(client)
         assert response.status_code == 201
 
         response = client.delete("/sensor/delete_sensor/THISISAUUIDISWEAR")
