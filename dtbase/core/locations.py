@@ -212,10 +212,6 @@ def delete_location_by_id(location_id, session=None):
     Returns:
         None
     """
-    for value_class in set(utils.location_value_class_dict.values()):
-        session.execute(
-            sqla.delete(value_class).where(value_class.location_id == location_id)
-        )
     session.execute(sqla.delete(Location).where(Location.id == location_id))
 
 

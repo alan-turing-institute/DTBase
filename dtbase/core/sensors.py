@@ -248,7 +248,7 @@ def get_datatype_by_measure_name(measure_name, session=None):
 
 @add_default_session
 def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=None):
-    """Insert sensor readings to the database.
+    """Get sensor readings from the database.
 
     Args:
         measure_name: Name of the sensor measure to get readings for.
@@ -291,10 +291,6 @@ def delete_sensor(unique_identifier, session=None):
         None
     """
     sensor_id = sensor_id_from_unique_identifier(unique_identifier, session=session)
-    for value_class in set(utils.sensor_reading_class_dict.values()):
-        session.execute(
-            sqla.delete(value_class).where(value_class.sensor_id == sensor_id)
-        )
     session.execute(
         sqla.delete(Sensor).where(Sensor.unique_identifier == unique_identifier)
     )
