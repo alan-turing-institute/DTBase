@@ -12,7 +12,9 @@ import pandas as pd
 from sqlalchemy import desc, asc, exc, func
 
 from dtbase.core.db import connect_db, session_open, session_close
-from dtbase.core.sensors import *
+from dtbase.core.sensors import (
+    get_sensor_readings
+)
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.utils import query_result_to_array
@@ -158,66 +160,6 @@ def get_datapoint(filepath=None, **kwargs):
         return dp_database
 
 
-def insert_model_run(sensor_id=None, model_id=None, time_forecast=None, session=None):
-    if not session:
-        session = get_sqlalchemy_session()
-    if sensor_id is not None and model_id is not None and time_forecast is not None:
-        mr = ModelRunClass(
-            sensor_id=sensor_id, model_id=model_id, time_forecast=time_forecast
-        )
-        try:
-            session.add(mr)
-            session.commit()
-            session.refresh(mr)
-            run_id = mr.id
-            print(f"Inserted model run {run_id}")
-            return run_id
-        except exc.SQLAlchemyError:
-            session.rollback()
-    session.close()
-
-
-def insert_model_product(run_id=None, measure_id=None, session=None):
-    if not session:
-        session = get_sqlalchemy_session()
-    if run_id is not None and measure_id is not None:
-        mp = ModelProductClass(run_id=run_id, measure_id=measure_id)
-        try:
-            session.add(mp)
-            session.commit()
-            session.refresh(mp)
-            product_id = mp.id
-            print(f"Inserting model product {product_id}")
-            return product_id
-        except exc.SQLAlchemyError:
-            session.rollback()
-    session.close()
-
-
-def insert_model_predictions(predictions=None, session=None):
-    if not session:
-        session = get_sqlalchemy_session()
-    num_rows_inserted = 0
-    if predictions is not None:
-        print(f"Inserting {len(predictions)} model prediction values")
-        if len(predictions) > 0:
-            for prediction in predictions:
-                mv = ModelValueClass(
-                    product_id=prediction[0],
-                    prediction_value=prediction[1],
-                    prediction_index=prediction[2],
-                )
-                try:
-                    session.add(mv)
-                    session.commit()
-                    num_rows_inserted += 1
-                except exc.SQLAlchemyError as e:
-                    print(f"Error adding row: {e}")
-                    session.rollback()
-                    break
-    session.close()
-    print(f"Inserted {num_rows_inserted} value predictions")
-    return num_rows_inserted
 
 
 # arima -----------------------------------------------------------------------
@@ -239,21 +181,21 @@ def remove_time_zone(dataframe: pd.DataFrame):
 
 
 def get_training_data(
-    config_sections=None,
+    measures=None,
     delta_days=None,
-    num_rows=None,
     session=None,
     arima_config=None,
 ):
-    """Fetch data from one or more tables for training of the ARIMA model.
+    """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
     Each output DataFrame can also be the result of joining two tables, as specified in
     the config.ini file.
 
     Args:
-        config_sections (list of strings): A list of section names in the config.ini
-            file corresponding to the tables and columns to fetch data from. Example:
-            ["table1", "table2"]. If None, the default is ["env_data", "energy_data"].
+        measures (dict): Dictionary where the keys are the names of SensorMeasures,
+            and the values are lists of Sensor uniq_ids for the sensors from which
+            we want values for those measures. e.g.:
+            {"Temperature": ["TRHsensor1", "TRHsensor2"], "Humidity": ["TRHsensor1"]}
         delta_days (int): Number of days in the past from which to retrieve data.
             Defaults to None.
         num_rows (int, optional): Number of rows to limit the data to. Defaults to None.
@@ -262,12 +204,10 @@ def get_training_data(
             Arima config.
 
     Returns:
-        tuple: A tuple of pandas DataFrames, each corresponding to the data fetched from
-            one of the specified tables. The DataFrames are sorted by the timestamp
-            column.
+        tuple: A tuple of pandas DataFrames, with each corresponding to a
+               Measure x Sensor combination.
+               Each DataFrame is sorted by the timestamp column.
     """
-    if config_sections is None:
-        config_sections = ["env_data", "energy_data"]
 
     # get number of training days
     if delta_days is None:
@@ -276,68 +216,36 @@ def get_training_data(
         num_days_training = delta_days
     if num_days_training > 365:
         logger.error(
-            "The 'num_days_training' setting in config.ini cannot be set to a "
+            "The 'num_days_training' setting in config_arima.ini cannot be set to a "
             "value greater than 365."
         )
         raise ValueError
 
-    # get one table per section in the config.ini file.
+    if not session:
+        session = get_sqlalchemy_session()
+    date_to = datetime.datetime.now()
+    delta = datetime.timedelta(days=num_days_training)
+    date_from = date_to - delta
+    print(f"Training data from {date_from} to {date_to}")
+    # get one table per measure_name x sensor_uniq_id
     # each table can be produced by joining two tables, as specified in the config file.
     data_tables = []
-    for section in config_sections:
-        config_params = arima_config(section=section)
-        # check that table class specified in config file is imported
-        table_class_name = config_params["table_class"]
-        if table_class_name not in globals():
-            raise ImportError(
-                f"Table class '{table_class_name}' not found. Make sure it's imported."
+    for measure in measures.keys():
+        for sensor in measures[measure]:
+            columns = [measure, "sensor_unique_id", "timestamp"]
+            readings = get_sensor_readings(
+                measure_name=measure,
+                sensor_uniq_id=sensor,
+                dt_from=date_from,
+                dt_to=date_to,
+                session=session
             )
-        # get table class based on name
-        table_class = globals()[table_class_name]
-        columns = []
-        for col in config_params["columns"].split(","):
-            try:
-                columns.append(getattr(table_class, col))
-            # if column not in table class, try to find it in the join class
-            except AttributeError:
-                if "join_class" in config_params:
-                    join_class = globals()[config_params["join_class"]]
-                    columns.append(getattr(join_class, col))
-                else:
-                    raise AttributeError(
-                        f"Attribute '{col}' not found in '{table_class}' or "
-                        f"'{join_class}'"
-                    )
+            entries = [
+                {measure: r[0], "sensor_unique_id": sensor, "timestamp": r[1]} \
+                for r in readings
+            ]
+            df = pd.DataFrame(entries)
+            data_tables.append(df)
 
-        if not session:
-            session = get_sqlalchemy_session()
-        date_to = datetime.datetime.now()
-        delta = datetime.timedelta(days=num_days_training)
-        date_from = date_to - delta
-        print(f"Training data from {date_from} to {date_to}")
-        query = (
-            session.query(*columns)
-            .filter(table_class.timestamp > date_from)
-            .filter(table_class.timestamp < date_to)
-        )
-        if "join_class" in config_params and "join_condition" in config_params:
-            join_condition = eval(config_params["join_condition"])
-            query = query.join(join_class, join_condition)
-
-        query = query.order_by(asc(table_class.timestamp)).limit(num_rows)
-        result = session.execute(query.statement).fetchall()
-        data = pd.DataFrame(query_result_to_array(result))
-        if not data.empty:
-            data["timestamp"] = pd.to_datetime(data["timestamp"])
-            remove_time_zone(data)
-
-            logger.info(f"{section} data - head/tail:")
-            logger.info(data.head(5))
-            logger.info(data.tail(5))
-        else:
-            logger.warning(f"{section} DataFrame is empty.")
-
-        session_close(session)
-        data_tables.append(data)
-
+    session_close(session)
     return tuple(data_tables)

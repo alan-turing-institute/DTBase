@@ -68,4 +68,8 @@ def insert_trh_readings(session):
         timestamps=timestamps,
         session=session
     )
+    try:
+        session.commit()
+    except:
+        session.rollback()
     print(f"Inserted {len(temps)} temperature values")

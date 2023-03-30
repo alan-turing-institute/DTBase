@@ -91,7 +91,7 @@ def insert_sensor_measure(name, units, datatype, session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        None
+        measure_id: int, PK of the newly created measure.
     """
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
@@ -245,7 +245,7 @@ def get_datatype_by_measure_name(measure_name, session=None):
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError("No sensor measure called '{measure_name}'")
+        raise ValueError(f"No sensor measure called '{measure_name}'")
     datatype = result[0][0]
     return datatype
 
@@ -262,7 +262,7 @@ def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=No
         session: SQLAlchemy session. Optional.
 
     Returns:
-        Readings from the database.
+        Readings from the database. A list of tuples [(value, timestamp), ...]
     """
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.sensor_reading_class_dict[datatype_name]
