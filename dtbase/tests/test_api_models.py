@@ -23,13 +23,32 @@ def test_insert_model(client):
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_models(client):
     with client:
+        # add two models
         response = client.post("/model/insert_model", json=json.dumps({"name": "test model 1"}))
         assert response.status_code == 201
         response = client.post("/model/insert_model", json=json.dumps({"name": "test model 2"}))
         assert response.status_code == 201
         
+        # list models
         response = client.get("/model/list_models")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 2
-    
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_model(client):
+    with client:
+        # add a model
+        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
+        assert response.status_code == 201
+        
+        # delete model
+        response = client.delete("/model/delete_model", json=json.dumps({"name": "test model"}))
+        assert response.status_code == 200
+        
+        # list models
+        response = client.get("/model/list_models")
+        assert response.status_code == 200
+        assert isinstance(response.json, list)
+        assert len(response.json) == 0
