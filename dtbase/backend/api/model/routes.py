@@ -1,7 +1,6 @@
 """
 Module (routes.py) to handle endpoints related to models
 """
-
 from datetime import datetime, timedelta
 import json
 
@@ -32,6 +31,14 @@ def insert_model():
     models.insert_model(name=payload["name"], session=db.session)
     db.session.commit()
     return jsonify(payload), 201
-   
 
+
+@blueprint.route("/list_models", methods=["GET"])
+# @login_required
+def list_models():
+    """
+    List all models in the database.
+    """
+    models = models.list_models(session=db.session)
+    return jsonify_query_result(models), 200
     
