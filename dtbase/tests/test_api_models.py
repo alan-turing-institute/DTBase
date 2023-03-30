@@ -12,6 +12,11 @@ from dtbase.backend.api.sensor import routes
 DOCKER_RUNNING = check_for_docker()
 
 
+def insert_model(client, name):
+    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
+    assert response.status_code == 201
+    
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_model(client):
     with client:
@@ -24,10 +29,8 @@ def test_insert_model(client):
 def test_list_models(client):
     with client:
         # add two models
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model 1"}))
-        assert response.status_code == 201
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model 2"}))
-        assert response.status_code == 201
+        insert_model(client, "test model 1")
+        insert_model(client, "test model 2")
         
         # list models
         response = client.get("/model/list_models")
@@ -40,8 +43,7 @@ def test_list_models(client):
 def test_delete_model(client):
     with client:
         # add a model
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
-        assert response.status_code == 201
+        insert_model(client, "test model")
         
         # delete model
         response = client.delete("/model/delete_model", json=json.dumps({"name": "test model"}))
@@ -58,8 +60,7 @@ def test_delete_model(client):
 def test_insert_model_scenario(client):
     with client:
         # add a model
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
-        assert response.status_code == 201
+        insert_model(client, "test model")
         
         # add a model scenario
         model_scenario = {"model_name": "test model", "description": "test scenario"}
@@ -71,8 +72,7 @@ def test_insert_model_scenario(client):
 def test_list_model_scenarios(client):
     with client:
         # add a model
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
-        assert response.status_code == 201
+        insert_model(client, "test model")
         
         # add a model scenario
         model_scenario = {"model_name": "test model", "description": "test scenario"}
@@ -95,8 +95,7 @@ def test_list_model_scenarios(client):
 def test_delete_model_scenario(client):
     with client:
         # add a model
-        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
-        assert response.status_code == 201
+        insert_model(client, "test model")
         
         # add a model scenario
         model_scenario = {"model_name": "test model", "description": "test scenario"}
