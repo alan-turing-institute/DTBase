@@ -39,6 +39,6 @@ def list_models():
     """
     List all models in the database.
     """
-    models = models.list_models(session=db.session)
-    return jsonify_query_result(models), 200
+    result = models.list_models(session=db.session)
+    return jsonify(result), 200
     
