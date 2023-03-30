@@ -13,11 +13,6 @@ from dtbase.backend.api.sensor import routes
 DOCKER_RUNNING = check_for_docker()
 
 
-def insert_model(client, name):
-    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
-    assert response.status_code == 201
-
-
 # Some example data we'll use in many of the tests.
 
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -75,6 +70,11 @@ PRODUCT3 = {
     "values": [False, True, False],
     "timestamps": TIMESTAMPS2,
 }
+
+
+def insert_model(client, name):
+    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
+    assert response.status_code == 201
 
 
 def insert_model_measures(client):

@@ -225,3 +225,78 @@ def insert_model_run():
     models.insert_model_run(**payload, session=db.session)
     db.session.commit()
     return jsonify(payload), 201
+
+
+@blueprint.route("/list_model_runs", methods=["GET"])
+# @login_required
+def list_model_runs():
+    """
+    List all model runs in the database.
+
+    GET request should have json data (mimetype "application/json") containing
+    {
+        "model_name": <Name of the model to get runs for>,
+        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>,
+        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>,
+        "scenario": <The string description of the scenario to include runs for. Optional,
+            by default all scenarios>,
+        "session": SQLAlchemy session. Optional,
+    }
+
+    Returns:
+        A list of tuples (values, timestamp) that are the result the model run.
+    """
+
+    payload = json.loads(request.get_json())
+    required_keys = ["model_name", "dt_from", "dt_to", "scenario"]
+    error_response = check_keys(payload, required_keys, "/list_model_runs")
+    if error_response:
+        return error_response
+
+    model_name = payload.get("model_name")
+    dt_from = payload.get("dt_from")
+    df_to = payload.get("dt_to")
+    scenario = payload.get("scenario")
+
+    # Convert dt_from and dt_to to datetime objects
+    try:
+        dt_from = datetime.fromisoformat(dt_from)
+        dt_to = datetime.fromisoformat(dt_to)
+    except ValueError:
+        return (
+            jsonify(
+                {
+                    "error": "Invalid datetime format. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+                }
+            ),
+            400,
+        )
+
+    model_runs = models.list_model_runs(model_name, dt_from, dt_to, session=db.session)
+    return jsonify(model_runs), 200
+
+
+@blueprint.route("/get_model_run", methods=["GET"])
+# @login_required
+def get_model_run():
+    """
+    Get the output of a model run.
+
+    GET request should have json data (mimetype "application/json") containing
+    {
+        run_id: <Database ID of the model run>,
+        measure_name: <Name of the model measure to get values for>,
+        session: SQLAlchemy session. Optional,
+    }
+
+    Returns:
+        List of model runs.
+    """
+    payload = json.loads(request.get_json())
+    required_keys = ["run_id", "measure_name"]
+    error_response = check_keys(payload, required_keys, "/get_model_run")
+    if error_response:
+        return error_response
+
+    model_run = models.get_model_run(**payload, session=db.session)
+    return jsonify(model_run), 200
