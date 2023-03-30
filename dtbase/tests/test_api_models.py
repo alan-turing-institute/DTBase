@@ -66,4 +66,26 @@ def test_insert_model_scenario(client):
         response = client.post("/model/insert_model_scenario", json=json.dumps(model_scenario))
         assert response.status_code == 201
 
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_list_model_scenarios(client):
+    with client:
+        # add a model
+        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
+        assert response.status_code == 201
         
+        # add a model scenario
+        model_scenario = {"model_name": "test model", "description": "test scenario"}
+        response = client.post("/model/insert_model_scenario", json=json.dumps(model_scenario))
+        assert response.status_code == 201
+        
+        # add a second model scenario
+        model_scenario = {"model_name": "test model", "description": "test scenario 2"}
+        response = client.post("/model/insert_model_scenario", json=json.dumps(model_scenario))
+        assert response.status_code == 201
+        
+        # list model scenarios
+        response = client.get("/model/list_model_scenarios")
+        assert response.status_code == 200
+        assert isinstance(response.json, list)
+        assert len(response.json) == 2

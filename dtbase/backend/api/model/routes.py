@@ -93,3 +93,11 @@ def insert_model_scenario():
     db.session.commit()
     return jsonify(payload), 201
     
+    
+@blueprint.route("/list_model_scenarios", methods=["GET"])
+def list_model_scenarios():
+    """
+    List all model scenarios in the database.
+    """
+    result = models.list_model_scenarios(session=db.session)
+    return jsonify(result), 200
