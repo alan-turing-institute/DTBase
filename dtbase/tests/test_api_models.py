@@ -47,8 +47,23 @@ def test_delete_model(client):
         response = client.delete("/model/delete_model", json=json.dumps({"name": "test model"}))
         assert response.status_code == 200
         
-        # list models
+        # check that model was deleted
         response = client.get("/model/list_models")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 0
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_model_scenario(client):
+    with client:
+        # add a model
+        response = client.post("/model/insert_model", json=json.dumps({"name": "test model"}))
+        assert response.status_code == 201
+        
+        # add a model scenario
+        model_scenario = {"model_name": "test model", "description": "test scenario"}
+        response = client.post("/model/insert_model_scenario", json=json.dumps(model_scenario))
+        assert response.status_code == 201
+
+        

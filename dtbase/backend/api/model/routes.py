@@ -64,3 +64,32 @@ def delete_model():
     models.delete_model(model_name=payload["name"], session=db.session)
     db.session.commit()
     return jsonify({"message": "Model deleted."}), 200
+
+
+@blueprint.route("/insert_model_scenario", methods=["POST"])
+def insert_model_scenario():
+    """
+    Insert a model scenario into the database.
+    
+    A model scenario specifies parameters for running a model. It is always tied to a
+    particular model. It comes with a free form text description only (can also be
+    null).
+    
+    POST request should have json data (mimetype "application/json")
+    containing
+    {
+        "model_name": <model_name:str>,
+        "description": <description:str> (can be None/null),
+        "session": <session:sqlalchemy.orm.session.Session> (optional)
+    """
+    
+    payload = json.loads(request.get_json())
+    required_keys = ["model_name", "description"]
+    error_response = check_keys(payload, required_keys, "/insert_model")
+    if error_response:
+        return error_response
+    
+    models.insert_model_scenario(**payload, session=db.session)
+    db.session.commit()
+    return jsonify(payload), 201
+    
