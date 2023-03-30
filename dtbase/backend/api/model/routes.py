@@ -209,7 +209,7 @@ def list_model_runs():
     }
     
     Returns:
-    
+        A list of tuples (values, timestamp) that are the result the model run.
     """
     
     payload = json.loads(request.get_json())
@@ -254,6 +254,8 @@ def get_model_run():
         session: SQLAlchemy session. Optional,
     }
     
+    Returns:
+        List of model runs.
     """
     payload = json.loads(request.get_json())
     required_keys = ["run_id", "measure_name"]

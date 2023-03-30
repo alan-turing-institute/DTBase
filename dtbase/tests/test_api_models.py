@@ -12,10 +12,6 @@ from dtbase.backend.api.sensor import routes
 
 DOCKER_RUNNING = check_for_docker()
 
-
-def insert_model(client, name):
-    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
-    assert response.status_code == 201
     
 # Some example data we'll use in many of the tests.
 
@@ -72,6 +68,10 @@ PRODUCT3 = {
 }
 
 
+def insert_model(client, name):
+    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
+    assert response.status_code == 201
+    
 def insert_model_measures(client):
     response1 = client.post("/model/insert_model_measure", json=json.dumps(MEASURE1))
     response2 = client.post("/model/insert_model_measure", json=json.dumps(MEASURE2))
@@ -81,7 +81,7 @@ def insert_model_measures(client):
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_model(client):
     with client:
-        model = {"name": "test model"}
+        model = {"name": MODEL_NAME1}
         response = client.post("/model/insert_model", json=json.dumps(model))
         assert response.status_code == 201
 
