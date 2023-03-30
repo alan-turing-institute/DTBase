@@ -398,23 +398,21 @@ def delete_model_scenario(model_name, description, session=None):
 
 
 @add_default_session
-def delete_model_measure(measure_name, session=None):
+def delete_model_measure(name, session=None):
     """Delete a model measure from the database.
 
     Refuses to proceed if there are model products attached to this measure.
 
     Args:
-        measure_name: Name of the measure to delete.
+        name: Name of the measure to delete.
         session: SQLAlchemy session. Optional.
 
     Returns:
         None
     """
-    result = session.execute(
-        sqla.delete(ModelMeasure).where(ModelMeasure.name == measure_name)
-    )
+    result = session.execute(sqla.delete(ModelMeasure).where(ModelMeasure.name == name))
     if result.rowcount == 0:
-        raise ValueError(f"No model measure named '{measure_name}'.")
+        raise ValueError(f"No model measure named '{name}'.")
 
 
 @add_default_session
@@ -422,7 +420,7 @@ def delete_model_run(run_id, session=None):
     """Delete a model run from the database.
 
     Args:
-        measure_name: Name of the measure to delete.
+        run_id: Database ID of the run to delete.
         session: SQLAlchemy session. Optional.
 
     Returns:
