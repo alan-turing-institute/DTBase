@@ -101,3 +101,29 @@ def list_model_scenarios():
     """
     result = models.list_model_scenarios(session=db.session)
     return jsonify(result), 200
+
+
+@blueprint.route("/delete_model_scenario", methods=["DELETE"])
+def delete_model_scenario():
+    """
+    Delete a model scenario from the database
+    DELETE request should have json data (mimetype "application/json")
+    containing
+    {
+        "model_name": <model_name:str>,
+        "description": <description:str>
+    }
+    """
+    payload = json.loads(request.get_json())
+    required_keys = ["model_name", "description"]
+    error_response = check_keys(payload, required_keys, "/delete_model_scenario")
+    if error_response:
+        return error_response
+    
+    models.delete_model_scenario(**payload, session=db.session)
+    db.session.commit()
+    return jsonify({"message": "Model scenario deleted."}), 200
+
+
+
+
