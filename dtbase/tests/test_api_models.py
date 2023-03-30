@@ -252,3 +252,47 @@ def test_insert_model_runs(client):
         responses = insert_model_runs(client)
         for response in responses:
             assert response.status_code == 201
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_list_model_runs(client):
+    with client:
+        responses = insert_model_runs(client)
+
+        runs = {
+            "model_name": MODEL_NAME1,
+            "dt_from": NOW.isoformat(),
+            "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
+            "scenario": SCENARIO1,
+        }
+
+        responses = client.get("/model/list_model_runs", json=json.dumps(runs))
+
+        assert responses.status_code == 200
+        assert isinstance(responses.json, list)
+        assert len(responses.json) == 1
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_get_model_run(client):
+    with client:
+        responses = insert_model_runs(client)
+
+        runs = {
+            "model_name": MODEL_NAME1,
+            "dt_from": NOW.isoformat(),
+            "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
+            "scenario": SCENARIO1,
+        }
+        # print(json.dumps(runs))
+        responses = client.get("/model/list_model_runs", json=json.dumps(runs))
+        print(responses.json[0]["id"])
+        run_id = responses.json[0]["id"]
+
+        run = {
+            "run_id": run_id,
+            "measure_name": MEASURE_NAME1,
+        }
+
+        responses = client.get("/model/get_model_run", json=json.dumps(run))
+        assert responses.status_code == 200

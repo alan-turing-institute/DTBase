@@ -255,7 +255,7 @@ def list_model_runs():
 
     model_name = payload.get("model_name")
     dt_from = payload.get("dt_from")
-    df_to = payload.get("dt_to")
+    dt_to = payload.get("dt_to")
     scenario = payload.get("scenario")
 
     # Convert dt_from and dt_to to datetime objects
@@ -272,7 +272,9 @@ def list_model_runs():
             400,
         )
 
-    model_runs = models.list_model_runs(model_name, dt_from, dt_to, session=db.session)
+    model_runs = models.list_model_runs(
+        model_name, dt_from, dt_to, scenario, session=db.session
+    )
     return jsonify(model_runs), 200
 
 
@@ -299,4 +301,8 @@ def get_model_run():
         return error_response
 
     model_run = models.get_model_run(**payload, session=db.session)
-    return jsonify(model_run), 200
+    converted_model_run = [
+        {"value": t[0], "timestamp": t[1].isoformat()} for t in model_run
+    ]
+
+    return jsonify(converted_model_run), 200
