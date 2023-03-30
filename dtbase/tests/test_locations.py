@@ -12,6 +12,7 @@ LATITUDE1 = -2.0
 LATITUDE2 = 12.3
 LONGITUDE1 = 23.5
 LONGITUDE2 = -0.0
+LATITUDE3 = 144.0
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Functions for inserting some data into the database. These will called at the
@@ -56,6 +57,7 @@ def insert_locations(session):
     locations.insert_location(
         "latlong", latitude=LATITUDE2, longitude=LONGITUDE2, session=session
     )
+    locations.insert_location("lat only", latitude=LATITUDE3, session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

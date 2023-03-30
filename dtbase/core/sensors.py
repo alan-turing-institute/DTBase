@@ -5,11 +5,7 @@ from dtbase.backend.utils import add_default_session
 from dtbase.core import queries
 from dtbase.core.structure import (
     Sensor,
-    SensorBooleanReading,
-    SensorFloatReading,
-    SensorIntegerReading,
     SensorMeasure,
-    SensorStringReading,
     SensorType,
     SensorTypeMeasureRelation,
 )
