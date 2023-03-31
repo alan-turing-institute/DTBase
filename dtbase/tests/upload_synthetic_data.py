@@ -68,6 +68,13 @@ def insert_trh_readings(session):
         timestamps=timestamps,
         session=session
     )
+    insert_sensor_readings(
+        measure_name="Humidity",
+        sensor_uniq_id="TRH1",
+        readings=humids,
+        timestamps=timestamps,
+        session=session
+    )
     try:
         session.commit()
     except:

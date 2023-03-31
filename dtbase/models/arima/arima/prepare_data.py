@@ -1,5 +1,6 @@
 from .config import config
 import datetime
+import pytz
 import pandas as pd
 import logging
 from typing import Tuple
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 constants = config(section="constants")
 data_config = config(section="data")
 arima_config = config(section="arima")
+sensors_config = config(section="sensors")
 
 
 def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
@@ -47,7 +49,7 @@ def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
     farm_cycle_start = datetime.datetime.combine(
         timestamp.date(), farm_cycle_start.time()
     )
-
+    farm_cycle_start = pytz.utc.localize(farm_cycle_start)
     if timestamp >= farm_cycle_start:
         timestamp = farm_cycle_start
     elif timestamp <= (
@@ -225,6 +227,7 @@ def prepare_data(
     timestamp_standardized = standardize_timestamp(sensor_data[keys_sensor_data[0]].index[-1])
     # keep only the observations whose timestamp is smaller or equal to the
     # standardized timestamp
+
     for key in keys_sensor_data:
         sensor_data[key].drop(
             sensor_data[key][sensor_data[key].index > timestamp_standardized].index,
@@ -234,10 +237,12 @@ def prepare_data(
     # if there are any missing values in the measure's time series of `sensor_data`,
     # replace them with typically observed values. Note that if there is not enough data
     # to compute typically observed values, missing observations will not be replaced.
+    measures = sensors_config["include_measures"]
     for key in keys_sensor_data:
-        temperature = sensor_data[key]["temperature"]
-        if temperature.isna().any():
-            sensor_data[key]["temperature"] = impute_missing_values(temperature)
+        for measure in measures:
+            values = sensor_data[key][measure]
+            if values.isna().any():
+                sensor_data[key][measure] = impute_missing_values(values)
     logger.info("Done preparing the data. Ready to feed to ARIMA model.")
 
-    return env_data, energy_data
+    return sensor_data
