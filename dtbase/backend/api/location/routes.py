@@ -187,13 +187,10 @@ def delete_location_schema(schema_name):
     Endpoint URL: /delete_location_schema/<schema_name>
     """
 
-    # Call delete_location_schema and check the returned value
-    deletion_success = locations.delete_location_schema(
-        schema_name=schema_name, session=db.session
-    )
-    db.session.commit()
-
-    if deletion_success:
+    # Call delete_location_schema and check that it doesn't error.
+    try:
+        locations.delete_location_schema(schema_name=schema_name, session=db.session)
+        db.session.commit()
         return (
             jsonify(
                 {
@@ -203,7 +200,7 @@ def delete_location_schema(schema_name):
             ),
             200,
         )
-    else:
+    except ValueError:
         return (
             jsonify(
                 {

@@ -17,6 +17,10 @@ from dtbase.core.structure import User
 from dtbase.core.structure import SQLA as db
 
 from dtbase.core.structure import (
+    ModelBooleanValue,
+    ModelFloatValue,
+    ModelIntegerValue,
+    ModelStringValue,
     Location,
     LocationBooleanValue,
     LocationFloatValue,
@@ -307,6 +311,18 @@ location_value_class_dict = {
     "float": LocationFloatValue,
     "integer": LocationIntegerValue,
     "string": LocationStringValue,
+}
+
+
+model_value_class_dict = {
+    bool: ModelBooleanValue,
+    float: ModelFloatValue,
+    int: ModelIntegerValue,
+    str: ModelStringValue,
+    "boolean": ModelBooleanValue,
+    "float": ModelFloatValue,
+    "integer": ModelIntegerValue,
+    "string": ModelStringValue,
 }
 
 

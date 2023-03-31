@@ -203,7 +203,7 @@ def insert_sensor_readings(
     datatype_matches = utils.check_datatype(example_element, expected_datatype)
     if not datatype_matches:
         raise ValueError(
-            f"For sensor measure '{measure_name}' expected a readings of type "
+            f"For sensor measure '{measure_name}' expected readings of type "
             f"{expected_datatype} but got a {element_type}."
         )
 
@@ -241,14 +241,14 @@ def get_datatype_by_measure_name(measure_name, session=None):
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError("No sensor measure called '{measure_name}'")
+        raise ValueError(f"No sensor measure named '{measure_name}'")
     datatype = result[0][0]
     return datatype
 
 
 @add_default_session
 def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=None):
-    """Insert sensor readings to the database.
+    """Get sensor readings from the database.
 
     Args:
         measure_name: Name of the sensor measure to get readings for.
@@ -290,14 +290,11 @@ def delete_sensor(unique_identifier, session=None):
     Returns:
         None
     """
-    sensor_id = sensor_id_from_unique_identifier(unique_identifier, session=session)
-    for value_class in set(utils.sensor_reading_class_dict.values()):
-        session.execute(
-            sqla.delete(value_class).where(value_class.sensor_id == sensor_id)
-        )
-    session.execute(
+    result = session.execute(
         sqla.delete(Sensor).where(Sensor.unique_identifier == unique_identifier)
     )
+    if result.rowcount == 0:
+        raise ValueError(f"No sensor '{unique_identifier}'")
 
 
 @add_default_session
@@ -314,13 +311,11 @@ def delete_sensor_measure(measure_name, session=None):
     Returns:
         None
     """
-    # The measure_id_from_name call is just a quick way to raise a ValueError if this
-    # measure doesn't exist. I'm lazy to write a more proper solution to check what the
-    # DELETE query returns.
-    measure_id_from_name(measure_name, session=session)
     result = session.execute(
         sqla.delete(SensorMeasure).where(SensorMeasure.name == measure_name)
     )
+    if result.rowcount == 0:
+        raise ValueError(f"No sensor measure named '{measure_name}'")
 
 
 @add_default_session
@@ -336,13 +331,11 @@ def delete_sensor_type(type_name, session=None):
     Returns:
         None
     """
-    type_id = type_id_from_name(type_name, session=session)
-    session.execute(
-        sqla.delete(SensorTypeMeasureRelation).where(
-            SensorTypeMeasureRelation.type_id == type_id
-        )
+    result = session.execute(
+        sqla.delete(SensorType).where(SensorType.name == type_name)
     )
-    session.execute(sqla.delete(SensorType).where(SensorType.name == type_name))
+    if result.rowcount == 0:
+        raise ValueError(f"No sensor type named '{type_name}'")
 
 
 @add_default_session

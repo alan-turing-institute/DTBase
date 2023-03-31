@@ -212,11 +212,9 @@ def delete_location_by_id(location_id, session=None):
     Returns:
         None
     """
-    for value_class in set(utils.location_value_class_dict.values()):
-        session.execute(
-            sqla.delete(value_class).where(value_class.location_id == location_id)
-        )
-    session.execute(sqla.delete(Location).where(Location.id == location_id))
+    result = session.execute(sqla.delete(Location).where(Location.id == location_id))
+    if result.rowcount == 0:
+        raise ValueError(f"No location with ID {location_id}")
 
 
 @add_default_session
@@ -256,15 +254,13 @@ def delete_location_identifier(identifier_name, session=None):
     Returns:
         None
     """
-    # The identifier_id_from_name call is just a quick way to raise a ValueError if this
-    # measure doesn't exist. I'm lazy to write a more proper solution to check what the
-    # DELETE query returns.
-    identifier_id_from_name(identifier_name, session=session)
-    session.execute(
+    result = session.execute(
         sqla.delete(LocationIdentifier).where(
             LocationIdentifier.name == identifier_name
         )
     )
+    if result.rowcount == 0:
+        raise ValueError(f"No location identifier '{identifier_name}'")
 
 
 @add_default_session
@@ -281,19 +277,11 @@ def delete_location_schema(schema_name, session=None):
         None
     """
     schema_id = schema_id_from_name(schema_name, session=session)
-    session.execute(
-        sqla.delete(LocationSchemaIdentifierRelation).where(
-            LocationSchemaIdentifierRelation.schema_id == schema_id
-        )
-    )
-
-    # Get the number of rows affected by the delete operation
-    deleted_rows = session.execute(
+    result = session.execute(
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
-    ).rowcount
-
-    # If at least one row was affected, the deletion was successful
-    return deleted_rows > 0
+    )
+    if result.rowcount == 0:
+        raise ValueError(f"No location schema '{schema_name}'")
 
 
 @add_default_session

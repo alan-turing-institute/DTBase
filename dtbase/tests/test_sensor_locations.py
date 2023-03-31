@@ -11,8 +11,8 @@ COORDINATES1 = {
     "longitude": test_locations.LONGITUDE1,
 }
 COORDINATES2 = {"latitude": test_locations.LATITUDE3}
-DATE1 = dt.datetime.now() - dt.timedelta(days=2)
-DATE2 = dt.datetime.now() - dt.timedelta(days=1)
+DATE1 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=2)
+DATE2 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
 
 
 def insert_sensors_and_locations(session):
@@ -47,7 +47,6 @@ def test_get_sensor_locations(session):
     assert len(locations) == 1
     assert all(locations[0][k] == v for k, v in COORDINATES1.items())
     assert locations[0]["installation_datetime"] == DATE1
-
     sensor_locations.insert_sensor_location(
         uniq_id, "lat only", COORDINATES2, DATE2, session=session
     )
