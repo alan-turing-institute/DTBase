@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 constants = config(section="constants")
 processing_params = config(section="data")
-sensors_list = config(section="sensors")
-sensors_list = sensors_list["include_sensors"]
+sensors_config = config(section="sensors")
+sensors_list = sensors_config["include_sensors"]
 
 
 def get_time_vector(start, end, frequency="1H", offset=1):
@@ -75,7 +75,7 @@ def hourly_average_sensor(sensor_data, col_names, time_vector):
         sensors_list
     )  # creates empty dict with specified keys (requested sensors)
     keys = list(hour_averages.keys())
-    grouped = env_data.groupby("name")  # group by sensor name
+    grouped = sensor_data.groupby("sensor_unique_id")  # group by sensor id
     for ii in range(len(hour_averages)):
         sensor = grouped.get_group(keys[ii])
         # group by column "timestamp_hour_plus_minus" and perform
@@ -132,7 +132,7 @@ def centered_ma(series: pd.Series, window: int = 3):
     return MA
 
 
-def clean_sensor_data(sensor_data: pd.DataFrame):
+def clean_sensor_data(sensor_data: pd.DataFrame, measures: list[str]):
     """
     Clean the pandas dataframe containing e.g. temperature and humidity data
     retrieved from the database (DB).
@@ -140,6 +140,7 @@ def clean_sensor_data(sensor_data: pd.DataFrame):
     Parameters:
         sensor_data: pandas dataframe containing e.g. temperature and humidity data
             returned by data_access.get_training_data.
+        measures: list of strings, the names of the "measures" in the data.
     Returns:
         cleaned_data: a dictionary with keys named after the user-requested sensors.
             The corresponding values are pandas dataframes containing processed
@@ -196,11 +197,11 @@ def clean_sensor_data(sensor_data: pd.DataFrame):
     # calculate the hourly-averaged data
     cleaned_data = hourly_average_sensor(
         sensor_data,
-        ["temperature", "humidity"],
+        measures,
         time_vector,
     )
     logger.info("Done cleaning sensor data.")
-    return sensor_data, time_vector
+    return cleaned_data, time_vector
 
 
 
@@ -233,12 +234,16 @@ def clean_data(sensor_readings):
         logger.warning(
             "The 'window' setting in config.ini has been set to something different than 3."
         )
-    cleaned_data, time_vector = clean_sensor_data(sensor_readings)
+    column_names = list(sensor_readings.columns)
+    column_names.remove("sensor_unique_id")
+    column_names.remove("timestamp")
+    measures = column_names
 
-    # set the timestamp column of the dataframes to index
+    cleaned_data, time_vector = clean_sensor_data(sensor_readings, measures)
+
+    # set the timestamp column of each of the dataframes to index
     keys = list(cleaned_data.keys())
     for key in keys:
         cleaned_data[key].set_index("timestamp", inplace=True)
-
 
     return cleaned_data
