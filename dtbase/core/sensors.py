@@ -221,7 +221,12 @@ def insert_sensor_readings(
         }
         for value, timestamp in zip(readings, timestamps)
     ]
-    session.execute(readings_class.__table__.insert(), rows)
+    session.execute(
+        sqla.dialects.postgresql.insert(
+            readings_class.__table__
+        ).on_conflict_do_nothing(),
+        rows,
+    )
     session.flush()
 
 
