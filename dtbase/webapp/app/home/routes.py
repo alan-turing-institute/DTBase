@@ -102,7 +102,7 @@ def index():
     sensor_type_name = utils.parse_url_parameter(request, "sensorType")
     if sensor_type_name is None:
         # By default, just pick the first sensor type in the list.
-        sensor_type = sensor_types[0]["name"]
+        sensor_type_name = sensor_types[0]["name"]
     all_sensors = fetch_all_sensors(sensor_type_name)
 
     # If we don't have the information necessary to plot data for sensors, just render
