@@ -282,20 +282,26 @@ def test_insert_sensor_readings_wrong_type(session):
 
 
 def test_insert_sensor_readings_duplicate(session):
-    """Try to insert sensor readings that conflict with existing ones."""
+    """Test that we can insert sensor readings that include some that have already been
+    inserted.
+    """
     insert_readings(session)
-    error_msg = (
-        "duplicate key value violates unique constraint "
-        '"sensor_float_reading_measure_id_sensor_id_timestamp_key"'
+    new_time = dt.datetime.fromisoformat("2022-10-13T01:00:00+00:00")
+    sensors.insert_sensor_readings(
+        "temperature",
+        SENSOR_ID1,
+        TEMPERATURES + [23.0],
+        TIMESTAMPS + [new_time],
+        session=session,
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
-        sensors.insert_sensor_readings(
-            "temperature",
-            SENSOR_ID1,
-            [23.0, 23.0, 23.0],
-            TIMESTAMPS,
-            session=session,
-        )
+    read_readings = sensors.get_sensor_readings(
+        "temperature",
+        SENSOR_ID1,
+        dt_from=TIMESTAMPS[0],
+        dt_to=new_time,
+        session=session,
+    )
+    assert len(read_readings) == len(TIMESTAMPS) + 1
 
 
 def test_list_sensors(session):

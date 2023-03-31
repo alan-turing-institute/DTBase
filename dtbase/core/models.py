@@ -205,7 +205,12 @@ def insert_model_product(model_run, measure_name, values, timestamps, session=No
         }
         for value, timestamp in zip(values, timestamps)
     ]
-    session.execute(values_class.__table__.insert(), rows)
+    session.execute(
+        sqla.dialects.postgresql.insert(
+            values_class.__table__
+        ).on_conflict_do_nothing(),
+        rows,
+    )
     session.flush()
 
 
