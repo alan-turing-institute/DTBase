@@ -56,6 +56,8 @@ class Location(BASE):
         ForeignKey("location_schema.id"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     # relationshionships (One-To-Many)
     string_values_relationship = relationship("LocationStringValue")
@@ -79,6 +81,9 @@ class LocationIdentifier(BASE):
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
     datatype = Column(datatype_name, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
@@ -90,6 +95,9 @@ class LocationSchema(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("name"),)
 
 
@@ -103,7 +111,11 @@ class LocationSchemaIdentifierRelation(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     schema_id = Column(
         Integer,
-        ForeignKey("location_schema.id"),
+        ForeignKey(
+            "location_schema.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
         nullable=False,
     )
     identifier_id = Column(
@@ -111,6 +123,9 @@ class LocationSchemaIdentifierRelation(BASE):
         ForeignKey("location_identifier.id"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)
 
 
@@ -132,9 +147,12 @@ class LocationStringValue(BASE):
     )
     location_id = Column(
         Integer,
-        ForeignKey("location.id"),
+        ForeignKey("location.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
@@ -156,9 +174,12 @@ class LocationIntegerValue(BASE):
     )
     location_id = Column(
         Integer,
-        ForeignKey("location.id"),
+        ForeignKey("location.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
@@ -180,9 +201,12 @@ class LocationFloatValue(BASE):
     )
     location_id = Column(
         Integer,
-        ForeignKey("location.id"),
+        ForeignKey("location.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
@@ -204,9 +228,12 @@ class LocationBooleanValue(BASE):
     )
     location_id = Column(
         Integer,
-        ForeignKey("location.id"),
+        ForeignKey("location.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
@@ -227,6 +254,8 @@ class Sensor(BASE):
     unique_identifier = Column(String(100), nullable=False)
     name = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     # relationshionships (One-To-Many)
     string_values_relationship = relationship("SensorStringReading")
@@ -250,6 +279,9 @@ class SensorMeasure(BASE):
     name = Column(String(100), nullable=False)
     units = Column(String(100), nullable=True)
     datatype = Column(datatype_name, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
@@ -261,6 +293,9 @@ class SensorType(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("name"),)
 
 
@@ -274,7 +309,7 @@ class SensorTypeMeasureRelation(BASE):
     id = Column(Integer, primary_key=True, autoincrement=True)
     type_id = Column(
         Integer,
-        ForeignKey("sensor_type.id"),
+        ForeignKey("sensor_type.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
     measure_id = Column(
@@ -282,6 +317,9 @@ class SensorTypeMeasureRelation(BASE):
         ForeignKey("sensor_measure.id"),
         nullable=False,
     )
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("type_id", "measure_id"),)
 
 
@@ -302,10 +340,13 @@ class SensorStringReading(BASE):
     )
     sensor_id = Column(
         Integer,
-        ForeignKey("sensor.id"),
+        ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime(), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -326,10 +367,13 @@ class SensorIntegerReading(BASE):
     )
     sensor_id = Column(
         Integer,
-        ForeignKey("sensor.id"),
+        ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime(), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -350,10 +394,13 @@ class SensorFloatReading(BASE):
     )
     sensor_id = Column(
         Integer,
-        ForeignKey("sensor.id"),
+        ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime(), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
@@ -374,11 +421,236 @@ class SensorBooleanReading(BASE):
     )
     sensor_id = Column(
         Integer,
-        ForeignKey("sensor.id"),
+        ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    timestamp = Column(DateTime(), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
+
+
+class SensorLocation(BASE):
+    """
+    Location history of a sensor.
+    """
+
+    __tablename__ = "sensor_location"
+
+    # columns
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    sensor_id = Column(
+        Integer,
+        ForeignKey("sensor.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
+    installation_datetime = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("sensor_id", "installation_datetime"),)
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Model data
+
+
+class Model(BASE):
+    """
+    Predictive models used in the digital twin.
+    """
+
+    __tablename__ = "model"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False, unique=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class ModelScenario(BASE):
+    """
+    Scenarios distinguish between different ways of running a model, e.g. varying some
+    parameters in the model. Each row in this table corresponds to one scenario for how
+    one model can be run.
+
+    Currently the scenario feature is quite basic: The scenarios are simply described by
+    strings. This is to accommodate the very different kinds of scenarios different
+    models may have, without making the database schema overly complicated.
+    """
+
+    __tablename__ = "model_scenario"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    model_id = Column(
+        Integer,
+        ForeignKey("model.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    description = Column(Text, nullable=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("model_id", "description"),)
+
+
+class ModelMeasure(BASE):
+    """
+    Measures that models can predict values for.
+
+    Similas to SensorMeasure, but distinct, because models might for instance predict
+    not only values for observables, but also e.g. upper and lower bounds.
+    """
+
+    __tablename__ = "model_measure"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100))
+    units = Column(String(100), nullable=False)
+    datatype = Column(datatype_name, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("name", "units"),)
+
+
+class ModelRun(BASE):
+    """
+    A ModelRun is a single instance of running a model at a particular time with a
+    particular scenario.
+    """
+
+    __tablename__ = "model_run"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    model_id = Column(Integer, ForeignKey("model.id"), nullable=False)
+    scenario_id = Column(Integer, ForeignKey("model_scenario.id"), nullable=True)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("model_id", "scenario_id", "time_created"),)
+
+
+class ModelProduct(BASE):
+    """
+    A ModelProduct is a combination of a ModelRun and a ModelMeasure that is (one of)
+    the output(s) of that run.
+    """
+
+    __tablename__ = "model_product"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    run_id = Column(
+        Integer,
+        ForeignKey("model_run.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    measure_id = Column(Integer, ForeignKey("model_measure.id"), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("run_id", "measure_id"),)
+
+
+class ModelStringValue(BASE):
+    """
+    Predicted values from a model product, that are strings.
+    """
+
+    __tablename__ = "model_string_value"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    product_id = Column(
+        Integer,
+        ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    value = Column(String, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
+
+
+class ModelIntegerValue(BASE):
+    """
+    Predicted values from a model product, that are integers.
+    """
+
+    __tablename__ = "model_integer_value"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    product_id = Column(
+        Integer,
+        ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    value = Column(Integer, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
+
+
+class ModelFloatValue(BASE):
+    """
+    Predicted values from a model product, that are floats.
+    """
+
+    __tablename__ = "model_float_value"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey("model_product.id"), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    value = Column(Float, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
+
+
+class ModelBooleanValue(BASE):
+    """
+    Predicted values from a model product, that are booleans.
+    """
+
+    __tablename__ = "model_booleanvalue"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    product_id = Column(
+        Integer,
+        ForeignKey("model_product.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    value = Column(Boolean, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -396,9 +668,8 @@ class User(BASE, UserMixin):
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(LargeBinary, nullable=False)
-
-    time_created = Column(DateTime(), server_default=func.now())
-    time_updated = Column(DateTime(), onupdate=func.now())
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     def __init__(self, **kwargs):
         for prop, value in kwargs.items():

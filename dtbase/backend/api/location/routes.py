@@ -82,29 +82,36 @@ def insert_location():
             raise RuntimeError(
                 f"Must include '{k}' in POST request to /insert_location"
             )
-    idnames = []
-    for identifier in payload["identifiers"]:
-        locations.insert_location_identifier(
-            name=identifier["name"],
-            units=identifier["units"],
-            datatype=identifier["datatype"],
+    db.session.begin()
+    try:
+        idnames = []
+        for identifier in payload["identifiers"]:
+            locations.insert_location_identifier(
+                name=identifier["name"],
+                units=identifier["units"],
+                datatype=identifier["datatype"],
+                session=db.session,
+            )
+            idnames.append(identifier["name"])
+        # sort the idnames list, and use it to create/find a schema
+        idnames.sort()
+        schema_name = "-".join(idnames)
+        locations.insert_location_schema(
+            name=schema_name,
+            description=schema_name,
+            identifiers=idnames,
             session=db.session,
         )
-        idnames.append(identifier["name"])
-    # sort the idnames list, and use it to create/find a schema
-    idnames.sort()
-    schema_name = "-".join(idnames)
-    locations.insert_location_schema(
-        name=schema_name,
-        description=schema_name,
-        identifiers=idnames,
-        session=db.session,
-    )
-    value_dict = {}
-    for i, val in enumerate(payload["values"]):
-        value_dict[payload["identifiers"][i]["name"]] = val
-    locations.insert_location(schema_name=schema_name, **value_dict, session=db.session)
-    return jsonify(value_dict), 201
+        value_dict = {}
+        for i, val in enumerate(payload["values"]):
+            value_dict[payload["identifiers"][i]["name"]] = val
+        value_dict["schema_name"] = schema_name
+        locations.insert_location(**value_dict, session=db.session)
+        db.session.commit()
+        return jsonify(value_dict), 201
+    except:
+        db.session.rollback()
+        raise
 
 
 @blueprint.route("/insert_location/<schema_name>", methods=["POST"])
@@ -180,13 +187,10 @@ def delete_location_schema(schema_name):
     Endpoint URL: /delete_location_schema/<schema_name>
     """
 
-    # Call delete_location_schema and check the returned value
-    deletion_success = locations.delete_location_schema(
-        schema_name=schema_name, session=db.session
-    )
-    db.session.commit()
-
-    if deletion_success:
+    # Call delete_location_schema and check that it doesn't error.
+    try:
+        locations.delete_location_schema(schema_name=schema_name, session=db.session)
+        db.session.commit()
         return (
             jsonify(
                 {
@@ -196,7 +200,7 @@ def delete_location_schema(schema_name):
             ),
             200,
         )
-    else:
+    except ValueError:
         return (
             jsonify(
                 {
