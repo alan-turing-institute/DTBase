@@ -84,6 +84,7 @@ def insert_model_scenario():
         "model_name": <model_name:str>,
         "description": <description:str> (can be None/null),
         "session": <session:sqlalchemy.orm.session.Session> (optional)
+    }
     """
 
     payload = json.loads(request.get_json())

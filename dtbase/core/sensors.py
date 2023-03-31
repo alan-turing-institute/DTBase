@@ -241,7 +241,7 @@ def get_datatype_by_measure_name(measure_name, session=None):
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError("No sensor measure named '{measure_name}'")
+        raise ValueError(f"No sensor measure named '{measure_name}'")
     datatype = result[0][0]
     return datatype
 
