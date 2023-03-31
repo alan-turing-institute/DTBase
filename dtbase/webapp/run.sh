@@ -10,7 +10,7 @@ if [ -n "$1" ] && [ "$1" -gt "-1" ]
 then
     bport=$1
 else
-    bport=5000
+    bport=8000
 fi
 
 npm install
