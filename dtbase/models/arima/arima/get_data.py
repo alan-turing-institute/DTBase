@@ -66,7 +66,7 @@ def get_training_data(
 
     # get number of training days
     if delta_days is None:
-        num_days_training = arima_config(section="data")["num_days_training"]
+        num_days_training = config(section="data")["num_days_training"]
     else:
         num_days_training = delta_days
     if num_days_training > 365:

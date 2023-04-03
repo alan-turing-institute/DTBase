@@ -1,73 +1,63 @@
-# make sure you run this from the project parent directory as
-# data being saved to "models/arima_python/dump"
+#!/usr/bin/env python
+import os
+import sys
+from collections import defaultdict
+import pandas as pd
+import logging, coloredlogs
 
+
+from dtbase.models.arima.arima.get_data import get_training_data
+from dtbase.models.arima.arima.clean_data import clean_data
+from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.arima.config import config
+
+OUTPUT_DIR = os.path.join(os.getcwd(), "results")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def main() -> None:
-    from cropcore.model_data_access import get_training_data
-    from arima.clean_data import clean_data
-    from arima.prepare_data import prepare_data
-    from arima.arima_pipeline import arima_pipeline
-    from arima.config import config
-    from collections import defaultdict
-    import pickle
-    import logging, coloredlogs
-    import sys
 
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
     field_styles["levelname"][
         "color"
-    ] = "white"  # change the default levelname color from black to white
+    ] = "yellow"  # change the default levelname color from black to yellow
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
     # fetch training data from the database
-    env_data, energy_data = get_training_data(num_rows=40000, arima_config=config)
-
-    # save the raw training data to disk
-    with open("models/arima_python/dump/env_raw.pkl", "wb") as handle:
-        pickle.dump(env_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("models/arima_python/dump/energy_raw.pkl", "wb") as handle:
-        pickle.dump(energy_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    sensor_data = get_training_data()
 
     # clean the training data
-    env_data, energy_data = clean_data(env_data, energy_data)
-
-    # save the clean data to disk
-    with open("models/arima_python/dump/env_clean.pkl", "wb") as handle:
-        pickle.dump(env_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("models/arima_python/dump/energy_clean.pkl", "wb") as handle:
-        pickle.dump(energy_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    cleaned_data = clean_data(sensor_data[0])
 
     # prepare the clean data for the ARIMA model
-    env_data, energy_data = prepare_data(env_data, energy_data)
-
-    # save the prepared data to disk
-    with open("models/arima_python/dump/env_prepared.pkl", "wb") as handle:
-        pickle.dump(env_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("models/arima_python/dump/energy_prepared.pkl", "wb") as handle:
-        pickle.dump(energy_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    prep_data = prepare_data(cleaned_data)
 
     # run the ARIMA pipeline for every temperature sensor
-    sensor_names = list(env_data.keys())
+    sensor_ids = config(section="sensors")["include_sensors"]
+    measures = config(section="sensors")["include_measures"]
     forecast_results = defaultdict(dict)
 
-    # loop through every sensor
-    for sensor in sensor_names:
-        temperature = env_data[sensor]["temperature"]
-        # save 10% of the data for testing
-        n_samples = len(temperature)
-        temperature = temperature.iloc[: int(0.9 * n_samples)]
-        mean_forecast, conf_int, metrics = arima_pipeline(temperature)
-        forecast_results[sensor]["mean_forecast"] = mean_forecast
-        forecast_results[sensor]["conf_int"] = conf_int
-        forecast_results[sensor]["metrics"] = metrics
+    # loop through every sensor/measure
 
-    # save the forecast results to disk
-    with open("models/arima_python/dump/temperature_forecast.pkl", "wb") as handle:
-        pickle.dump(forecast_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+    for sensor in sensor_ids:
+        for measure in measures:
+            key = sensor+"_"+measure
+            values = prep_data[sensor][measure]
+            # save 10% of the data for testing
+            n_samples = len(values)
+            values = values.iloc[: int(0.9 * n_samples)]
+            mean_forecast, conf_int, metrics = arima_pipeline(values)
+            forecast_results[key]["mean_forecast"] = mean_forecast
+            forecast_results[key]["conf_int"] = conf_int
+            forecast_results[key]["metrics"] = metrics
+            # save to disk
+            conf_int["mean_forecast"] = mean_forecast
+            conf_int["sensor"] = sensor
+            conf_int["measure"] = measure
+            conf_int.to_csv(os.path.join(OUTPUT_DIR,f"{key}.csv"))
 
 if __name__ == "__main__":
     main()

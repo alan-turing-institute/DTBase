@@ -92,3 +92,14 @@ def test_arima_prepare(session):
     assert "TRH1" in prepared_data.keys()
     assert isinstance(prepared_data["TRH1"], pd.DataFrame)
     assert len(prepared_data["TRH1"]) > 0
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_arima_run_locally(session):
+    insert_trh_readings(session)
+    tables = get_training_data(
+        delta_days=20,
+        session=session
+    )
+    cleaned_data = clean_data(tables[0])
+    prepared_data = prepare_data(cleaned_data)
