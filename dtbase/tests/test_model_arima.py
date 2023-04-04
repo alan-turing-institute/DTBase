@@ -30,9 +30,7 @@ def test_arima_get_temperature(session):
 def test_arima_get_humidity(session):
     insert_trh_readings(session)
     tables = get_training_data(
-        measures_list=["Humidity"],
-        delta_days=20,
-        session=session
+        measures_list=["Humidity"], delta_days=20, session=session
     )
     assert isinstance(tables, tuple)
     assert len(tables) == 1
