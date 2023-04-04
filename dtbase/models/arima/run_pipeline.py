@@ -1,26 +1,34 @@
-from cropcore.model_data_access import (
-    get_training_data,
-    get_sqlalchemy_session,
+#!/usr/bin/env python
+import os
+import sys
+from collections import defaultdict
+import pandas as pd
+import logging, coloredlogs
+
+
+from dtbase.core.models import (
+    list_model_measures,
+    list_model_scenarios,
     insert_model_run,
     insert_model_product,
-    insert_model_predictions,
+    insert_model_measure,
+    insert_model_scenario,
+    insert_model,
+    model_id_from_name,
+    scenario_id_from_description,
 )
-from arima.clean_data import clean_data
-from arima.prepare_data import prepare_data
-from arima.arima_pipeline import arima_pipeline
-from arima.arima_utils import (
-    get_model_id,
-    get_measure_id,
-    get_sensor_id,
+from dtbase.core.sensors import sensor_id_from_unique_identifier
+from dtbase.models.utils.db_utils import (
+    get_sqlalchemy_session,
 )
-from arima.config import config
-import logging, coloredlogs
-import pandas as pd
-import sys
-from datetime import datetime
+from dtbase.models.arima.arima.get_data import get_training_data
+from dtbase.models.arima.arima.clean_data import clean_data
+from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.arima.config import config
 
 
-def run_pipeline() -> None:
+def run_pipeline(session=None) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
@@ -28,20 +36,53 @@ def run_pipeline() -> None:
     coloredlogs.install(level="INFO")
 
     # fetch training data from the database
-    env_data, energy_data = get_training_data(num_rows=40000, arima_config=config)
+    sensor_data = get_training_data()
 
     # clean the training data
-    env_data, energy_data = clean_data(env_data, energy_data)
+    cleaned_data = clean_data(sensor_data[0])
 
     # prepare the clean data for the ARIMA model
-    env_data, energy_data = prepare_data(env_data, energy_data)
+    prep_data = prepare_data(cleaned_data)
 
-    # run the ARIMA pipeline for every temperature sensor
-    # note that in this implementation, energy data is not used at all
-    sensor_names = list(env_data.keys())
+    if not session:
+        session = get_sqlalchemy_session()
+    # ensure we have the Model in the db, or insert if not
+    model_id = None
+    try:
+        model_id = model_id_from_name("Arima",session=session)
+    except(ValueError):
+        # insert the model
+        m = insert_model("Arima", session=session)
+        model_id = m.id
 
-    session = get_sqlalchemy_session()
-    model_id = get_model_id(session=session)
+    # ensure we have the model scenario in the db, or insert if not
+    scenario_id = None
+    try:
+        scenario_id = scenario_id_from_description(
+            model_name="Arima",
+            description="BusinessAsUsual",
+            session=session
+        )
+    except(ValueError):
+        ms = insert_model_scenario(
+            model_name="Arima",
+            description="BusinessAsUsual",
+            session=session
+        )
+        scenario_id = ms.id
+
+    # ensure that we have all measures in the database, or insert if not
+    base_measures_list = config(section="sensors")["include_measures"]
+
+    db_measures = list_model_measures(session=session)
+    db_measure_names = [m["name"] for m in db_measures]
+    for base_measure in base_measures_list:
+        for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
+            measure = m+base_measure
+            if not measure in db_measure_names:
+                insert_model_measure(measure, "", "float", session=session)
+
+
 
     def process_output(time_series: pd.Series, product_id):
         prediction_parameters = []
@@ -49,43 +90,49 @@ def run_pipeline() -> None:
             prediction_parameters.append((product_id, result_at_hour, prediction_index))
         return prediction_parameters
 
-    measure_names = [
-        "Mean Temperature (Degree Celcius)",
-        "Lower Bound Temperature (Degree Celcius)",
-        "Upper Bound Temperature (Degree Celcius)",
-    ]
     session.commit()
+    # run the ARIMA pipeline for every sensor
+    sensor_unique_ids = list(prep_data.keys())
     # loop through every sensor
-    for sensor in sensor_names:
+    for sensor in sensor_unique_ids:
         session.begin()
-        sensor_id = get_sensor_id(sensor_name=sensor, session=session)
-        temperature = env_data[sensor]["temperature"]
-        mean_forecast, conf_int, metrics = arima_pipeline(temperature)
-        try:
-            run_id = insert_model_run(
-                sensor_id=sensor_id,
-                model_id=model_id,
-                time_forecast=datetime.now(),
-                session=session,
-            )
-            for measure_name in measure_names:
-                measure_id = get_measure_id(measure_name=measure_name, session=session)
-                product_id = insert_model_product(
-                    run_id=run_id, measure_id=measure_id, session=session
+        sensor_id = sensor_id_from_unique_identifier(
+            unique_identifier=sensor,
+            session=session
+        )
+        for base_measure in base_measures_list:
+            values = prep_data[sensor][base_measure]
+            mean_forecast, conf_int, metrics = arima_pipeline(values)
+            mean = {
+                "measure_name": "Mean "+base_measure,
+                "values": list(mean_forecast),
+                "timestamps": list(mean_forecast.index)
+            }
+            upper = {
+                "measure_name": "Upper Bound "+base_measure,
+                "values": list(conf_int.mean_ci_upper),
+                "timestamps": list(conf_int.index)
+            }
+            lower = {
+                "measure_name": "Lower Bound "+base_measure,
+                "values": list(conf_int.mean_ci_lower),
+                "timestamps": list(conf_int.index)
+            }
+            measures_values = [mean, upper, lower]
+            try:
+                run_id = insert_model_run(
+                    model_name="Arima",
+                    scenario_description="BusinessAsUsual",
+                    measures_and_values=measures_values,
+                    session=session
                 )
-                if "Mean" in measure_name:
-                    result = process_output(mean_forecast, product_id)
-                elif "Lower" in measure_name:
-                    result = process_output(conf_int["mean_ci_lower"], product_id)
-                elif "Upper" in measure_name:
-                    result = process_output(conf_int["mean_ci_upper"], product_id)
-                insert_model_predictions(predictions=result, session=session)
+
                 session.commit()
+
+            except:
+                session.rollback()
                 session.close()
-        except:
-            session.rollback()
-            session.close()
-            raise
+        session.close()
 
 
 def main() -> None:
