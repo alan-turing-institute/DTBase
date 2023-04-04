@@ -12,6 +12,7 @@ sensors_config = config(section="sensors")
 sensors_list = sensors_config["include_sensors"]
 measures_list = sensors_config["include_measures"]
 
+
 def get_time_vector(start, end, frequency="1H", offset=1):
     """
     Create a vector of increasing timestamps.
