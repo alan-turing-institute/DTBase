@@ -82,14 +82,6 @@ def run_pipeline(session=None) -> None:
             if not measure in db_measure_names:
                 insert_model_measure(measure, "", "float", session=session)
 
-
-
-    def process_output(time_series: pd.Series, product_id):
-        prediction_parameters = []
-        for prediction_index, result_at_hour in enumerate(time_series):
-            prediction_parameters.append((product_id, result_at_hour, prediction_index))
-        return prediction_parameters
-
     session.commit()
     # run the ARIMA pipeline for every sensor
     sensor_unique_ids = list(prep_data.keys())
