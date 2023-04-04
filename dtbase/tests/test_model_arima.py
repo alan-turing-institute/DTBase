@@ -9,6 +9,7 @@ from dtbase.tests.conftest import check_for_docker
 
 DOCKER_RUNNING = check_for_docker()
 
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_get_temperature(session):
     insert_trh_readings(session)
