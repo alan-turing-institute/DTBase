@@ -43,7 +43,7 @@ We also aim to include:
 
 ### API documentation
 
-See [here](backend/README.md) for a list of API endpoints, along with expected request and response structures.
+See [here](dtbase/backend/README.md) for a list of API endpoints, along with expected request and response structures.
 
 
 ### Deployment documentation
