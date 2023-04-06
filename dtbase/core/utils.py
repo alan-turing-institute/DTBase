@@ -17,6 +17,10 @@ from dtbase.core.structure import User
 from dtbase.core.structure import SQLA as db
 
 from dtbase.core.structure import (
+    ModelBooleanValue,
+    ModelFloatValue,
+    ModelIntegerValue,
+    ModelStringValue,
     Location,
     LocationBooleanValue,
     LocationFloatValue,
@@ -25,6 +29,14 @@ from dtbase.core.structure import (
     LocationSchema,
     LocationSchemaIdentifierRelation,
     LocationStringValue,
+    Sensor,
+    SensorBooleanReading,
+    SensorFloatReading,
+    SensorIntegerReading,
+    SensorMeasure,
+    SensorStringReading,
+    SensorType,
+    SensorTypeMeasureRelation,
 )
 
 
@@ -290,31 +302,56 @@ def insert_to_db_from_df(engine, df, DbClass):
     print(f"Inserted {len(df.index)} rows to table {DbClass.__tablename__}")
 
 
-def get_value_class_from_instance_type(value):
-    value_class = (
-        LocationBooleanValue
-        if isinstance(value, bool)
-        else LocationFloatValue
-        if isinstance(value, float)
-        else LocationIntegerValue
-        if isinstance(value, int)
-        else LocationStringValue
-        if isinstance(value, str)
-        else None
-    )
-    return value_class
+location_value_class_dict = {
+    bool: LocationBooleanValue,
+    float: LocationFloatValue,
+    int: LocationIntegerValue,
+    str: LocationStringValue,
+    "boolean": LocationBooleanValue,
+    "float": LocationFloatValue,
+    "integer": LocationIntegerValue,
+    "string": LocationStringValue,
+}
 
 
-def get_value_class_from_type_name(name):
-    value_class = (
-        LocationBooleanValue
-        if name == "bool"
-        else LocationFloatValue
-        if name == "float"
-        else LocationIntegerValue
-        if name == "integer"
-        else LocationStringValue
-        if name == "string"
-        else None
-    )
-    return value_class
+model_value_class_dict = {
+    bool: ModelBooleanValue,
+    float: ModelFloatValue,
+    int: ModelIntegerValue,
+    str: ModelStringValue,
+    "boolean": ModelBooleanValue,
+    "float": ModelFloatValue,
+    "integer": ModelIntegerValue,
+    "string": ModelStringValue,
+}
+
+
+sensor_reading_class_dict = {
+    bool: SensorBooleanReading,
+    float: SensorFloatReading,
+    int: SensorIntegerReading,
+    str: SensorStringReading,
+    "boolean": SensorBooleanReading,
+    "float": SensorFloatReading,
+    "integer": SensorIntegerReading,
+    "string": SensorStringReading,
+}
+
+
+def check_datatype(value, datatype_name):
+    if datatype_name == "string":
+        return isinstance(value, str)
+    if datatype_name == "integer":
+        return isinstance(value, int)
+    if datatype_name == "float":
+        return isinstance(value, float)
+    if datatype_name == "boolean":
+        return isinstance(value, bool)
+    raise ValueError(f"Unrecognised datatype: {datatype_name}")
+
+
+def row_mappings_to_dicts(rows):
+    """Convert the list of RowMappings that SQLAlchemy's mappings() returns into plain
+    dicts.
+    """
+    return [{k: v for k, v in row.items()} for row in rows]

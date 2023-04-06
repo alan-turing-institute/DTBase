@@ -7,11 +7,10 @@ import json
 from flask import request, jsonify
 from flask_login import login_required
 
+from dtbase.backend.api.location import blueprint
+from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
-from dtbase.backend.api.location import blueprint
-
-from dtbase.core import locations
 
 
 @blueprint.route("/insert_location_schema", methods=["POST"])
@@ -83,29 +82,36 @@ def insert_location():
             raise RuntimeError(
                 f"Must include '{k}' in POST request to /insert_location"
             )
-    idnames = []
-    for identifier in payload["identifiers"]:
-        locations.insert_location_identifier(
-            name=identifier["name"],
-            units=identifier["units"],
-            datatype=identifier["datatype"],
+    db.session.begin()
+    try:
+        idnames = []
+        for identifier in payload["identifiers"]:
+            locations.insert_location_identifier(
+                name=identifier["name"],
+                units=identifier["units"],
+                datatype=identifier["datatype"],
+                session=db.session,
+            )
+            idnames.append(identifier["name"])
+        # sort the idnames list, and use it to create/find a schema
+        idnames.sort()
+        schema_name = "-".join(idnames)
+        locations.insert_location_schema(
+            name=schema_name,
+            description=schema_name,
+            identifiers=idnames,
             session=db.session,
         )
-        idnames.append(identifier["name"])
-    # sort the idnames list, and use it to create/find a schema
-    idnames.sort()
-    schema_name = "-".join(idnames)
-    locations.insert_location_schema(
-        name=schema_name,
-        description=schema_name,
-        identifiers=idnames,
-        session=db.session,
-    )
-    value_dict = {}
-    for i, val in enumerate(payload["values"]):
-        value_dict[payload["identifiers"][i]["name"]] = val
-    locations.insert_location(schema_name=schema_name, **value_dict, session=db.session)
-    return jsonify(value_dict), 201
+        value_dict = {}
+        for i, val in enumerate(payload["values"]):
+            value_dict[payload["identifiers"][i]["name"]] = val
+        value_dict["schema_name"] = schema_name
+        locations.insert_location(**value_dict, session=db.session)
+        db.session.commit()
+        return jsonify(value_dict), 201
+    except:
+        db.session.rollback()
+        raise
 
 
 @blueprint.route("/insert_location/<schema_name>", methods=["POST"])
@@ -148,6 +154,76 @@ def list_locations(schema_name):
         **payload,
         session=db.session,
     )
-    # Convert from SQLAlchemy RowMapping to plain dicts
-    result = [{k: v for k, v in row.items()} for row in result]
     return jsonify(result), 200
+
+
+@blueprint.route("/list_location_schemas", methods=["GET"])
+# @login_required
+def list_location_schemas():
+    """
+    List location schemas in the database.
+    """
+
+    result = locations.list_location_schemas(session=db.session)
+    return jsonify(result), 200
+
+
+@blueprint.route("/list_location_identifiers", methods=["GET"])
+# @login_required
+def list_location_identifiers():
+    """
+    List location identifiers in the database.
+    """
+
+    result = locations.list_location_identifiers(session=db.session)
+    return jsonify(result), 200
+
+
+@blueprint.route("/delete_location_schema/<schema_name>", methods=["DELETE"])
+# @login_required
+def delete_location_schema(schema_name):
+    """
+    Delete a location schema from the database.
+    Endpoint URL: /delete_location_schema/<schema_name>
+    """
+
+    # Call delete_location_schema and check that it doesn't error.
+    try:
+        locations.delete_location_schema(schema_name=schema_name, session=db.session)
+        db.session.commit()
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": f"Location schema '{schema_name}' has been deleted.",
+                }
+            ),
+            200,
+        )
+    except ValueError:
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Location schema '{schema_name}' not found or could not be deleted.",
+                }
+            ),
+            404,
+        )
+
+
+@blueprint.route("/delete_location/<schema_name>", methods=["DELETE"])
+# @login_required
+def delete_location(schema_name):
+    """
+    Delete a location with the specified schema name and coordinates.
+    """
+    payload = json.loads(request.get_json())
+    try:
+        locations.delete_location_by_coordinates(
+            schema_name, session=db.session, **payload
+        )
+        db.session.commit()
+        return jsonify({"message": "Location deleted successfully."}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400

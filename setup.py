@@ -1,6 +1,6 @@
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("requirements.txt") as f:
     required = f.read().splitlines()
@@ -12,13 +12,8 @@ setup(
     url="https://github.com/alan-turing-institute/DTBase",
     author="The Alan Turing Institute Research Engineering Group",
     license="MIT",
-    packages=[
-        "dtbase",
-        "dtbase.core",
-        "dtbase.backend",
-        "dtbase.webapp",
-        "dtbase.functions",
-        "dtbase.ingress",
-    ],
+    packages=find_packages(),
+    package_data={"dtbase": ["models/arima/config_arima.ini"]},
+    entry_points={"console_scripts": ['dtbase_start_postgres_docker=dtbase.core.db_docker:main']},
     install_requires=required,
 )

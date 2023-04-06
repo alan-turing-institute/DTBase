@@ -1,0 +1,28 @@
+{
+  "name": "DTBase",
+  "description": "This is the web front-end of the DTBase Digital Twin Template. It is not meant to be installed as a package, we only use npm to manage dependencies and development configurations.",
+  "homepage": "https://github.com/alan-turing-institute/DTBase",
+  "license": "MIT",
+  "author": "Research Engineering Group @ The Alan Turing Institute",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "bootstrap": "^5.2.3",
+    "chart.js": "^4.2.1",
+    "chartjs-adapter-moment": "^1.0.1",
+    "datatables.net": "^1.13.4",
+    "datatables.net-bs": "^1.13.4",
+    "datatables.net-responsive": "^2.4.1",
+    "datatables.net-responsive-bs": "^2.4.1",
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.6.4",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.25.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.8.7"
+  }
+}
