@@ -99,7 +99,7 @@ def main():
     container_id = None
     if isinstance(docker_check, bool):
         if not docker_check:
-            raise RuntimeError("Looks like Docker is running - won't be able to start postgres server")
+            raise RuntimeError("Looks like Docker isn't running - won't be able to start postgres server")
         else:
             container_id = start_docker_postgres()
             print(f"Started postgres docker container with id {container_id}")
