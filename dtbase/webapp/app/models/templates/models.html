@@ -1,0 +1,116 @@
+{% extends "base_site.html" %}
+
+{% block title %} Predictive models {% endblock title %}
+
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <h3>Choose model and time period</h3>
+        <form>
+          <div>
+
+            <div>
+              Model
+              <select
+                  id="modelSelector"
+                  class="selectpicker"
+                  name="modelSelector"
+                  onchange="changeModel()">
+                {% for m in models %}
+                <option
+                    value="{{ m.name }}"
+                    {% if model and smname == model %} selected {% endif %}
+                    >
+                    {{m.name}}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              Time period
+              <input type="date" id="startDatePicker" name="startDate" value={{dt_from}}>
+              &mdash;
+              <input type="date" id="endDatePicker" name="startDate" value={{dt_to}}>
+            </div>
+
+
+    </div>
+
+    {% if data %}
+    <div class="row">
+      {% for m in measures %}
+      <div class="col-lg-6 col-md-9 col-sm-15">
+        <div class="x_panel tile fixed_height_640 overflow_hidden">
+          <div class="plotDiv" id="{{m.name}}Plot">
+            <canvas id="{{m.name}}Canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super()}}
+<!-- Datatables -->
+<script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
+<!-- Utility functions -->
+<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
+<!-- Chart.js -->
+<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
+
+
+<script>
+  /*
+  function sensor_loop(data) {
+    const unique_sensors = [...new Set(Object.keys(data))];
+
+    for (let i = 0; i < unique_sensors.length; i++) {
+      const current_sensor =  unique_sensors[i];
+      const json_arima_sensor = data[current_sensor]["arima"];
+      const json_trh_sensor = data[current_sensor]["trh"];
+      const run_id = json_arima_sensor[0]["run_id"];
+      //title
+      const canvasname = "arima_model_" + current_sensor;
+      const title = "sensor id: " + current_sensor + "     |   " + "run id: " + run_id;
+      document.getElementById(canvasname+"_title").innerHTML = title;
+      // See static/javascript/predictions.js for the plot function.
+      const show_legend = i == 0;
+      const axis_title = "Temperature (°C)";
+      plot(
+        json_arima_sensor[2],
+        json_arima_sensor[1],
+        json_arima_sensor[0],
+        json_trh_sensor,
+        "temperature",
+        canvasname,
+        axis_title,
+        show_legend,
+      );
+    }
+  }
+
+  const data = JSON.parse('{{data | safe}}');
+  sensor_loop(data);
+  */
+</script>
+
+{% endblock javascripts %}

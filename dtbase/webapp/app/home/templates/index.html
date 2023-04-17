@@ -1,6 +1,6 @@
 {% extends "base_site.html" %}
 
-{% block title %} INDEX {% endblock title %}
+{% block title %} DTBase {% endblock title %}
 
 {% block stylesheets %}
 {{ super() }}
@@ -12,142 +12,8 @@
   <div class="col">
     <div class="row">
       <div class="col">
-        <h3>Choose sensors and time period</h3>
-        <form>
-          <div>
-
-            <div>
-              Sensor class
-              <select
-                  id="sensorTypeSelector"
-                  class="selectpicker"
-                  name="sensorTypeSelector"
-                  onchange="changeSensorType()">
-                {% for s in sensor_types %}
-                <option
-                    value="{{ s.name }}"
-                    {% if sensor_type and s.name == sensor_type %} selected {% endif %}
-                    >
-                    {{s.name}}
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div>
-              Time period
-              <input type="date" id="startDatePicker" name="startDate" value={{dt_from}}>
-              &mdash;
-              <input type="date" id="endDatePicker" name="startDate" value={{dt_to}}>
-            </div>
-
-            <div>
-              Choose sensor(s)
-              <div id="sensorCheckboxesDiv">
-                {% for s in all_sensors %}
-                <div class="form-check form-check-inline" id="sensorCheckbox{{s.id}}">
-                  <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="sensor_checkbox_{{s.unique_identifier}}"
-                      {% if sensor_ids and s.unique_identifier in sensor_ids %} checked {% endif %}
-                      value="{{s.unique_identifier}}">
-                  <label
-                      class="form-check-label"
-                      for="sensor_checkbox_{{s.unique_identifier}}">
-                    {{s.unique_identifier}}:
-                    {{s.name}}
-                  </label>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-
-          </div>
-          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(false)">Plot</button>
-          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(true)">Download</button>
-        </form>
+        <h3>Welcome to DTBase</h3>
       </div>
     </div>
-
-    {% if data %}
-    <div class="row">
-      {% for m in measures %}
-      <div class="col-lg-6 col-md-9 col-sm-15">
-        <div class="x_panel tile fixed_height_640 overflow_hidden">
-          <div class="plotDiv" id="{{m.name}}Plot">
-            <canvas id="{{m.name}}Canvas"></canvas>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {%
-    for sensorId in data:
-    %}
-    <div style="margin-top: 3em" class="row x_content">
-      <div class="col-lg-12">
-        <h4>Data for sensor {{sensorId}}</h4>
-        <h5>Raw data</h5>
-        <div class="table-responsive">
-          <table id="datatable-responsive-{{sensorId}}" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                {% for m in measures %}
-                <th>{{m.name}}</th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-
-              {% for row in data[sensorId]: %}
-              <tr>
-                <td>{{ row.timestamp }}</td>
-                {% for m in measures %}
-                <td>{{ row[m.name] }}</td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    {%
-    endfor
-    %}
   </div>
 {% endblock content %}
-
-{% block javascripts %}
-{{ super()}}
-<!-- Datatables -->
-<script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
-<!-- Utility functions -->
-<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-
-<script>
-  const data = {{data | safe}};
-  Object.keys(data).forEach((sensorId) => {
-      $(`#datatable-responsive-${sensorId}`).DataTable( {
-          responsive: true
-        });
-    });
-  const allSensors = "{{all_sensors}}"
-  {% for m in measures %}
-  makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
-  {% endfor %}
-</script>
-{% endblock javascripts %}
