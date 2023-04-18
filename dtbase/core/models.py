@@ -359,10 +359,32 @@ def get_datatype_by_measure_name(measure_name, session=None):
     datatype = result[0][0]
     return datatype
 
+@add_default_session
+def get_model_run_results(run_id, session=None):
+    """Get the output of a model run for all measures.
+
+    Args:
+        run_id: Database ID of the model run.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Dict {<measure_name>: list of tuples (values, timestamp), ...}
+
+    """
+    measures = get_model_run_measures(run_id, session=session)
+    results = {}
+    for (measure_name, measure_id) in measures:
+        results[measure_name] = get_model_run_results_for_measure(
+            run_id=run_id,
+            measure_name=measure_name,
+            session=session
+        )
+    return results
+
 
 @add_default_session
-def get_model_run(run_id, measure_name=None, session=None):
-    """Get the output of a model run.
+def get_model_run_results_for_measure(run_id, measure_name=None, session=None):
+    """Get the output of a model run for a single measure.
 
     Args:
         run_id: Database ID of the model run.
@@ -370,27 +392,37 @@ def get_model_run(run_id, measure_name=None, session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        A list of tuples (values, timestamp) that are the results of the model run.
+        A list of tuples (values, timestamp) that are the results of the model run for that measure
     """
 
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.model_value_class_dict[datatype_name]
-
-    if measure_name:
-        measure_id = measure_id_from_name(measure_name, session=session)
-        query = (
-            sqla.select(value_class.value, value_class.timestamp)
-            .join(ModelProduct, ModelProduct.id == value_class.product_id)
-            .where(
-                (ModelProduct.run_id == run_id) & (ModelProduct.measure_id == measure_id)
-            )
+    measure_id = measure_id_from_name(measure_name, session=session)
+    query = (
+        sqla.select(value_class.value, value_class.timestamp)
+        .join(ModelProduct, ModelProduct.id == value_class.product_id)
+        .where(
+            (ModelProduct.run_id == run_id) & (ModelProduct.measure_id == measure_id)
         )
-    else:
-        # all measures
-        query = (
-            sqla.select(ModelMeasure.name, value_class.value, value_class.timestamp)
-            .join(ModelProduct, ModelProduct.id == value_class.product_id)
-            .join(ModelMeasure, ModelMeasure.id == ModelProduct.measure_id)
+    )
+    result = session.execute(query).fetchall()
+    return result
+
+
+@add_default_session
+def get_model_run_measures(run_id, session=None):
+    """
+    Get the list of ModelMeasures for a given ModelRun.
+
+    Args:
+        run_id:int Database ID of the model run
+        session: SQLAlchemy session. Optional
+    Returns:
+        List of tuples [(<measure_name:str>, <measure_id:int>),...]
+    """
+    query = (
+        sqla.select(ModelMeasure.name, ModelMeasure.id)
+            .join(ModelProduct, ModelProduct.measure_id == ModelMeasure.id)
             .where(
                 (ModelProduct.run_id == run_id)
             )
@@ -398,6 +430,26 @@ def get_model_run(run_id, measure_name=None, session=None):
     result = session.execute(query).fetchall()
     return result
 
+
+@add_default_session
+def get_model_run_sensor_measures(run_id, session=None):
+    """
+    Get the info about what sensor/measure can be compared to a given ModelRun.
+
+    Args:
+        run_id:int Database ID of the model run
+        session: SQLAlchemy session. Optional
+    Returns:
+        tuple (<sensor_id:int>, <measure_id:str>)
+    """
+    query = (
+        sqla.select(ModelRun.sensor_id, ModelRun.sensor_measure_id)
+            .where(
+                (ModelRun.id == run_id)
+            )
+        )
+    result = session.execute(query).fetchall()
+    return result
 
 @add_default_session
 def delete_model(model_name, session=None):

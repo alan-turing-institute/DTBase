@@ -302,11 +302,10 @@ def get_model_run():
     GET request should have json data (mimetype "application/json") containing
     {
         run_id: <Database ID of the model run>,
-        measure_name: <Name of the model measure to get values for>, optional.
     }
 
     Returns:
-        List of model runs.
+        Dict, keyed by measure name, with values as lists of tuples (val, timestamp).
     """
     payload = json.loads(request.get_json())
     required_keys = ["run_id"]
@@ -314,9 +313,11 @@ def get_model_run():
     if error_response:
         return error_response
 
-    model_run = models.get_model_run(**payload, session=db.session)
-    converted_model_run = [
-        {"value": t[0], "timestamp": t[1].isoformat()} for t in model_run
-    ]
+    model_run = models.get_model_run_results(**payload, session=db.session)
+    converted_results = {}
+    for k,v in model_run.items():
+        converted_results[k] = [
+            {"value": t[0], "timestamp": t[1].isoformat()} for t in v
+        ]
 
-    return jsonify(converted_model_run), 200
+    return jsonify(converted_results), 200
