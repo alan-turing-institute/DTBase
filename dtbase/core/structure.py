@@ -505,7 +505,7 @@ class ModelMeasure(BASE):
     """
     Measures that models can predict values for.
 
-    Similas to SensorMeasure, but distinct, because models might for instance predict
+    Similar to SensorMeasure, but distinct, because models might for instance predict
     not only values for observables, but also e.g. upper and lower bounds.
     """
 
@@ -527,6 +527,8 @@ class ModelRun(BASE):
     """
     A ModelRun is a single instance of running a model at a particular time with a
     particular scenario.
+    Optionally it may include a sensor_id and a measure for that sensor, so that
+    we can compare to the actual values.
     """
 
     __tablename__ = "model_run"
@@ -535,6 +537,8 @@ class ModelRun(BASE):
     id = Column(Integer, primary_key=True)
     model_id = Column(Integer, ForeignKey("model.id"), nullable=False)
     scenario_id = Column(Integer, ForeignKey("model_scenario.id"), nullable=True)
+    sensor_id = Column(Integer, ForeignKey("sensor.id"), nullable=True)
+    sensor_measure_id = Column(Integer, ForeignKey("sensor_measure.id"), nullable=True)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 

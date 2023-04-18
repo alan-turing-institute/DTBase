@@ -57,6 +57,24 @@ def measure_id_from_name(name, session=None):
 
 
 @add_default_session
+def measure_name_from_id(measure_id, session=None):
+    """Find the name of a model measure given the id
+
+    Args:
+        measure_id:int ID of the model measure.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Name of the model measure.
+    """
+    query = sqla.select(ModelMeasure.name).where(ModelMeasure.id == measure_id)
+    result = session.execute(query).fetchall()
+    if len(result) == 0:
+        raise ValueError(f"No model measure '{name}'.")
+    return result[0][0]
+
+
+@add_default_session
 def model_id_from_name(name, session=None):
     """Find the id of a model of the given name.
 
@@ -219,6 +237,8 @@ def insert_model_run(
     model_name,
     scenario_description,
     measures_and_values,
+    sensor_id=None,
+    sensor_measure_id=None,
     time_created=dt.datetime.now(dt.timezone.utc),
     create_scenario=False,
     session=None,
@@ -235,6 +255,9 @@ def insert_model_run(
                 values: Values that the model outputs as an iterable.
                 timestamps: Timestamps associated with the values, an iterable of the
                     same length.
+        sensor_id:int (optional) - database ID of sensor against which results should be
+                     compared.
+        sensor_measure_id: int (optional) - what measure (e.g. "temperature") to compare to.
         time_created: Time when this run was run. Optional, `now` by default.
         create_scenario: Whether to create the scenario if it doesn't already exist.
             Optional, False by default.
@@ -262,6 +285,10 @@ def insert_model_run(
     model_run = ModelRun(
         model_id=model_id, scenario_id=scenario_id, time_created=time_created
     )
+    if sensor_id:
+        model_run.sensor_id = sensor_id
+    if sensor_measure_id:
+        model_run.sensor_measure_id = sensor_measure_id
     session.add(model_run)
     session.flush()
     for mnv in measures_and_values:
@@ -334,27 +361,40 @@ def get_datatype_by_measure_name(measure_name, session=None):
 
 
 @add_default_session
-def get_model_run(run_id, measure_name, session=None):
+def get_model_run(run_id, measure_name=None, session=None):
     """Get the output of a model run.
 
     Args:
         run_id: Database ID of the model run.
-        measure_name: Name of the model measure to get values for.
+        measure_name: Name of the model measure to get values for. Optional.
         session: SQLAlchemy session. Optional.
 
     Returns:
         A list of tuples (values, timestamp) that are the results of the model run.
     """
-    measure_id = measure_id_from_name(measure_name, session=session)
+
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.model_value_class_dict[datatype_name]
-    query = (
-        sqla.select(value_class.value, value_class.timestamp)
-        .join(ModelProduct, ModelProduct.id == value_class.product_id)
-        .where(
-            (ModelProduct.run_id == run_id) & (ModelProduct.measure_id == measure_id)
+
+    if measure_name:
+        measure_id = measure_id_from_name(measure_name, session=session)
+        query = (
+            sqla.select(value_class.value, value_class.timestamp)
+            .join(ModelProduct, ModelProduct.id == value_class.product_id)
+            .where(
+                (ModelProduct.run_id == run_id) & (ModelProduct.measure_id == measure_id)
+            )
         )
-    )
+    else:
+        # all measures
+        query = (
+            sqla.select(ModelMeasure.name, value_class.value, value_class.timestamp)
+            .join(ModelProduct, ModelProduct.id == value_class.product_id)
+            .join(ModelMeasure, ModelMeasure.id == ModelProduct.measure_id)
+            .where(
+                (ModelProduct.run_id == run_id)
+            )
+        )
     result = session.execute(query).fetchall()
     return result
 
