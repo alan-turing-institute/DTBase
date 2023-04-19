@@ -11,6 +11,8 @@ from dtbase.core.structure import (
     ModelProduct,
     ModelRun,
     ModelScenario,
+    Sensor,
+    SensorMeasure,
 )
 from dtbase.core import utils
 
@@ -440,16 +442,18 @@ def get_model_run_sensor_measures(run_id, session=None):
         run_id:int Database ID of the model run
         session: SQLAlchemy session. Optional
     Returns:
-        tuple (<sensor_id:int>, <measure_id:str>)
+        tuple (<sensor_unique_id:str>, <measure_name:str>)
     """
     query = (
-        sqla.select(ModelRun.sensor_id, ModelRun.sensor_measure_id)
+        sqla.select(ModelRun.sensor_id, Sensor.unique_identifier, SensorMeasure.name)
+            .join(Sensor, Sensor.id == ModelRun.sensor_id)
+            .join(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
             .where(
                 (ModelRun.id == run_id)
             )
         )
     result = session.execute(query).fetchall()
-    return result
+    return result[0][1:]
 
 @add_default_session
 def delete_model(model_name, session=None):

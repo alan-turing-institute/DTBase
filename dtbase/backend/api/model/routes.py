@@ -256,35 +256,22 @@ def list_model_runs():
     model_name = payload.get("model_name")
 
     dt_to = payload.get("dt_to")
-    if not dt_to:
-        dt_to = datetime.now()
-    else:
+    dt_from = payload.get("dt_from")
+    dt_error = jsonify(
+        {
+            "error": "Invalid datetime format for dt_to/from. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+        }
+    )
+    if dt_to:
         try:
             dt_to = datetime.fromisoformat(dt_to)
         except ValueError:
-            return (
-                jsonify(
-                    {
-                        "error": "Invalid datetime format for dt_to. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
-                    }
-                ),
-                400,
-            )
-    dt_from = payload.get("dt_from")
-    if not dt_from:
-        dt_from = dt_to - timedelta(days=7)
-    else:
+            return dt_error, 400
+    if dt_from:
         try:
             dt_from = datetime.fromisoformat(dt_from)
         except ValueError:
-            return (
-                jsonify(
-                    {
-                        "error": "Invalid datetime format for dt_from. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
-                    }
-                ),
-                400,
-            )
+            return dt_error, 400
     scenario = payload.get("scenario")
 
     model_runs = models.list_model_runs(
@@ -321,3 +308,28 @@ def get_model_run():
         ]
 
     return jsonify(converted_results), 200
+
+
+@blueprint.route("/get_model_run_sensor_measure", methods=["GET"])
+# @login_required
+def get_model_run_sensor_measure():
+    """
+    Get the sensor and sensor measure that the output of a model run should
+    be compared to.
+
+    GET request should have json data (mimetype "application/json") containing
+    {
+        run_id: <Database ID of the model run>,
+    }
+
+    Returns:
+        Dict, with keys "sensor_unique_id", "measure_name"
+    """
+    payload = json.loads(request.get_json())
+    required_keys = ["run_id"]
+    error_response = check_keys(payload, required_keys, "/get_model_run_sensor_measure")
+    if error_response:
+        return error_response
+    result = models.get_model_run_sensor_measures(**payload)
+    result_dict = {"sensor_unique_id": result[0], "measure_name": result[1]}
+    return jsonify(result_dict), 200
