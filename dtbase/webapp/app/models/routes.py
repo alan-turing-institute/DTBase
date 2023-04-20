@@ -140,11 +140,12 @@ def index():
     print(f"model_list is {model_list}")
 
     # for now just show results for the latest run of the first model
-    model_name = model_list[0]
+    model_name = model_list[0]["name"]
+
     model_data = fetch_latest_run_data(model_name)
 
     return render_template(
         "models.html",
         models=model_list,
-        model_data=model_data,
+        model_data=json.dumps(model_data),
     )
