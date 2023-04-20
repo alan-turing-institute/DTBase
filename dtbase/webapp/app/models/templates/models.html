@@ -12,7 +12,7 @@
   <div class="col">
     <div class="row">
       <div class="col">
-        <h3>Choose model and time period</h3>
+        <h3>Choose predictive model</h3>
         <form>
           <div>
 
@@ -33,28 +33,25 @@
                 {% endfor %}
               </select>
             </div>
-
-            <div>
-              Time period
-              <input type="date" id="startDatePicker" name="startDate" value={{dt_from}}>
-              &mdash;
-              <input type="date" id="endDatePicker" name="startDate" value={{dt_to}}>
-            </div>
-
-
     </div>
 
-    {% if data %}
+    {% if model_data %}
     <div class="row">
-      {% for m in measures %}
-      <div class="col-lg-6 col-md-9 col-sm-15">
-        <div class="x_panel tile fixed_height_640 overflow_hidden">
-          <div class="plotDiv" id="{{m.name}}Plot">
-            <canvas id="{{m.name}}Canvas"></canvas>
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Arima: Temperature predictions</h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
           </div>
-        </div>
+	  <div class="canvas_wrapper">
+            <canvas id="model_plot"></canvas>
+          </div>
+	</div>
       </div>
-      {% endfor %}
     </div>
     {% endif %}
 
@@ -64,12 +61,8 @@
 
 {% block javascripts %}
 {{ super()}}
-<!-- Datatables -->
-<script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
 <!-- Utility functions -->
+<script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
 <script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
 <script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
 <!-- Chart.js -->
@@ -79,38 +72,34 @@
 
 
 <script>
-  /*
-  function sensor_loop(data) {
-    const unique_sensors = [...new Set(Object.keys(data))];
+  function plot_predictions(model_data) {
+      const pred_data = model_data["pred_data"];
+      const sensor_data = model_data["sensor_data"];
+      const measure = sensor_data["measure_name"];
+      const sensor_id = sensor_data["sensor_uniq_id"];
 
-    for (let i = 0; i < unique_sensors.length; i++) {
-      const current_sensor =  unique_sensors[i];
-      const json_arima_sensor = data[current_sensor]["arima"];
-      const json_trh_sensor = data[current_sensor]["trh"];
-      const run_id = json_arima_sensor[0]["run_id"];
-      //title
-      const canvasname = "arima_model_" + current_sensor;
-      const title = "sensor id: " + current_sensor + "     |   " + "run id: " + run_id;
-      document.getElementById(canvasname+"_title").innerHTML = title;
+      const canvasname = measure_name + "_" + sensor_uniq_id;
+      const title = measure_name + " " + sensor_uniq_id;
+      document.getElementById("model_plot").innerHTML = title;
       // See static/javascript/predictions.js for the plot function.
-      const show_legend = i == 0;
-      const axis_title = "Temperature (°C)";
-      plot(
-        json_arima_sensor[2],
-        json_arima_sensor[1],
-        json_arima_sensor[0],
-        json_trh_sensor,
-        "temperature",
-        canvasname,
-        axis_title,
-        show_legend,
+      const show_legend = true;
+      const axis_title = measure;
+
+      plot(pred_data["Upper Bound "+measure],
+	   pred_data["Mean "+measure],
+	   pred_data["Lower Bound "+measure],
+	   sensor_data["readings"],
+	   measure,
+	   canvasname,
+	   axis_title,
+	   show_legend
       );
-    }
+
   }
 
-  const data = JSON.parse('{{data | safe}}');
-  sensor_loop(data);
-  */
+  const model_data = JSON.parse('{{model_data | safe}}');
+  plot_predictions(model_data);
+
 </script>
 
 {% endblock javascripts %}
