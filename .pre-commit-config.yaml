@@ -17,5 +17,5 @@ repos:
   rev: v2.6.0
   hooks:
   - id: prettier
-    files: ^webapp
-    args: [--ignore-path=webapp/.prettierignore]
+    files: ^dtbase/webapp
+    args: [--ignore-path=dtbase/webapp/.prettierignore]
