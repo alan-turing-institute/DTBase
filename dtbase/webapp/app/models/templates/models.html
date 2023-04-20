@@ -1,0 +1,105 @@
+{% extends "base_site.html" %}
+
+{% block title %} Predictive models {% endblock title %}
+
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <h3>Choose predictive model</h3>
+        <form>
+          <div>
+
+            <div>
+              Model
+              <select
+                  id="modelSelector"
+                  class="selectpicker"
+                  name="modelSelector"
+                  onchange="changeModel()">
+                {% for m in models %}
+                <option
+                    value="{{ m.name }}"
+                    {% if model and smname == model %} selected {% endif %}
+                    >
+                    {{m.name}}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+    </div>
+
+    {% if model_data %}
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Arima: Temperature predictions</h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+	  <div class="canvas_wrapper">
+            <canvas id="model_plot"></canvas>
+          </div>
+	</div>
+      </div>
+    </div>
+    {% endif %}
+
+
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super()}}
+<!-- Utility functions -->
+<script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
+<!-- Chart.js -->
+<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
+
+
+<script>
+  function plot_predictions(model_data) {
+      const pred_data = model_data["pred_data"];
+      const sensor_data = model_data["sensor_data"];
+      const measure = sensor_data["measure_name"];
+      const sensor_id = sensor_data["sensor_uniq_id"];
+
+      const canvasname = measure_name + "_" + sensor_uniq_id;
+      const title = measure_name + " " + sensor_uniq_id;
+      document.getElementById("model_plot").innerHTML = title;
+      // See static/javascript/predictions.js for the plot function.
+      const show_legend = true;
+      const axis_title = measure;
+
+      plot(pred_data["Upper Bound "+measure],
+	   pred_data["Mean "+measure],
+	   pred_data["Lower Bound "+measure],
+	   sensor_data["readings"],
+	   measure,
+	   canvasname,
+	   axis_title,
+	   show_legend
+      );
+
+  }
+
+  const model_data = JSON.parse('{{model_data | safe}}');
+  plot_predictions(model_data);
+
+</script>
+
+{% endblock javascripts %}

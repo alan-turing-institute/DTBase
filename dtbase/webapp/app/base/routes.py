@@ -2,7 +2,7 @@ from bcrypt import checkpw
 
 from os import environ
 
-from flask import jsonify, render_template, redirect, request, url_for
+from flask import current_app, jsonify, render_template, redirect, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app import login_manager
@@ -32,9 +32,11 @@ def route_fixed_template(template):
 def route_errors(error):
     return render_template("errors/page_{}.html".format(error))
 
+@blueprint.route("/favicon.ico")
+def favicon():
+    return current_app.send_static_file("favicon.ico")
 
 ## Login & Registration
-
 
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
