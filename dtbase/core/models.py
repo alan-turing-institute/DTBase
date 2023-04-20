@@ -317,7 +317,8 @@ def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session
         session: SQLAlchemy session. Optional.
 
     Returns:
-        List of model runs.
+        List of model runs, each being a dict with keys:
+         "id","model_id", "model_name", "scenario_id", "scenario_description", "time_created"
     """
     query = (
         sqla.select(

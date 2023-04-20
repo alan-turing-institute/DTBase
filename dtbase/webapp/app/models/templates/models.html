@@ -40,7 +40,7 @@
       <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
           <div class="x_title">
-            <h2>Arima: Temperature predictions</h2>
+            <h2>Model  predictions</h2>
             <ul class="nav navbar-right panel_toolbox">
               <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
               </li>
@@ -77,10 +77,10 @@
       const sensor_data = model_data["sensor_data"];
       const measure = sensor_data["measure_name"];
       const sensor_id = sensor_data["sensor_uniq_id"];
-
-      const canvasname = measure_name + "_" + sensor_uniq_id;
-      const title = measure_name + " " + sensor_uniq_id;
-      document.getElementById("model_plot").innerHTML = title;
+      const canvas_name = "model_plot";
+      //const canvas_name = measure + "_" + sensor_id;
+      const title = measure + " " + sensor_id;
+      document.getElementById(canvas_name).innerHTML = title;
       // See static/javascript/predictions.js for the plot function.
       const show_legend = true;
       const axis_title = measure;
@@ -90,7 +90,7 @@
 	   pred_data["Lower Bound "+measure],
 	   sensor_data["readings"],
 	   measure,
-	   canvasname,
+	   canvas_name,
 	   axis_title,
 	   show_legend
       );
