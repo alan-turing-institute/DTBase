@@ -6,11 +6,11 @@ import pandas as pd
 import logging, coloredlogs
 
 
-from dtbase.models.arima.arima.get_data import get_training_data
-from dtbase.models.arima.arima.clean_data import clean_data
-from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.data_utils.dataprocessor.get_data import get_training_data
+from dtbase.data_utils.dataprocessor.clean_data import clean_data
+from dtbase.data_utils.dataprocessor.prepare_data import prepare_data
+from dtbase.data_utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import config
 
 OUTPUT_DIR = os.path.join(os.getcwd(), "results")
 os.makedirs(OUTPUT_DIR, exist_ok=True)

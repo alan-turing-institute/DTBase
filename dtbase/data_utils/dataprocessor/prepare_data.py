@@ -1,4 +1,4 @@
-from .config import config
+from dtbase.data_utils.config import config
 import datetime
 import pytz
 import pandas as pd
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 constants = config(section="constants")
 data_config = config(section="data")
-arima_config = config(section="arima")
+other_config = config(section="others")
 sensors_config = config(section="sensors")
 
 
@@ -37,14 +37,14 @@ def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
             - Otherwise, the output timestamp is the date of the
             input timestamp at time (`farm_cycle_start` - 12 hours).
     """
-    farm_cycle_start = arima_config[
+    farm_cycle_start = other_config[
         "farm_cycle_start"
     ]  # time at which the farm cycle starts
     # parse string into a datetime object
     farm_cycle_start = datetime.datetime.strptime(farm_cycle_start, "%Hh%Mm%Ss")
     if farm_cycle_start.time() != datetime.time(hour=16, minute=0, second=0):
         logger.warning(
-            "The `farm_cycle_start` parameter in config.ini has been set to something different than 4 PM."
+            "The `farm_cycle_start` parameter in data_config.ini has been set to something different than 4 PM."
         )
     farm_cycle_start = datetime.datetime.combine(
         timestamp.date(), farm_cycle_start.time()
@@ -109,7 +109,7 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     """
     Replace missing values in a time series with "typically observed"
     values. This function makes use of the `days_interval` and
-    `weekly_seasonality` parameters in config.ini.
+    `weekly_seasonality` parameters in data_config.ini.
     Note that there needs to be sufficient data in the input time series
     in order to compute typically-observed values. Otherwise, missing
     observations will not be replaced.
@@ -138,16 +138,16 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     logger.info("Percentage of missing observations: {0: .2f} %".format(stats))
     index_name = data.index.name  # get the index name - should be `timestamp`
     data = data.to_frame()  # first convert Series to DataFrame
-    days_interval = arima_config["days_interval"]
+    days_interval = other_config["days_interval"]
     data = break_up_timestamp(data, days_interval)
     # compute the mean value for the groups, excluding missing values.
-    weekly_seasonality = arima_config["weekly_seasonality"]
+    weekly_seasonality = other_config["weekly_seasonality"]
     # if the user has requested to consider weekly seasonality:
     if weekly_seasonality:
         if days_interval < 30:
             logger.error(
                 """
-                If the 'weekly_seasonality' parameter in config.ini is set to `True`,
+                If the 'weekly_seasonality' parameter in data_config.ini is set to `True`,
                 the 'days_interval' parameter must be >= 30.
                 """
             )
@@ -193,7 +193,7 @@ def prepare_data(
 ) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
-    the ARIMA pipeline. Parameters relevant to this function in config.ini are
+    the ARIMA pipeline. Parameters relevant to this function in data_config.ini are
     `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The last two
     are employed to replace missing observations.
 
@@ -208,19 +208,19 @@ def prepare_data(
             contained in this dictionary are indexed by timestamp and are
             processed so that the timestamps are in agreement with the
             start of the farm cycle, specified through the parameter
-            `farm_cycle_start` in config.ini. Missing observations will be
+            `farm_cycle_start` in data_config.ini. Missing observations will be
             replaced by "typically observed" values if there is enough data
             and the combination of parameters `days_interval` and `weekly_seasonality`
             allows it.
     """
     logger.info("Preparing the data to feed to ARIMA model...")
-    if arima_config["days_interval"] != 30:
+    if other_config["days_interval"] != 30:
         logger.warning(
-            "The `days_interval` parameter in config.ini has been set to something different than 30."
+            "The `days_interval` parameter in data_config.ini has been set to something different than 30."
         )
-    if not arima_config["weekly_seasonality"]:
+    if not other_config["weekly_seasonality"]:
         logger.warning(
-            "The `weekly_seasonality` parameter in config.ini has been set to False."
+            "The `weekly_seasonality` parameter in data_config.ini has been set to False."
         )
     # obtain the standardized timestamp.
     keys_sensor_data = list(sensor_data.keys())

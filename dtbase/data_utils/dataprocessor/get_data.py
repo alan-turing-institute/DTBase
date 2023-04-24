@@ -19,7 +19,7 @@ from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
     session_close
 )
-from .config import config
+from dtbase.data_utils.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def get_training_data(
     """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
     Each output DataFrame can also be the result of joining two tables, as specified in
-    the config.ini file.
+    the data_config.ini file.
 
     Args:
         measures_list (list of str): if given, override the 'include_measures' from the config.
