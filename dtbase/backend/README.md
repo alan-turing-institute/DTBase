@@ -24,6 +24,7 @@ The following endpoints are implemented:
                     ]
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
     - returns the payload, with status code 201
 
 
@@ -40,7 +41,7 @@ The schema name will be a concatenation of the identifier names.
       "values": [<val1>, ...]
     }
     ``` 
-    (where the values should be in the same order as the identifiers).
+    (where the values should be in the same order as the identifiers) and "datatype" must be one of "string", "integer", "float", "boolean".
     - returns status code 201, along with json:
     ```
     {
@@ -140,6 +141,7 @@ The endpoints are:
                     ]
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
 
     - returns status code 201, alongside the payload.
 
@@ -158,7 +160,6 @@ The endpoints are:
       "notes": <human readable notes:str>
     }
     ```
-
     - returns status code 201, alongside the payload.
 
 ### `/sensor/insert_sensor_location`
@@ -395,6 +396,7 @@ API endpoints for the models is as follows.
         "datatype": <value type of this model measure:str>
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
 
     - returns status code 201, alongside the payload.
 
