@@ -9,7 +9,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 import os
 
-from dtbase.data_utils.config import config
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 

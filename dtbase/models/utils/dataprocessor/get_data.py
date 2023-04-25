@@ -19,7 +19,7 @@ from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
     session_close
 )
-from dtbase.data_utils.config import config
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 

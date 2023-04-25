@@ -1,4 +1,4 @@
-from dtbase.data_utils.config import config
+from dtbase.models.utils.config import config
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta

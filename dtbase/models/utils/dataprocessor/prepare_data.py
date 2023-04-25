@@ -1,4 +1,4 @@
-from dtbase.data_utils.config import config
+from dtbase.models.utils.config import config
 import datetime
 import pytz
 import pandas as pd
