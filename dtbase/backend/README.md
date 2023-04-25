@@ -355,7 +355,6 @@ API endpoints for the models is as follows.
     {
         "model_name": <model_name:str>,
         "description": <description:str|None|null>,
-        "session": <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
 
@@ -461,7 +460,6 @@ API endpoints for the models is as follows.
         "dt_from": <datetime string for earliest readings to get (inclusive):str>,
         "dt_to": <datetime string for last readings to get (inclusive):str>,
         "scenario": <scenario:str> (optional, by default all scenarios),
-        <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
     datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S. 
@@ -486,9 +484,8 @@ API endpoints for the models is as follows.
     - Payload should have the form
     ```
     {
-        run_id: <run_id:int> (id of the model runm),
+        run_id: <run_id:int> (id of the model run),
         measure_name: <measure_name:str>,
-        <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
 
