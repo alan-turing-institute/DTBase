@@ -7,7 +7,6 @@ import urllib
 
 BACKEND_URL = os.environ["DT_BACKEND_URL"]
 
-
 def parse_rfc1123_datetime(string):
     """Parse an RFC 1123 formatted datetime string into a datetime object.
 
@@ -34,7 +33,7 @@ def backend_call(request_type, end_point_path, payload=None):
     url = f"{BACKEND_URL}{end_point_path}"
     if payload:
         headers = {"content-type": "application/json"}
-        response = request_func(url, headers=headers, json=json.dumps(payload))
+        response = request_func(url, headers=headers, json=payload)
     else:
         response = request_func(url)
     return response

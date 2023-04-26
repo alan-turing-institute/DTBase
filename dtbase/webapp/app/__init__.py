@@ -34,6 +34,7 @@ def register_blueprints(app):
         "base",
         "home",
         "sensors",
+        "locations",
         "models"
     )
 

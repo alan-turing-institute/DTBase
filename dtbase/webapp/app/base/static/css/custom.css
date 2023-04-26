@@ -4038,3 +4038,18 @@ ul.notifications {
   background: rgba(217, 92, 92, 0.95);
   text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5);
 }
+
+.form-group .custom-input {
+  width: 300px !important;
+}
+.identifier-row {
+  display: flex;
+  margin-bottom: 1rem;
+}
+.identifier-row input {
+  margin-right: 0.5rem;
+  width: 300px !important;
+}
+.btn-add-identifier {
+  margin-left: 0.5rem;
+}
