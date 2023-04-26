@@ -202,8 +202,8 @@ def insert_sensor_readings():
 
 @blueprint.route("/list", methods=["GET"])
 # @login_required
-def list_sensors(type_name):
-    """List sensors of in the database."""
+def list_sensors():
+    """List sensors in the database."""
     result = sensors.list_sensors(session=db.session)
     return jsonify(result), 200
 

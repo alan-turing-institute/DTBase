@@ -17,15 +17,18 @@ from dtbase.core.models import (
     model_id_from_name,
     scenario_id_from_description,
 )
-from dtbase.core.sensors import sensor_id_from_unique_identifier
+from dtbase.core.sensors import (
+    measure_id_from_name,
+    sensor_id_from_unique_identifier
+)
 from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
-from dtbase.models.arima.arima.get_data import get_training_data
-from dtbase.models.arima.arima.clean_data import clean_data
-from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import config
 
 
 def run_pipeline(session=None) -> None:
@@ -93,6 +96,7 @@ def run_pipeline(session=None) -> None:
             session=session
         )
         for base_measure in base_measures_list:
+            sensor_measure_id = measure_id_from_name(base_measure, session=session)
             values = prep_data[sensor][base_measure]
             mean_forecast, conf_int, metrics = arima_pipeline(values)
             mean = {
@@ -116,6 +120,8 @@ def run_pipeline(session=None) -> None:
                     model_name="Arima",
                     scenario_description="BusinessAsUsual",
                     measures_and_values=measures_values,
+                    sensor_id=sensor_id,
+                    sensor_measure_id=sensor_measure_id,
                     session=session
                 )
 

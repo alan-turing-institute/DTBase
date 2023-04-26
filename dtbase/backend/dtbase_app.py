@@ -6,6 +6,7 @@ from dtbase.backend.config import config_dict
 from dtbase.backend.api import create_app, db
 
 get_config_mode = environ.get("DTBASE_CONFIG_MODE", "Production")
+print(f"get_config_mode is {get_config_mode}")
 
 try:
     config_mode = config_dict[get_config_mode.capitalize()]
