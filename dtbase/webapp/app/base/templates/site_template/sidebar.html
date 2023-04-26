@@ -5,31 +5,50 @@
   <hr>
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="/home/index" class="nav-link text-dark {{ 'active text-white' if request.path == '/home/index' else '' }}" aria-current="page">
+      <a href="/home/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/home/index' else '' }}"
+        aria-current="page">
         <i class="fa fa-home me-2 fa-fw"></i>
         Home
       </a>
     </li>
     <li>
-      <a href="/sensors/index" class="nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}">
+      <a href="/sensors/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}">
         <i class="fa fa-thermometer-half me-2 fa-fw"></i>
         Sensors
       </a>
     </li>
     <li>
-      <a href="/models/index" class="nav-link text-dark {{ 'active text-white' if request.path == '/models/index' else '' }}">
+      <a href="/models/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/models/index' else '' }}">
         <i class="fa fa-cogs me-2 fa-fw"></i>
         Models
       </a>
     </li>
-    <li>
-      <a href="/locations/index" class="nav-link text-dark {{ 'active text-white' if request.path == '/locations/index' else '' }}">
+
+
+    <li class="mb-1">
+      <button
+        class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/locations/index' else '' }}"
+        data-bs-toggle="collapse" data-bs-target="#locationsCollapse" aria-expanded="false">
         <i class="fa fa-map-marker me-2 fa-fw"></i>
         Locations
-      </a>
+        <i class="fa fa-caret-down ms-2"></i>
+      </button>
+      <div class="collapse" id="locationsCollapse">
+        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+          <li><a href="/locations/new_location_schema" class="link-dark rounded text-decoration-none ms-4 ">New location schema</a>
+          </li>
+          <!-- Add more items here -->
+        </ul>
+      </div>
     </li>
+
+
     <li>
-      <a href="/users/index" class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
+      <a href="/users/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
         <i class="fa fa-users me-2 fa-fw"></i>
         Users
       </a>

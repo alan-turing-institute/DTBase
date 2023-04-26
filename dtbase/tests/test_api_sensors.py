@@ -80,7 +80,7 @@ def insert_sensor_location(client):
         ],
         "values": [X_COORD, Y_COORD],
     }
-    response = client.post("/location/insert_location", json=json.dumps(location))
+    response = client.post("/location/insert_location", json=location)
     schema_name = response.json["schema_name"]
 
     # Set the sensor location
@@ -90,7 +90,7 @@ def insert_sensor_location(client):
         "coordinates": {"x": X_COORD, "y": Y_COORD},
     }
     response = client.post(
-        "/sensor/insert_sensor_location", json=json.dumps(sensor_location)
+        "/sensor/insert_sensor_location", json=sensor_location
     )
     return response
 
