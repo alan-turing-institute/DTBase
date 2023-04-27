@@ -4057,3 +4057,40 @@ ul.notifications {
 .datatype-select {
   width: 180px !important;
 }
+
+.existing-identifier-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px; /* Adjust the space as per your preference */
+}
+
+.add-identifier-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.add-identifier-wrapper .existing-identifier-dropdown {
+  width: 300px; /* Adjust the width as per your preference */
+  margin-right: 10px;
+}
+
+.add-identifier-wrapper .btn-add-identifier {
+  flex-shrink: 0;
+  height: 38px; /* Adjust the height to match the dropdown */
+}
+
+.identifier-row {
+  display: flex;
+  align-items: center;
+}
+
+.identifier-row .btn-remove-identifier {
+  margin-left: 10px;
+  height: 38px; /* Adjust the height to match the input fields */
+}
+
+.custom-button {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  height: 38px;
+}

@@ -14,19 +14,21 @@
             <label for="name">Description</label>
             <input type="text" class="form-control custom-input" id="description" name="description" required placeholder="Description" value="{{ form_data.description if form_data }}">
         </div>
+     
+    
         <div class="form-group">
-            <label>Identifier:</label>
-            <select class="form-control custom-select existing-identifier-select" style="width: auto;">
-                <option disabled selected value="">-- Select existing identifier --</option>
-                {% for identifier in existing_identifiers %}
-                    <option value="{{ identifier.id }}">{{ identifier.name }}</option>
-                {% endfor %}
-            </select>
-            <br>
-            <button type="button" class="btn btn-primary btn-add-identifier">+ Add new identifier</button>
-            {% for identifier_row in identifier_rows %}
-                {{ identifier_row }}
-            {% endfor %}
+            <div class="existing-identifier-group">
+                <label>Select existing identifier:</label>
+                <div class="add-identifier-wrapper">
+                    <select class="form-control custom-select existing-identifier-select existing-identifier-dropdown">
+                        <option value="">-- Select identifier --</option>
+                        {% for identifier in existing_identifiers %}
+                            <option value="{{ identifier.id }}">{{ identifier.name }} ({{ identifier.units }})</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary btn-add-identifier">+ Add new identifier</button>
+                </div>
+            </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>

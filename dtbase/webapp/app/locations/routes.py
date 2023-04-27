@@ -1,24 +1,20 @@
-import datetime as dt
 import json
-import re
 
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
-import pandas as pd
 
 from app.locations import blueprint
 import utils
-from flask import redirect, url_for, flash
 
-@blueprint.route("/index", methods=["GET"])
 @login_required
+@blueprint.route("/index", methods=["GET"])
 def index(form_data=None):
     existing_identifiers_response = utils.backend_call("get", "/location/list_location_identifiers")
     existing_identifiers = existing_identifiers_response.json()
     return render_template("location_schema_form.html", form_data=form_data, existing_identifiers=existing_identifiers)
 
-@blueprint.route("/index", methods=["POST"])
 @login_required
+@blueprint.route("/index", methods=["POST"])
 def submit_location_schema():
     name = request.form.get("name")
     description = request.form.get("description")
@@ -37,41 +33,21 @@ def submit_location_schema():
         )
     ]
 
-    payload = {
+    form_data = {
         "name": name,
         "description": description,
-        "identifiers": identifiers
-    }
-
-    # idnames = []
-    # for identifier in payload["identifiers"]:
-    #     idnames.append(identifier["name"])
-
-    # idnames.sort()
-
-    data = {
-        "name": payload["name"],
-        "description": payload["description"],
         "identifiers": identifiers,
     }
 
     existing_schemas_response = utils.backend_call("get", "/location/list_location_schemas")
     existing_schemas = existing_schemas_response.json()
     
-    # check if the schema already exists
     if any(schema['name'] == name for schema in existing_schemas):
         flash(f"The schema '{name}' already exists.", "error")
-        return index(form_data=data)
-    
-    # check that identifiers datatype is one of ["string", "float", "integer", "boolean"]
-    for identifier in identifiers:
-        if identifier["datatype"] not in ["string", "float", "integer", "boolean"]:
-            flash(f"Invalid datatype '{identifier['datatype']}' for identifier '{identifier['name']}'. \
-                Has to be one of 'string', 'float', 'integer', 'boolean'.", "error")
-            return index(form_data=data)
+        return index(form_data=form_data)
     
     try:
-        response = utils.backend_call("post", "/location/insert_location_schema", data)
+        response = utils.backend_call("post", "/location/insert_location_schema", form_data)
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect(url_for(".index"))
