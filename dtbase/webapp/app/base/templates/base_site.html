@@ -24,6 +24,17 @@
   </head>
 
   <body class="{% block body_class %}nav-md{% endblock body_class %}">
+    <!-- Display flash messages at the top -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashed-messages">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+    
     {% block body %}
       <div class="container-fluid">
         <div class="row flex-nowrap">
