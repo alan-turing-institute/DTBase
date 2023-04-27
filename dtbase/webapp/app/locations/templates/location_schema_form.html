@@ -16,33 +16,29 @@
         </div>
         <div class="form-group">
             <label>Identifier:</label>
-            {% set identifiers = form_data.identifiers if form_data else [{}] %}
-            {% for identifier in identifiers %}
-            <div class="identifier-row">
-                <input type="text" class="form-control" name="identifier_name[]" placeholder="name, e.g. longitude" required value="{{ identifier.name if identifier.get('name') }}">
-                <input type="text" class="form-control" name="identifier_units[]" placeholder="units, e.g. degrees" required value="{{ identifier.units if identifier.get('units') }}">
-                <select class="form-control custom-select datatype-select" name="identifier_datatype[]" required>
-                    {% if loop.index0 == 0 and not identifier.get('datatype') %}
-                    <option disabled selected value="">-- Select datatype --</option>
-                    {% endif %}
-                    {% for option in ['string', 'float', 'integer', 'boolean'] %}
-                        <option value="{{ option }}" {% if identifier.get('datatype') == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                </select>
-                <button type="button" class="btn btn-primary btn-add-identifier">+</button>
-            </div>
+            <select class="form-control custom-select existing-identifier-select" style="width: auto;">
+                <option disabled selected value="">-- Select existing identifier --</option>
+                {% for identifier in existing_identifiers %}
+                    <option value="{{ identifier.id }}">{{ identifier.name }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="button" class="btn btn-primary btn-add-identifier">+ Add new identifier</button>
+            {% for identifier_row in identifier_rows %}
+                {{ identifier_row }}
             {% endfor %}
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
-
-
 {% endblock content %}
 
 {% block javascripts %}
 {{ super()}}
 
-  <script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
+<script>
+    const existing_identifiers = {{ existing_identifiers|tojson }};
+</script>
+<script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
 
 {% endblock javascripts %}

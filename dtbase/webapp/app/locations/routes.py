@@ -13,7 +13,9 @@ from flask import redirect, url_for, flash
 @blueprint.route("/index", methods=["GET"])
 @login_required
 def index(form_data=None):
-    return render_template("location_schema_form.html", form_data=form_data)
+    existing_identifiers_response = utils.backend_call("get", "/location/list_location_identifiers")
+    existing_identifiers = existing_identifiers_response.json()
+    return render_template("location_schema_form.html", form_data=form_data, existing_identifiers=existing_identifiers)
 
 @blueprint.route("/index", methods=["POST"])
 @login_required
