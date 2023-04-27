@@ -12,8 +12,8 @@ from flask import redirect, url_for, flash
 
 @blueprint.route("/index", methods=["GET"])
 @login_required
-def index():
-    return render_template("location_schema_form.html")
+def index(form_data=None):
+    return render_template("location_schema_form.html", form_data=form_data)
 
 @blueprint.route("/index", methods=["POST"])
 @login_required
@@ -59,7 +59,14 @@ def submit_location_schema():
     # check if the schema already exists
     if any(schema['name'] == name for schema in existing_schemas):
         flash(f"The schema '{name}' already exists.", "error")
-        return redirect(url_for(".index"))
+        return index(form_data=data)
+    
+    # check that identifiers datatype is one of ["string", "float", "integer", "boolean"]
+    for identifier in identifiers:
+        if identifier["datatype"] not in ["string", "float", "integer", "boolean"]:
+            flash(f"Invalid datatype '{identifier['datatype']}' for identifier '{identifier['name']}'. \
+                Has to be one of 'string', 'float', 'integer', 'boolean'.", "error")
+            return index(form_data=data)
     
     try:
         response = utils.backend_call("post", "/location/insert_location_schema", data)
@@ -70,11 +77,6 @@ def submit_location_schema():
     if response.status_code != 201:
         flash(f"An error occurred while adding the location schema: {response}", "error")
     else:
-        response_data = response.json()
-
-        if response_data.get("status") == "success":
-            flash("Location schema added successfully", "success")
-        else:
-            flash("Failed to add location schema", "error")
+        flash("Location schema added successfully", "success")
 
     return redirect(url_for(".index"))

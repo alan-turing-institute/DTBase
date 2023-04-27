@@ -4053,3 +4053,7 @@ ul.notifications {
 .btn-add-identifier {
   margin-left: 0.5rem;
 }
+
+.datatype-select {
+  width: 180px !important;
+}
