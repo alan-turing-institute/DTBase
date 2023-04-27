@@ -16,33 +16,22 @@
         </div>
         <div class="form-group">
             <label>Identifier:</label>
-            {% if form_data %}
-                {% for identifier in form_data.identifiers %}
-                <div class="identifier-row">
-                    <input type="text" class="form-control" name="identifier_name[]" placeholder="name, e.g. longitude" required value="{{ identifier.name }}">
-                    <input type="text" class="form-control" name="identifier_units[]" placeholder="units, e.g. degrees" required value="{{ identifier.units }}">
-                    <select class="form-control" name="identifier_datatype[]" required>
-                        {% for option in ['string', 'float', 'integer', 'boolean'] %}
-                            <option value="{{ option }}" {% if identifier.datatype == option %}selected{% endif %}>{{ option }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="button" class="btn btn-primary btn-add-identifier">+</button>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="identifier-row">
-                    <input type="text" class="form-control" name="identifier_name[]" placeholder="name, e.g. longitude" required>
-                    <input type="text" class="form-control" name="identifier_units[]" placeholder="units, e.g. degrees" required>
-                    <select class="form-control custom-select datatype-select" name="identifier_datatype[]" required>
-                        <option disabled selected value="">-- Select datatype --</option>
-                        <option value="string">string</option>
-                        <option value="float">float</option>
-                        <option value="integer">integer</option>
-                        <option value="boolean">boolean</option>
-                    </select>
-                    <button type="button" class="btn btn-primary btn-add-identifier">+</button>
-                </div>
-            {% endif %}
+            {% set identifiers = form_data.identifiers if form_data else [{}] %}
+            {% for identifier in identifiers %}
+            <div class="identifier-row">
+                <input type="text" class="form-control" name="identifier_name[]" placeholder="name, e.g. longitude" required value="{{ identifier.name if identifier.get('name') }}">
+                <input type="text" class="form-control" name="identifier_units[]" placeholder="units, e.g. degrees" required value="{{ identifier.units if identifier.get('units') }}">
+                <select class="form-control custom-select datatype-select" name="identifier_datatype[]" required>
+                    {% if loop.index0 == 0 and not identifier.get('datatype') %}
+                    <option disabled selected value="">-- Select datatype --</option>
+                    {% endif %}
+                    {% for option in ['string', 'float', 'integer', 'boolean'] %}
+                        <option value="{{ option }}" {% if identifier.get('datatype') == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-primary btn-add-identifier">+</button>
+            </div>
+            {% endfor %}
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
@@ -57,4 +46,3 @@
   <script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
 
 {% endblock javascripts %}
-
