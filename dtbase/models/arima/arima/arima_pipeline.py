@@ -7,12 +7,18 @@ from typing import Tuple, Union
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
+import os
 
-from dtbase.models.arima.arima.config import config
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 
-arima_config = config(section="arima")
+arima_config = config(
+    section="arima",
+    filename=os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "config_arima.ini"
+    ),
+)
 
 
 def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:
@@ -26,12 +32,12 @@ def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:
     Returns:
         forecast_timestamp: end-of-forecast timestamp,
             calculated by adding the `hours_forecast`
-            parameter of config.ini to the last timestamp
+            parameter of config_arima.ini to the last timestamp
             of `data`.
     """
     if arima_config["hours_forecast"] <= 0:
         logger.error(
-            "The 'hours_forecast' parameter in config.ini must be greater than zero."
+            "The 'hours_forecast' parameter in config_arima.ini must be greater than zero."
         )
         raise Exception
     end_of_sample_timestamp = data.index[-1]
@@ -47,7 +53,7 @@ def fit_arima(train_data: pd.Series) -> SARIMAXResultsWrapper:
     training dataset (time series).
     The model parameters are specified through the
     `arima_order`, `seasonal_order` and `trend`
-    settings in config.ini.
+    settings in config_arima.ini.
 
     Parameters:
         train_data: a pandas Series containing the
@@ -86,7 +92,7 @@ def forecast_arima(
         conf_int: the lower and upper bounds of the confidence
             intervals of the forecasts. A pandas Dataframe, indexed
             by timestamp. Specify the confidence level through parameter
-            `alpha` in config.ini.
+            `alpha` in config_arima.ini.
     """
     alpha = arima_config["alpha"]
     forecast = model_fit.get_forecast(steps=forecast_timestamp).summary_frame(
@@ -213,7 +219,7 @@ def arima_pipeline(
     by the `statsmodels` library. This is the parent function of
     the `arima_pipeline` module.
     The SARIMAX model parameters can be specified via the
-    `config.ini` file.
+    `config_arima.ini` file.
 
     Arguments:
         data: the time series on which to train the SARIMAX model,
@@ -222,13 +228,13 @@ def arima_pipeline(
         mean_forecast: a pandas Series, indexed by timestamp,
             containing the forecast mean. The number of hours to
             forecast into the future can be specified through the
-            `config.ini` file.
+            `config_arima.ini` file.
         conf_int: a pandas Dataframe, indexed by timestamp, containing
             the lower an upper confidence intervals for the forecasts.
         metrics: a dictionary containing the cross-validated root-mean-
             squared-error (RMSE) and mean-absolute-percentage-error (MAPE)
             for the fitted SARIMAX model. If the user requests not to perform
-            cross-validation through the `config.ini` file, `metrics`
+            cross-validation through the `config_arima.ini` file, `metrics`
             is assigned `None`.
     """
     if not isinstance(data.index, pd.DatetimeIndex):
@@ -238,15 +244,15 @@ def arima_pipeline(
         raise ValueError
     if arima_config["arima_order"] != (4, 1, 2):
         logger.warning(
-            "The 'arima_order' setting in config.ini has been set to something different than (4, 1, 2)."
+            "The 'arima_order' setting in config_arima.ini has been set to something different than (4, 1, 2)."
         )
     if arima_config["seasonal_order"] != (1, 1, 0, 24):
         logger.warning(
-            "The 'seasonal_order' setting in config.ini has been set to something different than (1, 1, 0, 24)."
+            "The 'seasonal_order' setting in config_arima.ini has been set to something different than (1, 1, 0, 24)."
         )
     if arima_config["hours_forecast"] != 48:
         logger.warning(
-            "The 'hours_forecast' setting in config.ini has been set to something different than 48."
+            "The 'hours_forecast' setting in config_arima.ini has been set to something different than 48."
         )
     # perform time series cross-validation if requested by the user
     cross_validation = arima_config["perform_cv"]

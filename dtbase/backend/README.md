@@ -60,7 +60,7 @@ The schema name will be a concatenation of the identifier names.
       <identifier_name>: <value>,
       ...
     }
-    ``` 
+    ```
     for every identifier in the schema.
     - returns status code 201, along with the payload.
 
@@ -209,7 +209,7 @@ The endpoints are:
       "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
     }
     ```
-    
+
     - returns status code 201, alongside the payload.
 
 ### `/sensor/list`
@@ -255,7 +255,7 @@ The endpoints are:
             "description": <description:str>,
             "id": <id:int>,
             "measures": [
-                {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>}, 
+                {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>},
                 ...
                 ],
             "name": "sensor_name"
@@ -269,7 +269,7 @@ The endpoints are:
     - returns status code 200, alongside results in the form
     ```
     [
-        {"datatype": <datatype:str>, "id": <id:int>, "name": <name:str>, "units": <units:str>}, 
+        {"datatype": <datatype:str>, "id": <id:int>, "name": <name:str>, "units": <units:str>},
         ...
     ]
     ```
@@ -322,7 +322,7 @@ API endpoints for the models is as follows.
         "name": <model_name:str>
     }
     ```
-    
+
     - returns status code 201, alongside the payload.
 
 ### `/model/list_models`
@@ -464,7 +464,7 @@ API endpoints for the models is as follows.
         "scenario": <scenario:str> (optional, by default all scenarios),
     }
     ```
-    datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S. 
+    datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
 
     - returns status code 200, alongside result in the form:
     ```
@@ -501,5 +501,4 @@ API endpoints for the models is as follows.
         ...
     ]
     ```
-    timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S. 
-
+    timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S.

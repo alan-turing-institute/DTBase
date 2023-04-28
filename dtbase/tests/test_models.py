@@ -413,7 +413,10 @@ def test_get_model_run(session):
     )
     run_id = next(r["id"] for r in runs if r["scenario_description"] == SCENARIO1)
     # Get the run
-    values = models.get_model_run(run_id, MEASURE_NAME1, session=session)
+    # values = models.get_model_run(run_id, MEASURE_NAME1, session=session)
+    values = models.get_model_run_results_for_measure(
+        run_id, MEASURE_NAME1, session=session
+    )
     assert values == list(zip(PRODUCT1["values"], PRODUCT1["timestamps"]))
 
 

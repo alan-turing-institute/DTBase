@@ -17,15 +17,15 @@ from dtbase.core.models import (
     model_id_from_name,
     scenario_id_from_description,
 )
-from dtbase.core.sensors import sensor_id_from_unique_identifier
+from dtbase.core.sensors import measure_id_from_name, sensor_id_from_unique_identifier
 from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
-from dtbase.models.arima.arima.get_data import get_training_data
-from dtbase.models.arima.arima.clean_data import clean_data
-from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import config
 
 
 def run_pipeline(session=None) -> None:
@@ -49,8 +49,8 @@ def run_pipeline(session=None) -> None:
     # ensure we have the Model in the db, or insert if not
     model_id = None
     try:
-        model_id = model_id_from_name("Arima",session=session)
-    except(ValueError):
+        model_id = model_id_from_name("Arima", session=session)
+    except (ValueError):
         # insert the model
         m = insert_model("Arima", session=session)
         model_id = m.id
@@ -59,15 +59,11 @@ def run_pipeline(session=None) -> None:
     scenario_id = None
     try:
         scenario_id = scenario_id_from_description(
-            model_name="Arima",
-            description="BusinessAsUsual",
-            session=session
+            model_name="Arima", description="BusinessAsUsual", session=session
         )
-    except(ValueError):
+    except (ValueError):
         ms = insert_model_scenario(
-            model_name="Arima",
-            description="BusinessAsUsual",
-            session=session
+            model_name="Arima", description="BusinessAsUsual", session=session
         )
         scenario_id = ms.id
 
@@ -78,7 +74,7 @@ def run_pipeline(session=None) -> None:
     db_measure_names = [m["name"] for m in db_measures]
     for base_measure in base_measures_list:
         for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
-            measure = m+base_measure
+            measure = m + base_measure
             if not measure in db_measure_names:
                 insert_model_measure(measure, "", "float", session=session)
 
@@ -89,26 +85,26 @@ def run_pipeline(session=None) -> None:
     for sensor in sensor_unique_ids:
         session.begin()
         sensor_id = sensor_id_from_unique_identifier(
-            unique_identifier=sensor,
-            session=session
+            unique_identifier=sensor, session=session
         )
         for base_measure in base_measures_list:
+            sensor_measure_id = measure_id_from_name(base_measure, session=session)
             values = prep_data[sensor][base_measure]
             mean_forecast, conf_int, metrics = arima_pipeline(values)
             mean = {
-                "measure_name": "Mean "+base_measure,
+                "measure_name": "Mean " + base_measure,
                 "values": list(mean_forecast),
-                "timestamps": list(mean_forecast.index)
+                "timestamps": list(mean_forecast.index),
             }
             upper = {
-                "measure_name": "Upper Bound "+base_measure,
+                "measure_name": "Upper Bound " + base_measure,
                 "values": list(conf_int.mean_ci_upper),
-                "timestamps": list(conf_int.index)
+                "timestamps": list(conf_int.index),
             }
             lower = {
-                "measure_name": "Lower Bound "+base_measure,
+                "measure_name": "Lower Bound " + base_measure,
                 "values": list(conf_int.mean_ci_lower),
-                "timestamps": list(conf_int.index)
+                "timestamps": list(conf_int.index),
             }
             measures_values = [mean, upper, lower]
             try:
@@ -116,7 +112,9 @@ def run_pipeline(session=None) -> None:
                     model_name="Arima",
                     scenario_description="BusinessAsUsual",
                     measures_and_values=measures_values,
-                    session=session
+                    sensor_id=sensor_id,
+                    sensor_measure_id=sensor_measure_id,
+                    session=session,
                 )
 
                 session.commit()

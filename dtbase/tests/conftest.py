@@ -18,7 +18,7 @@ from dtbase.core.db import (
 from dtbase.core.db_docker import (
     check_for_docker,
     start_docker_postgres,
-    stop_docker_postgres
+    stop_docker_postgres,
 )
 from dtbase.core.utils import create_user
 

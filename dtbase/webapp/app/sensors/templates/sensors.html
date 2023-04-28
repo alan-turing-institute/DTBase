@@ -1,0 +1,77 @@
+{% extends "base_site.html" %}
+
+{% block title %} DTBase {% endblock title %}
+
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <h3>Choose sensors and time period</h3>
+        <form>
+          <div>
+
+            <div>
+              {% if sensor_type_name %}
+                Sensor class
+                <select
+                    id="sensorTypeSelector"
+                    class="selectpicker"
+                    name="sensorTypeSelector"
+                    onchange="changeSensorType()">
+                  {% for s in sensor_types %}
+                  <option
+                      value="{{ s.name }}"
+                      {% if sensor_type and s.name == sensor_type %} selected {% endif %}
+                      >
+                      {{s.name}}
+                  </option>
+                  {% endfor %}
+                {% else %}
+                  <p>No sensors found in the database.</p>
+                {% endif %}
+              </select>
+            </div>
+
+            <div>
+              Time period
+              <input type="date" id="startDatePicker" name="startDate" value={{dt_from}}>
+              &mdash;
+              <input type="date" id="endDatePicker" name="startDate" value={{dt_to}}>
+            </div>
+
+            <div>
+              Choose sensor(s)
+              <div id="sensorCheckboxesDiv">
+                {% for s in all_sensors %}
+                <div class="form-check form-check-inline" id="sensorCheckbox{{s.id}}">
+                  <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="sensor_checkbox_{{s.unique_identifier}}"
+                      {% if sensor_ids and s.unique_identifier in sensor_ids %} checked {% endif %}
+                      value="{{s.unique_identifier}}">
+                  <label
+                      class="form-check-label"
+                      for="sensor_checkbox_{{s.unique_identifier}}">
+                    {{s.unique_identifier}}:
+                    {{s.name}}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(false)">Plot</button>
+          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(true)">Download</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

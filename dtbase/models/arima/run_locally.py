@@ -6,14 +6,15 @@ import pandas as pd
 import logging, coloredlogs
 
 
-from dtbase.models.arima.arima.get_data import get_training_data
-from dtbase.models.arima.arima.clean_data import clean_data
-from dtbase.models.arima.arima.prepare_data import prepare_data
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import config
 
 OUTPUT_DIR = os.path.join(os.getcwd(), "results")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 def main() -> None:
 
@@ -44,7 +45,7 @@ def main() -> None:
 
     for sensor in sensor_ids:
         for measure in measures:
-            key = sensor+"_"+measure
+            key = sensor + "_" + measure
             values = prep_data[sensor][measure]
             # save 10% of the data for testing
             n_samples = len(values)
@@ -57,7 +58,8 @@ def main() -> None:
             conf_int["mean_forecast"] = mean_forecast
             conf_int["sensor"] = sensor
             conf_int["measure"] = measure
-            conf_int.to_csv(os.path.join(OUTPUT_DIR,f"{key}.csv"))
+            conf_int.to_csv(os.path.join(OUTPUT_DIR, f"{key}.csv"))
+
 
 if __name__ == "__main__":
     main()
