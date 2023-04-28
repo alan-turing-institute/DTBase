@@ -14,6 +14,8 @@ setup(
     license="MIT",
     packages=find_packages(),
     package_data={"dtbase": ["models/arima/config_arima.ini"]},
-    entry_points={"console_scripts": ['dtbase_start_postgres_docker=dtbase.core.db_docker:main']},
+    entry_points={
+        "console_scripts": ["dtbase_start_postgres_docker=dtbase.core.db_docker:main"]
+    },
     install_requires=required,
 )

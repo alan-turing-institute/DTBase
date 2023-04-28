@@ -302,7 +302,7 @@ def get_model_run():
 
     model_run = models.get_model_run_results(**payload, session=db.session)
     converted_results = {}
-    for k,v in model_run.items():
+    for k, v in model_run.items():
         converted_results[k] = [
             {"value": t[0], "timestamp": t[1].isoformat()} for t in v
         ]

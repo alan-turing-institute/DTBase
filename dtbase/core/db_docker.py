@@ -13,6 +13,7 @@ from dtbase.core.db import (
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 
+
 def check_for_docker():
     """
     See if we have a postgres docker container already running.
@@ -94,12 +95,15 @@ def stop_docker_postgres(container_id):
         print(f"Stopping docker container {container_id}")
         os.system("docker kill " + container_id)
 
+
 def main():
     docker_check = check_for_docker()
     container_id = None
     if isinstance(docker_check, bool):
         if not docker_check:
-            raise RuntimeError("Looks like Docker isn't running - won't be able to start postgres server")
+            raise RuntimeError(
+                "Looks like Docker isn't running - won't be able to start postgres server"
+            )
         else:
             container_id = start_docker_postgres()
             print(f"Started postgres docker container with id {container_id}")
@@ -107,6 +111,7 @@ def main():
     else:
         # don't need to do anything - container already running
         pass
+
 
 if __name__ == "__main__":
     main()

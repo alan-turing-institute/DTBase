@@ -32,11 +32,14 @@ def route_fixed_template(template):
 def route_errors(error):
     return render_template("errors/page_{}.html".format(error))
 
+
 @blueprint.route("/favicon.ico")
 def favicon():
     return current_app.send_static_file("favicon.ico")
 
+
 ## Login & Registration
+
 
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():

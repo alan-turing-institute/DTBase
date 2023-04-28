@@ -13,8 +13,12 @@ from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 
-arima_config = config(section="arima", 
-    filename=os.path.join(os.path.dirname(os.path.realpath(__file__)), "config_arima.ini"))
+arima_config = config(
+    section="arima",
+    filename=os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "config_arima.ini"
+    ),
+)
 
 
 def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:

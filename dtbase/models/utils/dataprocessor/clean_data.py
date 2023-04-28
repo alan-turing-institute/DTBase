@@ -205,8 +205,6 @@ def clean_sensor_data(sensor_data: pd.DataFrame, measures: list[str]):
     return cleaned_data, time_vector
 
 
-
-
 def clean_data(sensor_readings):
     """
     Parent function of this module: clean sensor readings retrieved from the database.
