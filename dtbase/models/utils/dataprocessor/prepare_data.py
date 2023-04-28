@@ -188,9 +188,7 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     return data
 
 
-def prepare_data(
-    sensor_data: dict
-) -> Tuple[dict, pd.DataFrame]:
+def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
     the ARIMA pipeline. Parameters relevant to this function in data_config.ini are
@@ -224,7 +222,9 @@ def prepare_data(
         )
     # obtain the standardized timestamp.
     keys_sensor_data = list(sensor_data.keys())
-    timestamp_standardized = standardize_timestamp(sensor_data[keys_sensor_data[0]].index[-1])
+    timestamp_standardized = standardize_timestamp(
+        sensor_data[keys_sensor_data[0]].index[-1]
+    )
     # keep only the observations whose timestamp is smaller or equal to the
     # standardized timestamp
 

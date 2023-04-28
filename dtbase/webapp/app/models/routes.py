@@ -14,6 +14,7 @@ from datetime import datetime
 from app.models import blueprint
 import utils
 
+
 def fetch_all_models():
     """Get all models from the database.
 
@@ -39,9 +40,7 @@ def get_latest_run_id(model_name):
         run_id:int
     """
     response = utils.backend_call(
-        "get",
-        "/model/list_model_runs",
-        {"model_name": model_name}
+        "get", "/model/list_model_runs", {"model_name": model_name}
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -62,11 +61,7 @@ def get_run_pred_data(run_id):
         dict, keyed by ModelMeasure, containing list of (value,timestamp) tuples.
     """
     # now get the output of the model for that run
-    response = utils.backend_call(
-        "get",
-        "/model/get_model_run",
-        {"run_id": run_id}
-    )
+    response = utils.backend_call("get", "/model/get_model_run", {"run_id": run_id})
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     pred_data = response.json()
@@ -85,9 +80,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
        dict, with keys "sensor_uniq_id", "measure_name", "readings"
     """
     response = utils.backend_call(
-        "get",
-        "/model/get_model_run_sensor_measure",
-        {"run_id": run_id}
+        "get", "/model/get_model_run_sensor_measure", {"run_id": run_id}
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -98,12 +91,12 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     response = utils.backend_call(
         "get",
         "/sensor/sensor_readings",
-        payload = {
+        payload={
             "measure_name": measure_name,
             "sensor_uniq_id": sensor_uniq_id,
             "dt_from": dt_from,
-            "dt_to": dt_to
-        }
+            "dt_to": dt_to,
+        },
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -111,8 +104,9 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     return {
         "sensor_uniq_id": sensor_uniq_id,
         "measure_name": measure_name,
-        "readings": readings
+        "readings": readings,
     }
+
 
 def fetch_latest_run_data(model_name):
     """
@@ -132,7 +126,7 @@ def fetch_latest_run_data(model_name):
 
 
 @blueprint.route("/index")
-#@login_required
+# @login_required
 def index():
     """Index page."""
 

@@ -362,6 +362,7 @@ def get_datatype_by_measure_name(measure_name, session=None):
     datatype = result[0][0]
     return datatype
 
+
 @add_default_session
 def get_model_run_results(run_id, session=None):
     """Get the output of a model run for all measures.
@@ -378,9 +379,7 @@ def get_model_run_results(run_id, session=None):
     results = {}
     for (measure_name, measure_id) in measures:
         results[measure_name] = get_model_run_results_for_measure(
-            run_id=run_id,
-            measure_name=measure_name,
-            session=session
+            run_id=run_id, measure_name=measure_name, session=session
         )
     return results
 
@@ -425,11 +424,9 @@ def get_model_run_measures(run_id, session=None):
     """
     query = (
         sqla.select(ModelMeasure.name, ModelMeasure.id)
-            .join(ModelProduct, ModelProduct.measure_id == ModelMeasure.id)
-            .where(
-                (ModelProduct.run_id == run_id)
-            )
-        )
+        .join(ModelProduct, ModelProduct.measure_id == ModelMeasure.id)
+        .where((ModelProduct.run_id == run_id))
+    )
     result = session.execute(query).fetchall()
     return result
 
@@ -447,14 +444,13 @@ def get_model_run_sensor_measures(run_id, session=None):
     """
     query = (
         sqla.select(ModelRun.sensor_id, Sensor.unique_identifier, SensorMeasure.name)
-            .join(Sensor, Sensor.id == ModelRun.sensor_id)
-            .join(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
-            .where(
-                (ModelRun.id == run_id)
-            )
-        )
+        .join(Sensor, Sensor.id == ModelRun.sensor_id)
+        .join(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
+        .where((ModelRun.id == run_id))
+    )
     result = session.execute(query).fetchall()
     return result[0][1:]
+
 
 @add_default_session
 def delete_model(model_name, session=None):

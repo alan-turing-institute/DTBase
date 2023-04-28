@@ -291,7 +291,7 @@ def test_get_model_run(client):
 
         run = {
             "run_id": run_id,
-            #"measure_name": MEASURE_NAME1,
+            # "measure_name": MEASURE_NAME1,
         }
 
         responses = client.get("/model/get_model_run", json=json.dumps(run))

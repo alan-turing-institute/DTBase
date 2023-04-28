@@ -13,7 +13,6 @@ from app.home import blueprint
 import utils
 
 
-
 @blueprint.route("/index")
 @login_required
 def index():
