@@ -1,15 +1,18 @@
 """
-Utility functions for e.g. importing data via API
+Utility functions for e.g. uploading ingressed data to the db.
 """
 import os
 import json
 import logging
 import requests
+from dtbase.core.constants import (
+    CONST_BACKEND_URL,
+)
 
 
 def backend_call(request_type, end_point_path, payload):
     request_func = getattr(requests, request_type)
-    url = f"{BACKEND_URL}{end_point_path}"
+    url = f"{CONST_BACKEND_URL}{end_point_path}"
     headers = {"content-type": "application/json"}
     response = request_func(url, headers=headers, json=json.dumps(payload))
     return response
@@ -55,15 +58,9 @@ def add_sensors(sensors):
     """
     for sensor_id, sensor_info in sensors.items():
         sensor_type = sensor_info["type"]
-        try:
-            name = metadata["devices"][sensor_id]["name"]
-        except KeyError:
-            logging.info(f"No metadata for sensor {sensor_id}")
-            continue
-        logging.info(f"Inserting sensor {sensor_id}, {name}")
-        payload = {
-            "unique_identifier": sensor_id,
-            "name": name,
-        }
+        logging.info(f"Inserting sensor {sensor_id}")
+        payload = {}  # sensor_info
+        payload["unique_identifier"] = sensor_id
+
         response = backend_call("post", f"/sensor/insert_sensor/{sensor_type}", payload)
         log_rest_response(response)
