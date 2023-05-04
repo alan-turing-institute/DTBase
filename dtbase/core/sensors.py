@@ -92,7 +92,10 @@ def insert_sensor_measure(name, units, datatype, session=None):
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
-    session.flush()
+    try:
+        session.flush()
+    except sqla.exc.IntegrityError:
+        session.rollback()
 
 
 @add_default_session
@@ -116,13 +119,19 @@ def insert_sensor_type(name, description, measures, session=None):
     """
     new_type = SensorType(name=name, description=description)
     session.add(new_type)
-    session.flush()
+    try:
+        session.flush()
+    except sqla.exc.IntegrityError:
+        session.rollback()
     for measure_name in measures:
         measure_id = measure_id_from_name(measure_name, session=session)
         session.add(
             SensorTypeMeasureRelation(type_id=new_type.id, measure_id=measure_id)
         )
-    session.flush()
+    try:
+        session.flush()
+    except sqla.exc.IntegrityError:
+        session.rollback()
 
 
 @add_default_session
@@ -144,7 +153,10 @@ def insert_sensor(type_name, unique_identifier, name=None, notes=None, session=N
         type_id=type_id, unique_identifier=unique_identifier, name=name, notes=notes
     )
     session.add(new_sensor)
-    session.flush()
+    try:
+        session.flush()
+    except sqla.exc.IntegrityError:
+        session.rollback()
 
 
 @add_default_session
@@ -372,7 +384,7 @@ def list_sensor_types(session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        List of all sensor types.
+        List of all sensor types, each of which contains a dict of measures
     """
     measures_query = queries.sensor_measures_by_type()
     all_measures = session.execute(measures_query).mappings().all()

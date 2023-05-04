@@ -9,6 +9,8 @@ from flask import render_template, request
 from flask_login import login_required
 import pandas as pd
 
+from dtbase.core.constants import CONST_MAX_RECORDS
+
 from app.sensors import blueprint
 import utils
 
@@ -18,7 +20,7 @@ def fetch_all_sensor_types():
     Args:
         None
     Returns:
-        List of dictionaries, one for each sensor type
+        List of dictionaries, one for each sensor type, including a dict of measures for each
     """
     response = utils.backend_call("get", "/sensor/list_sensor_types")
     if response.status_code != 200:
@@ -35,6 +37,8 @@ def fetch_all_sensors(sensor_type):
     Returns:
         List of dictionaries, one for each sensor.
     """
+    if not sensor_type:
+        return []
     response = utils.backend_call("get", f"/sensor/list/{sensor_type}")
     if response.status_code != 200:
         # TODO Write a more useful reaction to this.
@@ -48,8 +52,8 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
     Args:
         dt_from: Datetime from
         dt_to: Datetime to
-        measures: List of measures to get
-        sensor_ids: Unique IDs of sensors to get data for
+        measures: List of dicts, each with keys "name", "datatype", "units" for a measure.
+        sensor_ids: List of strings, Unique IDs of sensors to get data for
     Returns:
         Dictionary with keys being sensor IDs and values being pandas DataFrames of
         data, with columns for each measure and for timestamp.
@@ -80,14 +84,15 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
     return result
 
 
-@blueprint.route("/index")
-@login_required
+@blueprint.route("/index", methods=["GET", "POST"])
+# @login_required
 def index():
     """Index page."""
     # Parse the various parameters we may have been passed, and load some generally
     # necessary data like list of all sensors and sensor types.
     dt_from = utils.parse_url_parameter(request, "startDate")
     dt_to = utils.parse_url_parameter(request, "endDate")
+
     sensor_ids = utils.parse_url_parameter(request, "sensorIds")
     if sensor_ids is not None:
         # sensor_ids is passed as a comma-separated (or semicolon, although those aren't
@@ -163,3 +168,80 @@ def index():
         data=data_dict,
         measures=measures,
     )
+
+
+# Plot readings in responsive datatables
+
+
+@blueprint.route("/readings", methods=["GET", "POST"])
+# @login_required
+def sensor_readings():
+    """
+    Render tables of readings for a selected sensor type.
+
+    The html contains dropdowns for 'sensor_type' and 'sensor', where
+    the list for the sensor dropdown depends on the selected sensor_type.
+    Only when the sensor is selected will the datatable be populated.
+    """
+    dt_from = utils.parse_url_parameter(request, "startDate")
+    dt_to = utils.parse_url_parameter(request, "endDate")
+    if not dt_to:
+        dt_to = dt.datetime.now()
+    if not dt_from:
+        dt_from = dt_to - dt.timedelta(days=2)
+    sensor_types = fetch_all_sensor_types()
+    sensor_type_names = [st["name"] for st in sensor_types]
+    # initially all the other fields are empty, until the sensor (type) is chosen.
+    sensor_type = None
+    sensor_ids = []
+    measure_names = []
+
+    if request.method == "POST":
+        # either the "sensor_type" or the "sensor" was selected from the form"
+        if "sensor_type" in request.form:
+            sensor_type = request.form["sensor_type"]
+            sensors = fetch_all_sensors(sensor_type_name)
+            sensor_ids = [s["unique_identifier"] for s in sensors]
+            measures = next(
+                s["measures"] for s in sensor_types if s["name"] == sensor_type_name
+            )
+            measure_names = [m["name"] for m in measures]
+            # populate the dropdown of sensor choices.
+            return render_template(
+                "readings.html",
+                sensor_types=sensor_types,
+                sensor_ids=sensor_ids,
+                measure_names=measure_names,
+                sensor_data=None,
+                dt_from=dt_from.strftime("%B %d, %Y"),
+                dt_to=dt_to.strftime("%B %d, %Y"),
+                num_records=CONST_MAX_RECORDS,
+            )
+        elif "sensor" in request.form:
+            sensor_id = request.form["sensor"]
+            # get the data for that sensor - initially a dict of DataFrames
+            sensor_data = fetch_sensor_data(dt_from, dt_to, measures, [sensor_id])
+            # get the DataFrame for this sensor, and convert to dict
+            sensor_data = sensor_data[sensor_id].to_dict("records")
+            render_template(
+                "readings.html",
+                sensor_types=sensor_types,
+                measure_names=measure_names,
+                sensor_data=sensor_data,
+                dt_from=dt_from.strftime("%B %d, %Y"),
+                dt_to=dt_to.strftime("%B %d, %Y"),
+                num_records=CONST_MAX_RECORDS,
+            )
+
+    else:
+        # initial GET request - we don't yet have selected sensor_type
+
+        return render_template(
+            "readings.html",
+            sensor_types=sensor_type_names,
+            measure_names=measure_names,
+            sensor_data=None,
+            dt_from=dt_from.strftime("%B %d, %Y"),
+            dt_to=dt_to.strftime("%B %d, %Y"),
+            num_records=CONST_MAX_RECORDS,
+        )

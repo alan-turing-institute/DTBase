@@ -17,7 +17,7 @@
           <div>
 
             <div>
-              {% if sensor_type_name %}
+              {% if sensor_type %}
                 Sensor class
                 <select
                     id="sensorTypeSelector"
@@ -68,10 +68,22 @@
             </div>
 
           </div>
-          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(false)">Plot</button>
-          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries(true)">Download</button>
+          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/index',false)">Plot</button>
+          <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/index',true)">Download</button>
         </form>
       </div>
     </div>
   </div>
 {% endblock content %}
+
+{% block javascripts %}
+{{ super()}}
+<!-- Utility functions -->
+<script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
+<!-- Chart.js -->
+<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
+{% endblock javascripts %}
