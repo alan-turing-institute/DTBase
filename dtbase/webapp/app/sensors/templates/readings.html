@@ -18,23 +18,33 @@
 	<div class="col-md-6">
 	  <form method="post">
             <label for="sensor_type">Sensor Type:</label>
-            <select name="sensor_type" id="sensor_type">
+            <select onchange="this.form.submit()" name="sensor_type" id="sensor_type">
+	      {% if not selected_sensor_type %}
+	      <option value="" selected disabled hidden>Choose sensor type</option>
+	      {% else %}
+	      <option value="{{ selected_sensor_type }}" selected>{{ selected_sensor_type }}</option>
+	      {% endif %}
               {% for sensor_type in sensor_types %}
               <option value="{{ sensor_type }}">{{ sensor_type }}</option>
               {% endfor %}
             </select>
-            <br>
             <label for="sensor">Sensor:</label>
-            <select name="sensor" id="sensor">
+            <select onchange="this.form.submit()" name="sensor" id="sensor">
+	      {% if not selected_sensor %}
+	      <option value="" selected disabled hidden>Choose sensor</option>
+	      {% else %}
+	      <option value="{{ sensor }}" selected>{{ selected_sensor }}</option>
+	      {% endif %}
               {% for sensor in sensor_ids %}
               <option value="{{ sensor }}">{{ sensor }}</option>
               {% endfor %}
             </select>
             <br>
-            <button type="submit">Submit</button>
+
 	  </form>
 	</div>
       </div>
+      {% if selected_sensor %}
       <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="x_panel">
@@ -43,7 +53,7 @@
 
                 <div class="row x_title">
                     <div class="col-md-6">
-                        <h3>Uploaded {{sensor_type}} Sensor Data <small>(showing max {{num_records}} records)</small></h3>
+                        <h3>Uploaded {{selected_sensor_type}} Sensor Data for {{ selected_sensor }} <small>(showing max {{num_records}} records)</small></h3>
                     </div>
 
                     <div class="col-md-6">
@@ -59,19 +69,22 @@
                 <thead>
                   <tr>
                     <th>Timestamp</th>
-		    <th>Sensor ID</th>
 		    {%
                     for m in measure_names:
                     %}
-
                     <th>{{m}}</th>
 		    {% endfor %}
                   </tr>
                 </thead>
                 <tbody>
-
-
-
+		  {% for sd in sensor_data: %}
+		  <tr>
+		    <th>{{ sd['timestamp'] }}</th>
+		    {% for m in measure_names: %}
+		    <th>{{ sd[m] }} </th>
+		    {% endfor %}
+		  </tr>
+		  {% endfor %}
                 </tbody>
               </table>
 	      <form method="post">
@@ -81,6 +94,7 @@
           </div>
         </div>
       </div>
+      {% endif %}
     </div>
   </div>
 {% endblock content %}
