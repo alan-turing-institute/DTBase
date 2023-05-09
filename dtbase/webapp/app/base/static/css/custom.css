@@ -1,0 +1,13 @@
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.nav-pills .nav-link {
+  border-radius: 0.5rem;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #0d6efd;
+  color: white;
+  width: 100% !important;
+}
