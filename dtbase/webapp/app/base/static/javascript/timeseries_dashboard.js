@@ -18,7 +18,7 @@ function getSelectedSensorTypeStr() {
 
 function changeSensorType() {
   const sensorTypeStr = encodeURIComponent(getSelectedSensorTypeStr());
-  const url = "/home/index";
+  const url = "/sensors/index";
   const params = "sensorType=" + sensorTypeStr;
   location.replace(url + "?" + params);
 }
@@ -52,6 +52,7 @@ function requestTimeSeries(url, download) {
     idsStr +
     "&sensorType=" +
     sensorTypeStr;
+  console.log("requesting timeseries with params ", params);
   if (download) {
     // A clunky way to trigger a download: Make a form that generates a POST request.
     const form = document.createElement("form");
