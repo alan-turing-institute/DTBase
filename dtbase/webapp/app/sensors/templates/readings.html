@@ -14,9 +14,17 @@
 {% block content %}
   <div class="right_col" role="main">
     <div class="">
+      <form method="post">
+      <div>
+        Time period
+        <input type="date" id="startDatePicker" name="startDate"  value={{dt_from}}>
+        &mdash;
+        <input type="date" id="endDatePicker" name="endDate" value={{dt_to}}>
+	<button onclick="this.form.submit()">submit</button>
+      </div>
+      {%if dt_to %}
       <div class="row">
 	<div class="col-md-6">
-	  <form method="post">
             <label for="sensor_type">Sensor Type:</label>
             <select onchange="this.form.submit()" name="sensor_type" id="sensor_type">
 	      {% if not selected_sensor_type %}
@@ -40,10 +48,10 @@
               {% endfor %}
             </select>
             <br>
-
-	  </form>
 	</div>
       </div>
+      {% endif %}
+      </form>
       {% if selected_sensor %}
       <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12">
@@ -64,7 +72,6 @@
                         </div>
                     </div>
                 </div>
-
               <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
                 <thead>
                   <tr>
@@ -81,7 +88,7 @@
 		  <tr>
 		    <th>{{ sd['timestamp'] }}</th>
 		    {% for m in measure_names: %}
-		    <th>{{ sd[m] }} </th>
+		    <th>{{ '%0.2f' | format(sd[m]|float) }} </th>
 		    {% endfor %}
 		  </tr>
 		  {% endfor %}

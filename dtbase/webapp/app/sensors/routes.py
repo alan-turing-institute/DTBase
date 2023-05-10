@@ -25,7 +25,6 @@ def fetch_all_sensor_types():
     """
     response = utils.backend_call("get", "/sensor/list_sensor_types")
     if response.status_code != 200:
-        # TODO Write a more useful reaction to this.
         raise RuntimeError(f"A backend call failed: {response}")
     sensor_types = response.json()
     return sensor_types
@@ -60,12 +59,16 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
         data, with columns for each measure and for timestamp.
     """
     result = {}
+    if isinstance(dt_from, dt.datetime):
+        dt_from = dt_from.isoformat()
+    if isinstance(dt_to, dt.datetime):
+        dt_to = dt_to.isoformat()
     for sensor_id in sensor_ids:
         measure_readings_list = []
         for measure in measures:
             payload = {
-                "dt_from": dt_from.isoformat(),
-                "dt_to": dt_to.isoformat(),
+                "dt_from": dt_from,
+                "dt_to": dt_to,
                 "measure_name": measure["name"],
                 "sensor_uniq_id": sensor_id,
             }
@@ -171,9 +174,7 @@ def index():
     )
 
 
-# Plot readings in responsive datatables
-
-
+# Plot sensor readings in responsive datatables
 @blueprint.route("/readings", methods=["GET", "POST"])
 # @login_required
 def sensor_readings():
@@ -182,15 +183,17 @@ def sensor_readings():
 
     The html contains dropdowns for 'sensor_type' and 'sensor', where
     the list for the sensor dropdown depends on the selected sensor_type.
-    Only when the sensor is selected will the datatable be populated.
+    Only when the sensor is selected will the date selector be available,
+    and only when start and end dates are selected will the
+    datatable be populated.
     """
-    print(f"NICK!!!! got a {request.method} request")
-    dt_from = utils.parse_url_parameter(request, "startDate")
-    dt_to = utils.parse_url_parameter(request, "endDate")
-    if not dt_to:
-        dt_to = dt.datetime.now()
-    if not dt_from:
-        dt_from = dt_to - dt.timedelta(days=2)
+    # necessary data like list of all sensors and sensor types.
+    #    dt_from = utils.parse_url_parameter(request, "startDate")
+    #    dt_to = utils.parse_url_parameter(request, "endDate")
+    #    if not dt_to:
+    #        dt_to = dt.datetime.now()
+    #    if not dt_from:
+    #        dt_from = dt_to - dt.timedelta(days=7)
     sensor_types = fetch_all_sensor_types()
     sensor_type_names = [st["name"] for st in sensor_types]
     # initially all the other fields are empty, until the sensor (type) is chosen.
@@ -200,9 +203,29 @@ def sensor_readings():
     measures = []
 
     if request.method == "POST":
-        print(f"GOT A POST REQUEST {request.form}", file=sys.stderr)
-        # either the "sensor_type" or the "sensor" was selected from the form"
+        if (
+            "startDate" in request.form
+            and "endDate" in request.form
+            and not "sensor_type" in request.form
+        ):
+            dt_from = request.form["startDate"]
+            dt_to = request.form["endDate"]
+            return render_template(
+                "readings.html",
+                sensor_types=sensor_type_names,
+                selected_sensor_type=None,
+                sensor_ids=[],
+                selected_sensor=None,
+                measure_names=measure_names,
+                sensor_data=None,
+                dt_from=dt_from,
+                dt_to=dt_to,
+                num_records=CONST_MAX_RECORDS,
+            )
+        # either the "sensor_type" or the "sensor" was selected from the form
         if "sensor_type" in request.form:
+            dt_from = request.form["startDate"]
+            dt_to = request.form["endDate"]
             sensor_type = request.form["sensor_type"]
             sensors = fetch_all_sensors(sensor_type)
             sensor_ids = [s["unique_identifier"] for s in sensors]
@@ -210,8 +233,6 @@ def sensor_readings():
                 s["measures"] for s in sensor_types if s["name"] == sensor_type
             )
             measure_names = [m["name"] for m in measures]
-            print(f"SENSOR IDS {sensor_ids}")
-            print(f"MEASURE NAMES {measure_names}")
             if not "sensor" in request.form or request.form["sensor"] not in sensor_ids:
                 # populate the dropdown of sensor choices.
                 return render_template(
@@ -222,22 +243,18 @@ def sensor_readings():
                     selected_sensor=None,
                     measure_names=measure_names,
                     sensor_data=None,
-                    dt_from=dt_from.strftime("%B %d, %Y"),
-                    dt_to=dt_to.strftime("%B %d, %Y"),
+                    dt_from=dt_from,
+                    dt_to=dt_to,
                     num_records=CONST_MAX_RECORDS,
                 )
             if "sensor" in request.form:
                 sensor_id = request.form["sensor"]
                 # get the data for that sensor - initially a dict of DataFrames
-                print(f"Getting sensor data for {sensor_id} measures {measures}")
                 sensor_data = fetch_sensor_data(dt_from, dt_to, measures, [sensor_id])
                 # get the DataFrame for this sensor, and convert to dict
                 sensor_data = sensor_data[sensor_id]
                 sensor_data["timestamp"].map(lambda x: x.isoformat())
                 sensor_data = sensor_data.to_dict("records")
-                print(
-                    f"GOT DATA LENGTH {len(sensor_data)} {sensor_data[0]['timestamp']}"
-                )
                 return render_template(
                     "readings.html",
                     sensor_types=sensor_type_names,
@@ -246,8 +263,8 @@ def sensor_readings():
                     selected_sensor=sensor_id,
                     measure_names=measure_names,
                     sensor_data=sensor_data,
-                    dt_from=dt_from.strftime("%B %d, %Y"),
-                    dt_to=dt_to.strftime("%B %d, %Y"),
+                    dt_from=dt_from,
+                    dt_to=dt_to,
                     num_records=CONST_MAX_RECORDS,
                 )
 
@@ -261,7 +278,7 @@ def sensor_readings():
             selected_sensor=None,
             measure_names=measure_names,
             sensor_data=None,
-            dt_from=dt_from.strftime("%B %d, %Y"),
-            dt_to=dt_to.strftime("%B %d, %Y"),
+            dt_from=None,
+            dt_to=None,
             num_records=CONST_MAX_RECORDS,
         )
