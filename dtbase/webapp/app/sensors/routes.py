@@ -96,7 +96,6 @@ def index():
     # necessary data like list of all sensors and sensor types.
     dt_from = utils.parse_url_parameter(request, "startDate")
     dt_to = utils.parse_url_parameter(request, "endDate")
-    print(f"NICK!! got a {request.method} request!")
     sensor_ids = utils.parse_url_parameter(request, "sensorIds")
     if sensor_ids is not None:
         # sensor_ids is passed as a comma-separated (or semicolon, although those aren't
@@ -124,7 +123,6 @@ def index():
         or sensor_ids is None
         or not is_valid_sensor_type
     ):
-        print("Rendering selector page")
         today = dt.datetime.today()
         dt_from = today - dt.timedelta(days=7)
         dt_to = today
@@ -153,7 +151,6 @@ def index():
     measures = next(
         s["measures"] for s in sensor_types if s["name"] == sensor_type_name
     )
-    print(f"about to get sensor data for {dt_from} {dt_to} {sensor_ids} {measures}")
     sensor_data = fetch_sensor_data(dt_from, dt_to, measures, sensor_ids)
 
     # Convert the sensor data to an easily digestible version for Jinja.
@@ -163,7 +160,6 @@ def index():
         k: json.loads(v.to_json(orient="records", date_format="iso"))
         for k, v in sensor_data.items()
     }
-    print(f"data dict is {data_dict}")
     return render_template(
         "sensors.html",
         sensor_type=sensor_type_name,
