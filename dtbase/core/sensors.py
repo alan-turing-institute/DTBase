@@ -92,10 +92,8 @@ def insert_sensor_measure(name, units, datatype, session=None):
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
-    try:
-        session.flush()
-    except sqla.exc.IntegrityError:
-        session.rollback()
+
+    session.flush()
 
 
 @add_default_session
@@ -128,10 +126,8 @@ def insert_sensor_type(name, description, measures, session=None):
         session.add(
             SensorTypeMeasureRelation(type_id=new_type.id, measure_id=measure_id)
         )
-    try:
-        session.flush()
-    except sqla.exc.IntegrityError:
-        session.rollback()
+
+    session.flush()
 
 
 @add_default_session
@@ -153,10 +149,7 @@ def insert_sensor(type_name, unique_identifier, name=None, notes=None, session=N
         type_id=type_id, unique_identifier=unique_identifier, name=name, notes=notes
     )
     session.add(new_sensor)
-    try:
-        session.flush()
-    except sqla.exc.IntegrityError:
-        session.rollback()
+    session.flush()
 
 
 @add_default_session
