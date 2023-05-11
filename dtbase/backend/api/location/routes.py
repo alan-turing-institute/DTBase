@@ -4,13 +4,17 @@ Module (routes.py) to handle API endpoints related to Locations
 from datetime import datetime, timedelta
 import json
 
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from flask_login import login_required
 
 from dtbase.backend.api.location import blueprint
 from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @blueprint.route("/insert_location_schema", methods=["POST"])
@@ -29,33 +33,38 @@ def insert_location_schema():
                     ]
     }
     """
-
-    payload = json.loads(request.get_json())
-    for k in ["name", "description", "identifiers"]:
-        if not k in payload.keys():
-            raise RuntimeError(
-                f"Must include '{k}' in POST request to /insert_location_schema"
+    try:
+        payload = request.get_json()
+        for k in ["name", "description", "identifiers"]:
+            if not k in payload.keys():
+                raise RuntimeError(
+                    f"Must include '{k}' in POST request to /insert_location_schema"
+                )
+        idnames = []
+        for identifier in payload["identifiers"]:
+            locations.insert_location_identifier(
+                name=identifier["name"],
+                units=identifier["units"],
+                datatype=identifier["datatype"],
+                session=db.session,
             )
-    idnames = []
-    for identifier in payload["identifiers"]:
-        locations.insert_location_identifier(
-            name=identifier["name"],
-            units=identifier["units"],
-            datatype=identifier["datatype"],
+            idnames.append(identifier["name"])
+        # sort the idnames list, and use it to create/find a schema
+        idnames.sort()
+        schema_name = "-".join(idnames)
+        locations.insert_location_schema(
+            name=payload["name"],
+            description=payload["description"],
+            identifiers=idnames,
             session=db.session,
         )
-        idnames.append(identifier["name"])
-    # sort the idnames list, and use it to create/find a schema
-    idnames.sort()
-    schema_name = "-".join(idnames)
-    locations.insert_location_schema(
-        name=payload["name"],
-        description=payload["description"],
-        identifiers=idnames,
-        session=db.session,
-    )
-    db.session.commit()
-    return jsonify(payload), 201
+        db.session.commit()
+        return jsonify(payload), 201
+
+    except Exception as e:
+        # Log the error message and return a response with the error message
+        logger.error("Error occurred:", str(e))
+        return make_response(jsonify({"error": str(e)}), 500)
 
 
 @blueprint.route("/insert_location", methods=["POST"])
@@ -76,7 +85,7 @@ def insert_location():
 
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     for k in ["identifiers", "values"]:
         if not k in payload.keys():
             raise RuntimeError(
@@ -129,7 +138,7 @@ def insert_location_existing_schema(schema_name):
 
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
 
     locations.insert_location(schema_name=schema_name, **payload, session=db.session)
     db.session.commit()
@@ -148,7 +157,7 @@ def list_locations(schema_name):
     }
 
     """
-    payload = json.loads(request.get_json(force=True)) if request.data else {}
+    payload = request.get_json(force=True) if request.data else {}
     result = locations.list_locations(
         schema_name=schema_name,
         **payload,
@@ -218,7 +227,7 @@ def delete_location(schema_name):
     """
     Delete a location with the specified schema name and coordinates.
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     try:
         locations.delete_location_by_coordinates(
             schema_name, session=db.session, **payload
