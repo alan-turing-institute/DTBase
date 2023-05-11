@@ -117,10 +117,7 @@ def insert_sensor_type(name, description, measures, session=None):
     """
     new_type = SensorType(name=name, description=description)
     session.add(new_type)
-    try:
-        session.flush()
-    except sqla.exc.IntegrityError:
-        session.rollback()
+    session.flush()
     for measure_name in measures:
         measure_id = measure_id_from_name(measure_name, session=session)
         session.add(
