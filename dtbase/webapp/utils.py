@@ -34,7 +34,7 @@ def backend_call(request_type, end_point_path, payload=None):
     url = f"{BACKEND_URL}{end_point_path}"
     if payload:
         headers = {"content-type": "application/json"}
-        response = request_func(url, headers=headers, json=json.dumps(payload))
+        response = request_func(url, headers=headers, json=payload)
     else:
         response = request_func(url)
     return response

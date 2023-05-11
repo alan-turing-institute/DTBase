@@ -1,0 +1,47 @@
+{% extends "base_site.html" %}
+
+{% block title %} DTBase {% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Enter New Location Schema</h2>
+    <form id="location-schema-form" method="POST">
+        <div class="form-group">
+            <label for="name">Schema Name:</label>
+            <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Schema Name" value="{{ form_data.name if form_data }}">
+        </div>
+        <div class="form-group">
+            <label for="name">Description</label>
+            <input type="text" class="form-control custom-input" id="description" name="description" required placeholder="Description" value="{{ form_data.description if form_data }}">
+        </div>
+     
+    
+        <div class="form-group">
+            <div class="existing-identifier-group">
+                <label>Select existing identifier:</label>
+                <div class="add-identifier-wrapper d-flex">
+                    <select class="form-control custom-select existing-identifier-select existing-identifier-dropdown">
+                        <option value="">-- Select identifier --</option>
+                        {% for identifier in existing_identifiers %}
+                            <option value="{{ identifier.id }}">{{ identifier.name }} ({{ identifier.units }})</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary btn-add-identifier">+</button>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-margin">Submit</button>
+    </form>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super()}}
+
+<script>
+    const existing_identifiers = {{ existing_identifiers|tojson }};
+</script>
+<script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
+
+{% endblock javascripts %}

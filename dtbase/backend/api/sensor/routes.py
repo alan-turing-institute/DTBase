@@ -113,7 +113,7 @@ def insert_sensor_location():
     If no installation date is given, it's assumed to be now.
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"sensor_identifier", "location_schema", "coordinates"}
     error_response = check_keys(payload, required_keys, "/insert_sensor_location")
     if error_response:
