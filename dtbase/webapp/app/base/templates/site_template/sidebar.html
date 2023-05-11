@@ -12,12 +12,24 @@
         Home
       </a>
     </li>
-    <li>
-      <a href="/sensors/index"
-        class="nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}">
-        <i class="fa fa-thermometer-half me-2 fa-fw"></i>
+
+    <li class="mb-1">
+      <button
+        class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}"
+        data-bs-toggle="collapse" data-bs-target="#sensorsCollapse" aria-expanded="false">
+        <i class="fa fa-thermometer-half fa-fw"></i>
         Sensors
-      </a>
+        <i class="fa fa-caret-down ms-2"></i>
+      </button>
+      <div class="collapse" id="sensorsCollapse">
+        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+	  <li><a href="/sensors/index" class="link-dark rounded text-decoration-none ms-4 ">Time-series plots</a>
+          </li>
+          <li><a href="/sensors/readings" class="link-dark rounded text-decoration-none ms-4 ">Raw sensor readings</a>
+          </li>
+          <!-- Add more items here -->
+        </ul>
+      </div>
     </li>
     <li>
       <a href="/models/index"
