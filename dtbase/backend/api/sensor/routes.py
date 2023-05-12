@@ -251,7 +251,7 @@ def get_sensor_readings():
         dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
 
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
     error_response = check_keys(payload, required_keys, "/get_sensor_readings")
