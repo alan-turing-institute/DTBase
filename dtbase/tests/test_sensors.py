@@ -31,56 +31,56 @@ TIMESTAMPS = list(
 )
 
 
-def insert_measures(session):
+def insert_measures(dbsession):
     """Insert some sensor measures into the database."""
     sensors.insert_sensor_measure(
-        name="temperature", units="Kelvin", datatype="float", session=session
+        name="temperature", units="Kelvin", datatype="float", session=dbsession
     )
     sensors.insert_sensor_measure(
-        name="is raining", units="", datatype="boolean", session=session
+        name="is raining", units="", datatype="boolean", session=dbsession
     )
 
 
-def insert_types(session):
+def insert_types(dbsession):
     """Insert a sensor type into the database."""
-    insert_measures(session)
+    insert_measures(dbsession)
     sensors.insert_sensor_type(
         name="weather",
         description="Weather sensor for temperature and rain",
         measures=["temperature", "is raining"],
-        session=session,
+        session=dbsession,
     )
     sensors.insert_sensor_type(
         name="temperature",
         description="Temperature sensor",
         measures=["temperature"],
-        session=session,
+        session=dbsession,
     )
 
 
-def insert_sensors(session):
+def insert_sensors(dbsession):
     """Insert some sensors into the database."""
-    insert_types(session)
+    insert_types(dbsession)
     sensors.insert_sensor(
         "weather",
         SENSOR_ID1,
         name="Roof weather sensor",
         notes="Located at the northeast corner, under the bucket.",
-        session=session,
+        session=dbsession,
     )
-    sensors.insert_sensor("weather", SENSOR_ID2, session=session)
-    sensors.insert_sensor("temperature", SENSOR_ID3, session=session)
+    sensors.insert_sensor("weather", SENSOR_ID2, session=dbsession)
+    sensors.insert_sensor("temperature", SENSOR_ID3, session=dbsession)
 
 
-def insert_readings(session):
+def insert_readings(dbsession):
     """Insert some sensor readings into the database."""
-    insert_sensors(session)
+    insert_sensors(dbsession)
     sensors.insert_sensor_readings(
         "temperature",
         SENSOR_ID1,
         TEMPERATURES,
         TIMESTAMPS,
-        session=session,
+        session=dbsession,
     )
 
 
@@ -128,6 +128,7 @@ def test_insert_sensor_types(session):
 def test_insert_sensor_types_duplicate(session):
     """Try to insert a sensor type that conflicts with one that exists."""
     insert_types(session)
+
     error_msg = 'duplicate key value violates unique constraint "sensor_type_name_key"'
     with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
         sensors.insert_sensor_type(

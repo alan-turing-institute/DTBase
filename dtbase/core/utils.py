@@ -355,3 +355,25 @@ def row_mappings_to_dicts(rows):
     dicts.
     """
     return [{k: v for k, v in row.items()} for row in rows]
+
+
+def download_csv(readings, filename_base="results"):
+    """
+    Use Pandas to convert array of readings into a csv
+    Args:
+       readings: a list of records to be written out as csv
+       filename (optional): str, name of downloaded file
+    Returns:
+        send_file: function call to flask send_file, will send csv file to client.
+    """
+    df = pd.DataFrame(readings)
+    output_buffer = io.BytesIO()
+    df.to_csv(output_buffer)
+    output_buffer.seek(0)
+    filename = (
+        filename_base + "_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".csv"
+    )
+    print(f"Saving file to {filename}")
+    return send_file(
+        output_buffer, download_name=filename, mimetype="text/csv", as_attachment=True
+    )

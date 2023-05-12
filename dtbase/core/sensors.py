@@ -92,6 +92,7 @@ def insert_sensor_measure(name, units, datatype, session=None):
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
+
     session.flush()
 
 
@@ -122,6 +123,7 @@ def insert_sensor_type(name, description, measures, session=None):
         session.add(
             SensorTypeMeasureRelation(type_id=new_type.id, measure_id=measure_id)
         )
+
     session.flush()
 
 
@@ -372,7 +374,7 @@ def list_sensor_types(session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        List of all sensor types.
+        List of all sensor types, each of which contains a dict of measures
     """
     measures_query = queries.sensor_measures_by_type()
     all_measures = session.execute(measures_query).mappings().all()

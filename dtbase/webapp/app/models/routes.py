@@ -125,7 +125,7 @@ def fetch_latest_run_data(model_name):
     return {"pred_data": pred_data, "sensor_data": sensor_data}
 
 
-@blueprint.route("/index")
+@blueprint.route("/index", methods=["GET", "POST"])
 # @login_required
 def index():
     """Index page."""

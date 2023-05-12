@@ -5,7 +5,7 @@ import json
 import requests
 import urllib
 
-BACKEND_URL = os.environ["DT_BACKEND_URL"]
+from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
 
 def parse_rfc1123_datetime(string):
