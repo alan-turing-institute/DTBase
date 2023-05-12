@@ -41,7 +41,7 @@
 	      {% if not selected_sensor %}
 	      <option value="" selected disabled hidden>Choose sensor</option>
 	      {% else %}
-	      <option value="{{ sensor }}" selected>{{ selected_sensor }}</option>
+	      <option value="{{ selected_sensor }}" selected>{{ selected_sensor }}</option>
 	      {% endif %}
               {% for sensor in sensor_ids %}
               <option value="{{ sensor }}">{{ sensor }}</option>
@@ -51,7 +51,6 @@
 	</div>
       </div>
       {% endif %}
-      </form>
       {% if selected_sensor %}
       <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12">
@@ -94,14 +93,13 @@
 		  {% endfor %}
                 </tbody>
               </table>
-	      <form method="post">
 		<input type="submit" value="Download" name="download"/>
-	      </form>
             </div>
           </div>
         </div>
       </div>
       {% endif %}
+      </form>
     </div>
   </div>
 {% endblock content %}
@@ -122,25 +120,4 @@
   <script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
   <script src="{{ url_for('static', filename='node_modules/datatables.net-scroller/js/dataTables.scroller.js') }}"></script>
 
-  <script>
-
-    $(document).ready(function() {
-        $('#datatable-responsive').DataTable( {
-            "order": [[ 0, "desc" ]]
-        } );
-    } );
-
-    $(window).load(function() {
-
-        $('#reportrange span').html("{{ dt_from }}" + ' - ' + "{{ dt_to }}");
-
-    });
-
-    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
-        var request_url = "/readings/aranet_trh?range=" + picker.startDate.format('YYYYMMDD') + "-" + picker.endDate.format('YYYYMMDD')
-
-        location.replace(request_url)
-    });
-
-</script>
 {% endblock javascripts %}
