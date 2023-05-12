@@ -3,8 +3,8 @@ import json
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
 
-from app.locations import blueprint
-import utils
+from dtbase.webapp.app.locations import blueprint
+from dtbase.webapp import utils
 
 
 @login_required

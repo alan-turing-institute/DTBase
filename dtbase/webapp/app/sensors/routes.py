@@ -12,8 +12,8 @@ import pandas as pd
 
 from dtbase.core.constants import CONST_MAX_RECORDS
 
-from app.sensors import blueprint
-import utils
+from dtbase.webapp.app.sensors import blueprint
+from dtbase.webapp import utils
 
 
 def fetch_all_sensor_types():

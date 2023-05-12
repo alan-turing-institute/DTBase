@@ -11,8 +11,8 @@ import pandas as pd
 
 from datetime import datetime
 
-from app.models import blueprint
-import utils
+from dtbase.webapp.app.models import blueprint
+from dtbase.webapp import utils
 
 
 def fetch_all_models():

@@ -5,10 +5,10 @@ from os import environ
 from flask import current_app, jsonify, render_template, redirect, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app import login_manager
+from dtbase.webapp.app import login_manager
 
-from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm
+from dtbase.webapp.app.base import blueprint
+from dtbase.webapp.app.base.forms import LoginForm, CreateAccountForm
 
 
 @blueprint.route("/")
