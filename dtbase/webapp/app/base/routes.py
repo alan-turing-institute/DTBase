@@ -33,6 +33,11 @@ def route_errors(error):
     return render_template("errors/page_{}.html".format(error))
 
 
+@blueprint.route("/backend_not_found_error")
+def route_backend_not_found():
+    return render_template("errors/backend_not_found.html")
+
+
 @blueprint.route("/favicon.ico")
 def favicon():
     return current_app.send_static_file("favicon.ico")

@@ -6,7 +6,7 @@ import datetime as dt
 import json
 import re
 
-from flask import render_template, request
+from flask import render_template, request, redirect
 from flask_login import login_required
 import pandas as pd
 
@@ -23,7 +23,10 @@ def fetch_all_sensor_types():
     Returns:
         List of dictionaries, one for each sensor type, including a dict of measures for each
     """
-    response = utils.backend_call("get", "/sensor/list_sensor_types")
+    try:
+        response = utils.backend_call("get", "/sensor/list_sensor_types")
+    except:
+        raise RuntimeError("No response from backend")
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     sensor_types = response.json()
@@ -101,8 +104,10 @@ def index():
         # sensor_ids is passed as a comma-separated (or semicolon, although those aren't
         # currently used) string, split it into a list of ids.
         sensor_ids = tuple(re.split(r"[;,]+", sensor_ids.rstrip(",;")))
-
-    sensor_types = fetch_all_sensor_types()
+    try:
+        sensor_types = fetch_all_sensor_types()
+    except RuntimeError:
+        return redirect("/backend_not_found_error")
     sensor_type_name = utils.parse_url_parameter(request, "sensorType")
     if sensor_types:
         if sensor_type_name is None:

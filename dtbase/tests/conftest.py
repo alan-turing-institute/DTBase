@@ -63,7 +63,7 @@ def session():
 
 
 @pytest.fixture()
-def backend_app():
+def app():
     config = backend_config["Test"]
     app = create_backend_app(config)
     yield app
@@ -71,23 +71,23 @@ def backend_app():
 
 
 @pytest.fixture()
-def backend_client(backed_app):
-    return backend_app.test_client()
+def client(app):
+    return app.test_client()
 
 
 @pytest.fixture()
-def testuser(backend_app):
+def testuser(app):
     # create a dummy test user
-    with backend_app.app_context():
+    with app.app_context():
         create_user(username="testuser", email="test@test.com", password="test")
 
 
 @pytest.fixture()
-def backend_runner(backend_app):
-    return backend_app.test_cli_runner()
+def backend_runner(app):
+    return app.test_cli_runner()
 
 
-def pytest_configure(backend_config):
+def pytest_configure():
     """
     Allows plugins and conftest files to perform initial configuration.
     This hook is called for every plugin and initial conftest
@@ -109,7 +109,7 @@ def pytest_configure(backend_config):
     print("pytest_configure: end")
 
 
-def pytest_unconfigure(backend_config):
+def pytest_unconfigure():
     """
     called before test process is exited.
     """

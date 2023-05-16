@@ -1,8 +1,8 @@
 from sys import exit
 import os
 
-from config import config_dict
-from app import create_app
+from dtbase.webapp.config import config_dict
+from dtbase.webapp.app import create_app
 
 get_config_mode = os.environ.get("CROP_CONFIG_MODE", "Production")
 
