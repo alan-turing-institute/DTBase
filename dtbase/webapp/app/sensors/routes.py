@@ -82,7 +82,8 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
             readings = response.json()
             index = [x["timestamp"] for x in readings]
             values = [x["value"] for x in readings]
-            index = list(map(utils.parse_rfc1123_datetime, index))
+            index = list(map(dt.datetime.fromisoformat, index))
+            #            index = list(map(utils.parse_rfc1123_datetime, index))
             series = pd.Series(data=values, index=index, name=measure["name"])
             measure_readings_list.append(series)
         df = pd.concat(measure_readings_list, axis=1)
@@ -191,7 +192,10 @@ def sensor_readings():
     and only when start and end dates are selected will the
     datatable be populated.
     """
-    sensor_types = fetch_all_sensor_types()
+    try:
+        sensor_types = fetch_all_sensor_types()
+    except RuntimeError:
+        return redirect("/backend_not_found_error")
     sensor_type_names = [st["name"] for st in sensor_types]
     # initially all the other fields are empty, until the sensor (type) is chosen.
     sensor_type = None
