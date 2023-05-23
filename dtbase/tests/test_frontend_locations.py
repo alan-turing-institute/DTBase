@@ -1,5 +1,5 @@
 """
-Test that the DTBase sensors pages load
+Test that the DTBase locations pages load
 """
 from flask import url_for, request
 import pytest

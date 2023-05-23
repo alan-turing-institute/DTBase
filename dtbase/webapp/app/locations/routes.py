@@ -2,6 +2,7 @@ import json
 
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
+from requests.exceptions import ConnectionError
 
 from dtbase.webapp.app.locations import blueprint
 from dtbase.webapp import utils
@@ -10,9 +11,12 @@ from dtbase.webapp import utils
 @login_required
 @blueprint.route("/new_location_schema", methods=["GET"])
 def new_location_schema(form_data=None):
-    existing_identifiers_response = utils.backend_call(
-        "get", "/location/list_location_identifiers"
-    )
+    try:
+        existing_identifiers_response = utils.backend_call(
+            "get", "/location/list_location_identifiers"
+        )
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
     existing_identifiers = existing_identifiers_response.json()
     return render_template(
         "location_schema_form.html",

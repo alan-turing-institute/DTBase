@@ -89,9 +89,7 @@ def insert_sensor_location(client):
         "location_schema": schema_name,
         "coordinates": {"x": X_COORD, "y": Y_COORD},
     }
-    response = client.post(
-        "/sensor/insert_sensor_location", json=sensor_location
-    )
+    response = client.post("/sensor/insert_sensor_location", json=sensor_location)
     return response
 
 
@@ -174,7 +172,7 @@ def test_get_sensor_readings(client):
             "dt_from": "2023-03-29T00:00:00",
             "dt_to": "2023-03-29T02:00:00",
         }
-        response = client.get("/sensor/sensor_readings", json=json.dumps(get_readings))
+        response = client.get("/sensor/sensor_readings", json=get_readings)
         assert response.status_code == 200
         assert len(response.json) == 3
         for reading in response.json:

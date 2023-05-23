@@ -5,11 +5,12 @@ import datetime as dt
 import json
 import re
 
-from flask import render_template, request
+from flask import render_template, request, redirect
 from flask_login import login_required
 import pandas as pd
 
 from datetime import datetime
+from requests.exceptions import ConnectionError
 
 from dtbase.webapp.app.models import blueprint
 from dtbase.webapp import utils
@@ -23,7 +24,11 @@ def fetch_all_models():
     Returns:
         List of dicts, one for each model
     """
-    response = utils.backend_call("get", "/model/list_models")
+    try:
+        response = utils.backend_call("get", "/model/list_models")
+    except ConnectionError as e:
+        print("Error getting model list - is the backend running?")
+        raise e
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     models = response.json()
@@ -39,9 +44,13 @@ def get_latest_run_id(model_name):
     Returns:
         run_id:int
     """
-    response = utils.backend_call(
-        "get", "/model/list_model_runs", {"model_name": model_name}
-    )
+    try:
+        response = utils.backend_call(
+            "get", "/model/list_model_runs", {"model_name": model_name}
+        )
+    except ConnectionError as e:
+        print("Error getting model runs - is the backend running?")
+        raise e
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     runs = response.json()
@@ -61,7 +70,11 @@ def get_run_pred_data(run_id):
         dict, keyed by ModelMeasure, containing list of (value,timestamp) tuples.
     """
     # now get the output of the model for that run
-    response = utils.backend_call("get", "/model/get_model_run", {"run_id": run_id})
+    try:
+        response = utils.backend_call("get", "/model/get_model_run", {"run_id": run_id})
+    except ConnectionError as e:
+        print(f"Error getting run {run_id} - is the backend running?")
+        raise e
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     pred_data = response.json()
@@ -79,25 +92,35 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     Returns:
        dict, with keys "sensor_uniq_id", "measure_name", "readings"
     """
-    response = utils.backend_call(
-        "get", "/model/get_model_run_sensor_measure", {"run_id": run_id}
-    )
+    try:
+        response = utils.backend_call(
+            "get", "/model/get_model_run_sensor_measure", {"run_id": run_id}
+        )
+    except ConnectionError as e:
+        print(f"Error getting run sensor data for {run_id} - is backend running?")
+        raise e
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     measure_name = response.json()["measure_name"]
     sensor_uniq_id = response.json()["sensor_unique_id"]
     dt_from = earliest_timestamp
     dt_to = datetime.now().isoformat()
-    response = utils.backend_call(
-        "get",
-        "/sensor/sensor_readings",
-        payload={
-            "measure_name": measure_name,
-            "sensor_uniq_id": sensor_uniq_id,
-            "dt_from": dt_from,
-            "dt_to": dt_to,
-        },
-    )
+    try:
+        response = utils.backend_call(
+            "get",
+            "/sensor/sensor_readings",
+            payload={
+                "measure_name": measure_name,
+                "sensor_uniq_id": sensor_uniq_id,
+                "dt_from": dt_from,
+                "dt_to": dt_to,
+            },
+        )
+    except ConnectionError as e:
+        print(
+            f"Error getting sensor readings for {sensor_uniq_id} - is backend running?"
+        )
+        raise e
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     readings = response.json()
@@ -130,14 +153,18 @@ def fetch_latest_run_data(model_name):
 def index():
     """Index page."""
 
-    model_list = fetch_all_models()
-    print(f"model_list is {model_list}")
-
+    try:
+        model_list = fetch_all_models()
+        print(f"model_list is {model_list}")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
     # for now just show results for the latest run of the first model
-    model_name = model_list[0]["name"]
-
-    model_data = fetch_latest_run_data(model_name)
-
+    if len(model_list) > 0:
+        model_name = model_list[0]["name"]
+        model_data = fetch_latest_run_data(model_name)
+    else:
+        model_name = ""
+        model_data = []
     return render_template(
         "models.html",
         models=model_list,
