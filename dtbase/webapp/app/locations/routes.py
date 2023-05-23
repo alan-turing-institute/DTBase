@@ -105,3 +105,50 @@ def submit_location_schema():
         flash("Location schema added successfully", "success")
 
     return redirect(url_for(".new_location_schema"))
+
+
+@login_required
+@blueprint.route("/new_location", methods=["GET"])
+def new_location():
+    response = utils.backend_call("get", "/location/list_location_schemas")
+    schemas = response.json()
+    print(schemas)
+    return render_template("location_form.html", schemas=schemas)
+
+
+@login_required
+@blueprint.route("/new_location", methods=["POST"])
+def submit_location():
+    # Retrieve the name of the schema
+    schema_name = request.form.get("schema")
+    print(f"============={schema_name}================")
+    # Retrieve the identifiers and values based on the schema
+    identifiers = []
+    values = []
+    response = utils.backend_call("get", f"/location/get_schema_details/{schema_name}")
+    schema = response.json()
+
+    try:
+        # Convert form values to their respective datatypes as defined in the schema
+        form_data = utils.convert_form_values(schema, request.form)
+    except ValueError as e:
+        flash(str(e), "error")
+        return redirect(url_for(".new_location"))
+
+    try:
+        # Send a POST request to the backend
+        response = utils.backend_call(
+            "post", "/location/insert_location/" + schema_name, form_data
+        )
+    except Exception as e:
+        flash(f"Error communicating with the backend: {e}", "error")
+        return redirect(url_for(".new_location"))
+
+    if response.status_code != 201:
+        flash(
+            f"An error occurred while adding the location: {response.json()}", "error"
+        )
+        return redirect(url_for(".new_location"))
+
+    flash("Location added successfully", "success")
+    return redirect(url_for(".new_location"))

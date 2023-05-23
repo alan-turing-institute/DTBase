@@ -74,14 +74,18 @@ def test_insert_location_identifier_duplicate(session):
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
     )
-    error_msg = (
-        "duplicate key value violates unique constraint "
-        '"location_identifier_name_units_key"'
+    original_identifiers = locations.list_location_identifiers(session=session)
+
+    # Try to insert a duplicate location identifier.
+    locations.insert_location_identifier(
+        name="latitude", units="", datatype="integer", session=session
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
-        locations.insert_location_identifier(
-            name="latitude", units="", datatype="integer", session=session
-        )
+
+    new_identifiers = locations.list_location_identifiers(session=session)
+    # Verify that the list hasn't changed.
+    assert (
+        original_identifiers == new_identifiers
+    ), "Inserting a duplicate altered the location identifiers"
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -162,8 +162,19 @@ def insert_location_identifier(name, units, datatype, session=None):
     """
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
-    session.add(LocationIdentifier(name=name, units=units, datatype=datatype))
-    session.flush()
+
+    # Check if an identifier with the same name and units already exists
+    existing_identifier = (
+        session.query(LocationIdentifier)
+        .filter(LocationIdentifier.name == name, LocationIdentifier.units == units)
+        .first()
+    )
+
+    # Only add a new identifier if one with the same name and units does not already exist
+    if not existing_identifier:
+        new_identifier = LocationIdentifier(name=name, units=units, datatype=datatype)
+        session.add(new_identifier)
+        session.flush()
 
 
 @add_default_session
@@ -312,25 +323,56 @@ def list_location_identifiers(session=None):
 
 @add_default_session
 def list_location_schemas(session=None):
-    """List all location schemas
+    """List all location schemas with their identifiers
 
     Args:
         session: SQLAlchemy session. Optional.
 
     Returns:
-        List of all location schemas
+        List of all location schemas with their identifiers
     """
     result = (
-        session.execute(
-            sqla.select(
-                LocationSchema.id, LocationSchema.name, LocationSchema.description
-            )
+        session.query(
+            LocationSchema.id,
+            LocationSchema.name,
+            LocationSchema.description,
+            LocationIdentifier.id.label("identifier_id"),
+            LocationIdentifier.name.label("identifier_name"),
+            LocationIdentifier.units.label("identifier_units"),
+            LocationIdentifier.datatype.label("identifier_datatype"),
         )
-        .mappings()
+        .join(
+            LocationSchemaIdentifierRelation,
+            LocationSchemaIdentifierRelation.schema_id == LocationSchema.id,
+        )
+        .join(
+            LocationIdentifier,
+            LocationIdentifier.id == LocationSchemaIdentifierRelation.identifier_id,
+        )
         .all()
     )
-    result = utils.row_mappings_to_dicts(result)
-    return result
+
+    # transform result into a list of schemas with their identifiers
+    schemas = []
+    current_schema_id = None
+    for row in result:
+        if row.id != current_schema_id:
+            current_schema_id = row.id
+            schema = {
+                "id": row.id,
+                "name": row.name,
+                "description": row.description,
+                "identifiers": [],
+            }
+            schemas.append(schema)
+        identifier = {
+            "id": row.identifier_id,
+            "name": row.identifier_name,
+            "unit": row.identifier_units,
+            "datatype": row.identifier_datatype,
+        }
+        schema["identifiers"].append(identifier)
+    return schemas
 
 
 @add_default_session
@@ -356,3 +398,46 @@ def list_locations(schema_name, session=None, **kwargs):
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
     return result
+
+
+@add_default_session
+def get_schema_details(schema_name, session=None):
+    """Fetch details of a location schema from the database, including the identifiers
+    associated with the schema.
+
+    Args:
+        schema_id: Name of the location schema.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        Dictionary with keys 'id', 'name', 'description', and 'identifiers'. 'identifiers'
+        is a list of identifiers (dictionaries with keys 'id', 'name', 'unit', 'datatype').
+    """
+    schema = (
+        session.query(
+            LocationSchema.id, LocationSchema.name, LocationSchema.description
+        )
+        .filter(LocationSchema.name == schema_name)  # Change made here
+        .first()
+    )
+    if not schema:
+        raise Exception("No such schema")
+    schema_result = dict(schema)
+
+    identifiers = (
+        session.query(
+            LocationIdentifier.id,
+            LocationIdentifier.name,
+            LocationIdentifier.units,
+            LocationIdentifier.datatype,
+        )
+        .join(LocationSchemaIdentifierRelation)
+        .filter(
+            LocationSchemaIdentifierRelation.schema_id == schema.id
+        )  # schema.id from the fetched schema
+        .all()
+    )
+    identifiers_result = [dict(identifier) for identifier in identifiers]
+
+    schema_result["identifiers"] = identifiers_result
+    return schema_result
