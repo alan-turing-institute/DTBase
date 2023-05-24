@@ -30,7 +30,7 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    module_list = ("base", "home", "sensors", "locations", "models")
+    module_list = ("base", "home", "locations", "models") # "sensors",
 
     for module_name in module_list:
         module = import_module("app.{}.routes".format(module_name))

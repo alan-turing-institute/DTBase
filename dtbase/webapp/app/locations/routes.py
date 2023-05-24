@@ -71,7 +71,7 @@ def submit_location_schema():
                     f"An identifier with the name '{idf['name']}' already exists.",
                     "error",
                 )
-        return new_location_schema(form_data=form_data)
+                return new_location_schema(form_data=form_data)
 
     try:
         response = utils.backend_call(
