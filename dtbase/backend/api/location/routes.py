@@ -42,12 +42,13 @@ def insert_location_schema():
                 )
         idnames = []
         for identifier in payload["identifiers"]:
-            locations.insert_location_identifier(
-                name=identifier["name"],
-                units=identifier["units"],
-                datatype=identifier["datatype"],
-                session=db.session,
-            )
+            if not identifier.get("is_existing", False):
+                locations.insert_location_identifier(
+                    name=identifier["name"],
+                    units=identifier["units"],
+                    datatype=identifier["datatype"],
+                    session=db.session,
+                )
             idnames.append(identifier["name"])
         # sort the idnames list, and use it to create/find a schema
         idnames.sort()
