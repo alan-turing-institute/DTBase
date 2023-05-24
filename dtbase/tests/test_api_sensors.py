@@ -89,9 +89,7 @@ def insert_sensor_location(client):
         "location_schema": schema_name,
         "coordinates": {"x": X_COORD, "y": Y_COORD},
     }
-    response = client.post(
-        "/sensor/insert_sensor_location", json=sensor_location
-    )
+    response = client.post("/sensor/insert_sensor_location", json=sensor_location)
     return response
 
 

@@ -209,15 +209,43 @@ def insert_sensor_readings():
 @blueprint.route("/list", methods=["GET"])
 # @login_required
 def list_sensors():
-    """List sensors in the database."""
+    """
+    List sensors in the database.
+    Will return results in the form:
+    [
+        {
+        "id": <id:int>,
+        "name": <name:str>,
+        "notes": <notes:str>,
+        "sensor_type_id": <sensor_type_id:int>,
+        "sensor_type_name": <sensor_type_name:str>,
+        "unique_identifier": <unique_identifier:str>
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensors(session=db.session)
     return jsonify(result), 200
 
 
 @blueprint.route("/list/<type_name>", methods=["GET"])
 # @login_required
-def list_sensors_of_a_type(type_name):
-    """List sensors of a particular type in the database."""
+def list_sensors_of_type(type_name):
+    """
+    List sensors of a particular type in the database.
+        Will return results in the form:
+    [
+        {
+        "id": <id:int>,
+        "name": <name:str>,
+        "notes": <notes:str>,
+        "sensor_type_id": <sensor_type_id:int>,
+        "sensor_type_name": <sensor_type_name:str>,
+        "unique_identifier": <unique_identifier:str>
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensors(type_name=type_name, session=db.session)
     return jsonify(result), 200
 
@@ -225,7 +253,22 @@ def list_sensors_of_a_type(type_name):
 @blueprint.route("/list_sensor_types", methods=["GET"])
 # @login_required
 def list_sensor_types():
-    """List sensor types in the database."""
+    """
+    List sensor types in the database.
+    Returns results in the form:
+    [
+        {
+        "description": <description:str>,
+        "id": <id:int>,
+        "measures": [
+            {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>},
+            ...
+            ],
+        "name": "sensor_name"
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensor_types(session=db.session)
     return jsonify(result), 200
 
@@ -233,7 +276,14 @@ def list_sensor_types():
 @blueprint.route("/list_measures", methods=["GET"])
 # @login_required
 def list_sensor_measures():
-    """List sensor measures in the database."""
+    """
+    List sensor measures in the database.
+    Returns results in the form:
+    [
+    {"datatype": <datatype:str>, "id": <id:int>, "name": <name:str>, "units": <units:str>},
+    ...
+    ]
+    """
     result = sensors.list_sensor_measures(session=db.session)
     return jsonify(result), 200
 
@@ -283,7 +333,8 @@ def get_sensor_readings():
 
     # Convert readings to JSON-friendly format
     readings_json = [
-        {"value": reading[0], "timestamp": reading[1]} for reading in readings
+        {"value": reading[0], "timestamp": reading[1].isoformat()}
+        for reading in readings
     ]
 
     return jsonify(readings_json), 200
