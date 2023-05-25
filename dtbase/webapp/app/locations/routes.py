@@ -33,15 +33,26 @@ def submit_location_schema():
     identifier_names = request.form.getlist("identifier_name[]")
     identifier_units = request.form.getlist("identifier_units[]")
     identifier_datatypes = request.form.getlist("identifier_datatype[]")
+    identifier_existing = request.form.getlist("identifier_existing[]")
+
+    # print the values
+    print("Names: ", identifier_names)
+    print("Units: ", identifier_units)
+    print("Datatypes: ", identifier_datatypes)
+    print("Existing: ", identifier_existing)
 
     identifiers = [
         {
             "name": identifier_name,
             "units": identifier_unit,
             "datatype": identifier_datatype,
+            "is_existing": identifier_is_existing == "1",
         }
-        for identifier_name, identifier_unit, identifier_datatype in zip(
-            identifier_names, identifier_units, identifier_datatypes
+        for identifier_name, identifier_unit, identifier_datatype, identifier_is_existing in zip(
+            identifier_names,
+            identifier_units,
+            identifier_datatypes,
+            identifier_existing,
         )
     ]
 
@@ -67,15 +78,16 @@ def submit_location_schema():
 
     existing_identifiers = existing_identifiers_response.json()
 
+    # new identifiers shouldn't have the same name as existing identifiers
     for idf in identifiers:
-        for idf_ex in existing_identifiers:
-            # if a new identifier has the same name as an existing one, throw an error
-            if (idf["name"] == idf_ex["name"]) & (idf != idf_ex):
-                flash(
-                    f"An identifier with the name '{idf['name']}' already exists.",
-                    "error",
-                )
-        return new_location_schema(form_data=form_data)
+        if not idf["is_existing"]:
+            for idf_ex in existing_identifiers:
+                if idf["name"] == idf_ex["name"]:
+                    flash(
+                        f"An identifier with the name '{idf['name']}' already exists.",
+                        "error",
+                    )
+                    return new_location_schema(form_data=form_data)
 
     try:
         response = utils.backend_call(
