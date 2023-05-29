@@ -169,8 +169,9 @@ The endpoints are:
     {
       "sensor_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:str>
+      "coordinates": <coordinates to the location:dict>
     }
+    where the coordinates dict is keyed by location identifiers.
     ```
     and optionally also
     ```
