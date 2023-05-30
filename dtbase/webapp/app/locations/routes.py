@@ -130,7 +130,7 @@ def submit_location():
 
     try:
         # Convert form values to their respective datatypes as defined in the schema
-        form_data = utils.convert_form_values(schema, request.form)
+        form_data = utils.convert_form_values(schema["identifiers"], request.form)
     except ValueError as e:
         flash(str(e), "error")
         return redirect(url_for(".new_location"))
