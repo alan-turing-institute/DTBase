@@ -377,3 +377,38 @@ def submit_sensor_type():
         flash("Sensor type added successfully", "success")
 
     return redirect(url_for(".new_sensor_type"))
+
+
+@login_required
+@blueprint.route("/add-sensor", methods=["GET"])
+def new_sensor():
+    response = utils.backend_call("get", "/sensor/list_sensor_types")
+    sensor_types = response.json()
+    print(sensor_types)
+    return render_template("sensor_form.html", sensor_types=sensor_types)
+
+
+@login_required
+@blueprint.route("/add-sensor", methods=["POST"])
+def submit_sensor():
+    form_data = request.form
+    print(f"============={form_data}================")
+    payload = {}
+    for k, v in form_data.items():
+        if k != "sensor_type":
+            payload[k] = v
+    try:
+        # Send a POST request to the backend
+        response = utils.backend_call(
+            "post", "/sensor/insert_sensor/" + form_data["sensor_type"], payload
+        )
+    except Exception as e:
+        flash(f"Error communicating with the backend: {e}", "error")
+        return redirect(url_for(".new_sensor"))
+
+    if response.status_code != 201:
+        flash(f"An error occurred while adding the sensor: {response.json()}", "error")
+        return redirect(url_for(".new_sensor"))
+
+    flash("Sensor added successfully", "success")
+    return redirect(url_for(".new_sensor"))

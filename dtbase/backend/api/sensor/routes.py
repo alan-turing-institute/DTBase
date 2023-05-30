@@ -89,7 +89,7 @@ def insert_sensor(type_name):
     try:
         sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
     except sqla.exc.IntegrityError:
-        session.rollback()
+        db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
 
