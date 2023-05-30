@@ -92,10 +92,10 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
     return result
 
 
-@blueprint.route("/index", methods=["GET", "POST"])
+@blueprint.route("/time-series-plots", methods=["GET", "POST"])
 # @login_required
-def index():
-    """Index page."""
+def time_series_plots():
+    """Time-series plots of sensor data"""
     # Parse the various parameters we may have been passed, and load some generally
     # necessary data like list of all sensors and sensor types.
     dt_from = utils.parse_url_parameter(request, "startDate")
@@ -282,4 +282,25 @@ def sensor_readings():
             dt_from=None,
             dt_to=None,
             num_records=CONST_MAX_RECORDS,
+        )
+
+
+@blueprint.route("/add-sensor-type", methods=["GET", "POST"])
+# @login_required
+def add_sensor_type():
+    """
+    Add a new SensorType, with associated measures.
+    """
+    if request.method == "GET":
+        try:
+            existing_measures_response = utils.backend_call(
+                "get", "/sensor/list_measures"
+            )
+        except ConnectionError:
+            return redirect("/backend_not_found_error")
+        existing_measures = existing_measures_response.json()
+        return render_template(
+            "sensor_measure_form.html",
+            form_data=form_data,
+            existing_measures=existing_measures,
         )
