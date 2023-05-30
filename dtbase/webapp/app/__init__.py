@@ -30,7 +30,7 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    module_list = ("base", "home","sensors", "locations", "models") 
+    module_list = ("base", "home", "sensors", "locations", "models")
 
     for module_name in module_list:
         module = import_module("dtbase.webapp.app.{}.routes".format(module_name))
