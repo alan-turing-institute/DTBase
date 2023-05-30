@@ -49,5 +49,19 @@ body {
 }
 
 .custom-input {
-    width: 50%; /* Adjust as needed */
+    width: 50%; 
+}
+
+.location-table{
+  max-width: 50%;  
+  table-layout: fixed;
+  overflow: hidden;  /* Hide content that is wider than the max-width */
+  text-overflow: ellipsis;  /* Add ... at the end of the content if it is too wide */
+  white-space: nowrap;  /* Prevent the content from wrapping to the next line */
+}
+
+.num-column {
+  width: 70px;  
+  /* bold the text */
+  font-weight: bold;
 }
