@@ -33,25 +33,27 @@ MOCK_SENSOR_READINGS = [
 ]
 
 
-def test_sensors_index_no_backend(frontend_client):
+def test_sensors_timeseries_no_backend(frontend_client):
     with frontend_client:
-        response = frontend_client.get("/sensors/index", follow_redirects=True)
+        response = frontend_client.get(
+            "/sensors/time-series-plots", follow_redirects=True
+        )
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
         assert "Backend API not found" in html_content
 
 
-def test_sensors_index_no_sensor_types(frontend_client):
+def test_sensors_timeseries_no_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
-            response = frontend_client.get("/sensors/index")
+            response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert "Choose sensors and time period" in html_content
 
 
-def test_sensors_index_dummy_sensor_types(frontend_client):
+def test_sensors_timeseries_dummy_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -61,14 +63,14 @@ def test_sensors_index_dummy_sensor_types(frontend_client):
             # also mock the responses to getting the sensors of each type
             m.get("http://localhost:5000/sensor/list/dummyType1", json=[])
             m.get("http://localhost:5000/sensor/list/dummyType2", json=[])
-            response = frontend_client.get("/sensors/index")
+            response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert 'value="dummyType1"' in html_content
             assert 'value="dummyType2"' in html_content
 
 
-def test_sensors_index_no_sensor_data(frontend_client):
+def test_sensors_timeseries_no_sensor_data(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -77,13 +79,13 @@ def test_sensors_index_no_sensor_data(frontend_client):
             )
             # also mock the responses to getting the sensors of each type
             m.get("http://localhost:5000/sensor/list/sensorType1", json=MOCK_SENSORS)
-            response = frontend_client.get("/sensors/index")
+            response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert 'value="sensor1"' in html_content
 
 
-def test_sensors_index_with_data(frontend_client):
+def test_sensors_timeseries_with_data(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -97,7 +99,7 @@ def test_sensors_index_with_data(frontend_client):
             )
             # URL will now include startDate, endDate, sensorIds etc
             response = frontend_client.get(
-                "/sensors/index?startDate=2023-01-01&endDate=2023-02-01&sensorIds=sensor1&sensorType=sensorType1"
+                "/sensors/time-series-plots?startDate=2023-01-01&endDate=2023-02-01&sensorIds=sensor1&sensorType=sensorType1"
             )
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
