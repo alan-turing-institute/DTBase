@@ -31,7 +31,7 @@ def insert_sensor_type():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["name", "description", "measures"]
     error_response = check_keys(payload, required_keys, "/insert_sensor_type")
     if error_response:
@@ -81,7 +81,7 @@ def insert_sensor(type_name):
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"unique_identifier"}
     error_response = check_keys(payload, required_keys, "/insert_sensor")
     if error_response:
@@ -89,7 +89,7 @@ def insert_sensor(type_name):
     try:
         sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
     except sqla.exc.IntegrityError:
-        session.rollback()
+        db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
 
@@ -104,8 +104,9 @@ def insert_sensor_location():
     {
       "sensor_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:str>
+      "coordinates": <coordinates to the location:dict>
     }
+    where the coordinates dict is keyed by location identifiers.
     and optionally also
     {
       "installation_datetime": <date from which the sensor has been at this location:str>
@@ -143,7 +144,7 @@ def list_sensor_locations():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"unique_identifier"}
     error_response = check_keys(payload, required_keys, "/list_sensor_location")
     if error_response:
@@ -169,7 +170,7 @@ def insert_sensor_readings():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
     error_response = check_keys(payload, required_keys, "/insert_sensor_readings")
     if error_response:

@@ -40,7 +40,7 @@ def backend_call(request_type, end_point_path, payload=None):
     return response
 
 
-def convert_form_values(schema, form):
+def convert_form_values(variables, form, prefix="identifier"):
     """
     Prepared the form and converts values to their respective datatypes as defined in the schema.
     Returns a dictionary of converted values.
@@ -56,16 +56,16 @@ def convert_form_values(schema, form):
 
     converted_values = {}
 
-    for identifier in schema["identifiers"]:
-        value = form.get(f"identifier_{identifier['name']}")
-        datatype = identifier["datatype"]
+    for variable in variables:
+        value = form.get(f"{prefix}_{variable['name']}")
+        datatype = variable["datatype"]
 
         # Get the conversion function for this datatype
         conversion_function = conversion_functions.get(datatype)
 
         if not conversion_function:
             raise ValueError(
-                f"Unknown datatype '{datatype}' for identifier '{identifier['name']}'"
+                f"Unknown datatype '{datatype}' for variable '{variable['name']}'"
             )
 
         try:
@@ -73,9 +73,9 @@ def convert_form_values(schema, form):
             converted_value = conversion_function(value)
         except ValueError:
             raise ValueError(
-                f"Invalid value '{value}' for identifier '{identifier['name']}' (expected {datatype})"
+                f"Invalid value '{value}' for variable '{variable['name']}' (expected {datatype})"
             )
 
-        converted_values[identifier["name"]] = converted_value
+        converted_values[variable["name"]] = converted_value
 
     return converted_values
