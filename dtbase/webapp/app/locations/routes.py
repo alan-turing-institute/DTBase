@@ -152,3 +152,31 @@ def submit_location():
 
     flash("Location added successfully", "success")
     return redirect(url_for(".new_location"))
+
+
+@login_required
+@blueprint.route("/locations_table", methods=["GET"])
+def locations_table():
+    try:
+        schemas_response = utils.backend_call("get", "/location/list_location_schemas")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
+
+    schemas = schemas_response.json()
+    locations_for_each_schema = {}
+
+    for schema in schemas:
+        try:
+            locations_response = utils.backend_call(
+                "get", f"/location/list/{schema['name']}"
+            )
+        except ConnectionError:
+            return redirect("/backend_not_found_error")
+
+        locations_for_each_schema[schema["name"]] = locations_response.json()
+
+    return render_template(
+        "locations_table.html",
+        schemas=schemas,
+        locations_for_each_schema=locations_for_each_schema,
+    )
