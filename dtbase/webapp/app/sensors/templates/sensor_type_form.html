@@ -20,7 +20,7 @@
             <div class="existing-measure-group">
                 <label>Select existing measure:</label>
                 <div class="add-measure-wrapper d-flex">
-                    <select class="form-control custom-select existing-identifier-select existing-measure-dropdown">
+                    <select class="form-control custom-select existing-measure-select existing-measure-dropdown">
                         <option value="">-- Select measure --</option>
                         {% for measure in existing_measures %}
                             <option value="{{ measure.id }}">{{ measure.name }} ({{ measure.units }})</option>
