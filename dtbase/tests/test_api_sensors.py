@@ -25,7 +25,7 @@ def insert_weather_type(client):
             {"name": "is raining", "units": None, "datatype": "boolean"},
         ],
     }
-    response = client.post("/sensor/insert_sensor_type", json=json.dumps(type_data))
+    response = client.post("/sensor/insert_sensor_type", json=type_data)
     return response
 
 
@@ -43,7 +43,7 @@ def insert_weather_sensor(client):
         "name": "Rooftop weather",
         "notes": "The blue weather sensor on the roof",
     }
-    response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+    response = client.post("/sensor/insert_sensor/weather", json=sensor)
     return response
 
 
@@ -107,7 +107,7 @@ def test_get_sensor_locations(client):
         # Check that the sensor location has been set
         response = client.get(
             "/sensor/list_sensor_locations",
-            json=json.dumps({"unique_identifier": UNIQ_ID1}),
+            json={"unique_identifier": UNIQ_ID1},
         )
         assert response.status_code == 200
         assert response.json[0]["x"] == X_COORD
@@ -134,9 +134,7 @@ def test_insert_sensor_readings(client):
                 "2023-03-29T02:00:00",
             ],
         }
-        response = client.post(
-            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
-        )
+        response = client.post("/sensor/insert_sensor_readings", json=sensor_readings)
         assert response.status_code == 201
 
 
@@ -160,9 +158,7 @@ def test_get_sensor_readings(client):
                 "2023-03-29T02:00:00",
             ],
         }
-        response = client.post(
-            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
-        )
+        response = client.post("/sensor/insert_sensor_readings", json=sensor_readings)
         assert response.status_code == 201
 
         # Test the get_sensor_readings API endpoint
