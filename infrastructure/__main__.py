@@ -252,7 +252,6 @@ def main():
         "frontend",
         resource_group,
         app_service_plan,
-        sql_server,
         app_insights,
         backend_url,
     )
