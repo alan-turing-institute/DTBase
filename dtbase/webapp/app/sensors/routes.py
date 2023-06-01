@@ -412,3 +412,31 @@ def submit_sensor():
 
     flash("Sensor added successfully", "success")
     return redirect(url_for(".new_sensor"))
+
+
+@login_required
+@blueprint.route("/sensor-list", methods=["GET"])
+def sensor_list_table():
+    try:
+        sensor_type_response = utils.backend_call("get", "/sensor/list_sensor_types")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
+
+    sensor_types = sensor_type_response.json()
+    sensors_for_each_type = {}
+
+    for sensor_type in sensor_types:
+        try:
+            sensors_response = utils.backend_call(
+                "get", f"/sensor/list/{sensor_type['name']}"
+            )
+        except ConnectionError:
+            return redirect("/backend_not_found_error")
+
+        sensors_for_each_type[sensor_type["name"]] = sensors_response.json()
+
+    return render_template(
+        "sensor_list_table.html",
+        sensor_types=sensor_types,
+        sensors_for_each_type=sensors_for_each_type,
+    )
