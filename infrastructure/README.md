@@ -1,7 +1,8 @@
 ## Set-up steps
 
 1. Create an Azure storage account. This storage will only be used to hold Pulumi backend state data.
-2. Set AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_KEY in .secrets/dtenv.sh. AZURE_STORAGE_ACCOUNT is the name of the storage account you created, AZURE_STORAGE_KEY can be found in the Access Keys of that account.
+2. Set AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_KEY in .secrets/dtenv.sh. AZURE_STORAGE_ACCOUNT is the name of the storage account you created, AZURE_STORAGE_KEY can be found in the Access Keys of that account.  You also need to add the line
+`export AZURE_KEYVAULT_AUTH_VIA_CLI="true"`.
 3. Create a blob storage container within the storage account.
 4. Run `pulumi login azblob://<NAME OF STORAGE CONTAINER>`. Note that this affects your use of pulumi system-wide, you'll have to login to a different backend to manage different projects.
 5. Create an Azure Key Vault. This will hold an encryption key for Pulumi secrets.
