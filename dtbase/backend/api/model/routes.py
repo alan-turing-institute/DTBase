@@ -27,7 +27,7 @@ def insert_model():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     error_response = check_keys(payload, ["name"], "/insert_model")
     if error_response:
         return error_response
@@ -59,7 +59,7 @@ def delete_model():
         "name": <model_name:str>
     }
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     error_response = check_keys(payload, ["name"], "/delete_model")
     if error_response:
         return error_response
@@ -87,7 +87,7 @@ def insert_model_scenario():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["model_name", "description"]
     error_response = check_keys(payload, required_keys, "/insert_model")
     if error_response:
@@ -118,7 +118,7 @@ def delete_model_scenario():
         "description": <description:str>
     }
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["model_name", "description"]
     error_response = check_keys(payload, required_keys, "/delete_model_scenario")
     if error_response:
@@ -147,7 +147,7 @@ def insert_model_measure():
     The datatype has to be one of "string", "integer", "float", or "boolean"
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"name", "units", "datatype"}
     error_response = check_keys(payload, required_keys, "/insert_model_measure")
     if error_response:
@@ -183,7 +183,7 @@ def delete_model_measure():
         "name": <name of the measure to delete:str>
     }
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"name"}
     error_response = check_keys(payload, required_keys, "/delete_model_measure")
     if error_response:
@@ -218,7 +218,7 @@ def insert_model_run():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"model_name", "scenario_description", "measures_and_values"}
     error_response = check_keys(payload, required_keys, "/insert_model_run")
     if error_response:
@@ -247,7 +247,7 @@ def list_model_runs():
         A list of tuples (values, timestamp) that are the result the model run.
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["model_name"]
     error_response = check_keys(payload, required_keys, "/list_model_runs")
     if error_response:
@@ -294,7 +294,7 @@ def get_model_run():
     Returns:
         Dict, keyed by measure name, with values as lists of tuples (val, timestamp).
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["run_id"]
     error_response = check_keys(payload, required_keys, "/get_model_run")
     if error_response:
@@ -302,7 +302,7 @@ def get_model_run():
 
     model_run = models.get_model_run_results(**payload, session=db.session)
     converted_results = {}
-    for k,v in model_run.items():
+    for k, v in model_run.items():
         converted_results[k] = [
             {"value": t[0], "timestamp": t[1].isoformat()} for t in v
         ]
@@ -325,7 +325,7 @@ def get_model_run_sensor_measure():
     Returns:
         Dict, with keys "sensor_unique_id", "measure_name"
     """
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["run_id"]
     error_response = check_keys(payload, required_keys, "/get_model_run_sensor_measure")
     if error_response:

@@ -1,0 +1,29 @@
+{% extends "base_site.html" %}
+
+{% block title %} Locations {% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Locations</h2>
+    <div class="form-group">
+        <label for="schema">Schema:</label>
+        <select class="form-control custom-select custom-input" id="schema" name="schema" required>
+            <option value="">-- Select a schema --</option>
+            {% for schema in schemas %}
+                <option value="{{ schema.name }}">{{ schema.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div id="locationTable"></div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='javascript/locations_table.js') }}"></script>
+<script>
+    window.schemas = {{ schemas | tojson | safe }};
+    window.locations_for_each_schema = {{ locations_for_each_schema | tojson | safe }};
+</script>
+{% endblock javascripts %}

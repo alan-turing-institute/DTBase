@@ -11,17 +11,13 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import desc, asc, exc, func
 
-from dtbase.core.sensors import (
-    get_sensor_readings
-)
+from dtbase.core.sensors import get_sensor_readings
 
-from dtbase.models.utils.db_utils import (
-    get_sqlalchemy_session,
-    session_close
-)
-from .config import config
+from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
+
 
 def remove_time_zone(dataframe: pd.DataFrame):
     """
@@ -48,7 +44,7 @@ def get_training_data(
     """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
     Each output DataFrame can also be the result of joining two tables, as specified in
-    the config.ini file.
+    the data_config.ini file.
 
     Args:
         measures_list (list of str): if given, override the 'include_measures' from the config.
@@ -98,10 +94,10 @@ def get_training_data(
                 sensor_uniq_id=sensor,
                 dt_from=date_from,
                 dt_to=date_to,
-                session=session
+                session=session,
             )
             entries = [
-                {measure: r[0], "sensor_unique_id": sensor, "timestamp": r[1]} \
+                {measure: r[0], "sensor_unique_id": sensor, "timestamp": r[1]}
                 for r in readings
             ]
             df = pd.DataFrame(entries)

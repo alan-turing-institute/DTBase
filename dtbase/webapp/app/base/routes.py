@@ -5,10 +5,10 @@ from os import environ
 from flask import current_app, jsonify, render_template, redirect, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app import login_manager
+from dtbase.webapp.app import login_manager
 
-from app.base import blueprint
-from app.base.forms import LoginForm, CreateAccountForm
+from dtbase.webapp.app.base import blueprint
+from dtbase.webapp.app.base.forms import LoginForm, CreateAccountForm
 
 
 @blueprint.route("/")
@@ -32,11 +32,19 @@ def route_fixed_template(template):
 def route_errors(error):
     return render_template("errors/page_{}.html".format(error))
 
+
+@blueprint.route("/backend_not_found_error")
+def route_backend_not_found():
+    return render_template("errors/backend_not_found.html")
+
+
 @blueprint.route("/favicon.ico")
 def favicon():
     return current_app.send_static_file("favicon.ico")
 
+
 ## Login & Registration
+
 
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():

@@ -24,6 +24,7 @@ The following endpoints are implemented:
                     ]
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
     - returns the payload, with status code 201
 
 
@@ -39,8 +40,8 @@ The schema name will be a concatenation of the identifier names.
                     ],
       "values": [<val1>, ...]
     }
-    ```
-    (where the values should be in the same order as the identifiers).
+    ``` 
+    (where the values should be in the same order as the identifiers) and "datatype" must be one of "string", "integer", "float", "boolean".
     - returns status code 201, along with json:
     ```
     {
@@ -140,6 +141,7 @@ The endpoints are:
                     ]
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
 
     - returns status code 201, alongside the payload.
 
@@ -158,7 +160,6 @@ The endpoints are:
       "notes": <human readable notes:str>
     }
     ```
-
     - returns status code 201, alongside the payload.
 
 ### `/sensor/insert_sensor_location`
@@ -168,8 +169,9 @@ The endpoints are:
     {
       "sensor_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:str>
+      "coordinates": <coordinates to the location:dict>
     }
+    where the coordinates dict is keyed by location identifiers.
     ```
     and optionally also
     ```
@@ -198,7 +200,7 @@ The endpoints are:
     ```
 
 ### `/sensor/insert_sensor_readings`
-* A POST request, will ad a sensor reading for a given sensor.
+* A POST request, will add a sensor reading for a given sensor for a given measure.
     - Payload should have the form
     ```
     {
@@ -274,14 +276,14 @@ The endpoints are:
     ```
 
 ### `/sensor/sensor_readings`
-* A GET request, will list all readings between two timestamps for a specified sensor. Each timestamp (datetime) is specified in ISO format (i.e., %Y-%m-%dT%H:%M:%S)
+* A GET request, will list all readings between two timestamps for a specified sensor for a specified measure. Each timestamp (datetime) is specified in ISO format (i.e., %Y-%m-%dT%H:%M:%S)
     - Payload should have the form
     ```
     {
         measure_name: <measure_name:str>,
         sensor_uniq_id: <sensor_uniq_id:str>,
-        dt_from: <dt_from:datetime>,
-        dt_to: <dt_to:datetime>
+        dt_from: <dt_from:str>,
+        dt_to: <dt_to:str>
     }
     ```
 
@@ -290,7 +292,7 @@ The endpoints are:
       else, it returns status code 200, alongside results in the form.
     ```
     [
-        {"timestamp": <timestamp:datetime>, "value": <value:integer|float|string|boolean>},
+        {"timestamp": <timestamp:str>, "value": <value:integer|float|string|boolean>},
         ...
     ]
     ```
@@ -355,7 +357,6 @@ API endpoints for the models is as follows.
     {
         "model_name": <model_name:str>,
         "description": <description:str|None|null>,
-        "session": <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
 
@@ -396,6 +397,7 @@ API endpoints for the models is as follows.
         "datatype": <value type of this model measure:str>
     }
     ```
+    where "datatype" must be one of "string", "integer", "float", "boolean".
 
     - returns status code 201, alongside the payload.
 
@@ -461,7 +463,6 @@ API endpoints for the models is as follows.
         "dt_from": <datetime string for earliest readings to get (inclusive):str>,
         "dt_to": <datetime string for last readings to get (inclusive):str>,
         "scenario": <scenario:str> (optional, by default all scenarios),
-        <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
     datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
@@ -486,9 +487,8 @@ API endpoints for the models is as follows.
     - Payload should have the form
     ```
     {
-        run_id: <run_id:int> (id of the model runm),
+        run_id: <run_id:int> (id of the model run),
         measure_name: <measure_name:str>,
-        <session:sqlalchemy.orm.session.Session> (optional)
     }
     ```
 

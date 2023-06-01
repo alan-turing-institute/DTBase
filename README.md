@@ -1,20 +1,21 @@
 # DTBase
-A general base package from which Digital Twins can be developed.
+A general base package from which Digital Twins of controlled environments can be developed.
 
 ## Overview
 
 ### History/The CROP project
 
-The DTBase package is based on [CROP](https://github.com/alan-turing-institute/CROP), a Digital Twin for an underground farm, in a disused air-raid shelter in Clapham, London.   Some of the defining aspects of the CROP Digital Twin are:
+The DTBase package is based on [CROP](https://github.com/alan-turing-institute/CROP), a Digital Twin for an underground farm, located in a disused air-raid shelter in Clapham, London.   Some of the defining aspects of the CROP Digital Twin are:
 * Ingress of real-time sensor data.
 * Ingress of data from other sources (weather, power consumption, information specific to the farm).
 * Predictive models run on a daily schedule to give predictions and uncertainties for future conditions.
-* *Database*.
+* Database containing all historic environmental and crop data.
 * Web frontend including:
- - Dashboard showing at-a-glance overview of conditions in the farm.
- - Straightforward method of displaying and downloading time-series from selected data sources.
- - Custom visualizations of various operational aspects.
- - Interactive 3D model of the farm.
+  - Dashboard showing at-a-glance overview of conditions in the farm.
+  - Straightforward method of displaying and downloading time-series from selected data sources.
+  - Custom visualizations of various operational aspects.
+  - Visualizations of the predictive model outputs, including interactive scenario selection.
+  - Interactive 3D model of the farm.
 
 All of this makes use of cloud-based infrastructure, and can be easily deployed on Microsoft Azure using Pulumi.
 
@@ -37,14 +38,13 @@ We also aim to include:
 
 * The core of DTBase is the database, for which we use PostgresSQL.
 * The backend is written in Python, using the Flask and SQLAlchemy packages.
-* Continuous Integration and Continuous Deployment is done via Github Actions, which in turn build Docker images and push them to Dockerhub.
-* The data ingress, and the scheduled running of the predictive model, is done via Azure Functions.
+* Continuous Integration and Continuous Deployment are done via Github Actions, which in turn build Docker images and push them to Dockerhub.
+* The data ingress, and the scheduled running of the predictive model, are done via Azure Functions.
 * Scripted deployment makes use of Pulumi.
 
 ### API documentation
 
 See [here](dtbase/backend/README.md) for a list of API endpoints, along with expected request and response structures.
-
 
 ### Deployment documentation
 

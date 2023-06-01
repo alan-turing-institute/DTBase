@@ -9,9 +9,8 @@ from flask import render_template, request
 from flask_login import login_required
 import pandas as pd
 
-from app.home import blueprint
-import utils
-
+from dtbase.webapp.app.home import blueprint
+from dtbase.webapp import utils
 
 
 @blueprint.route("/index")

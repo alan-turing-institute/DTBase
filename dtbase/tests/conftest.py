@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from dtbase.backend.api import create_app
-from dtbase.backend.config import config_dict
+from dtbase.backend.api import create_app as create_backend_app
+from dtbase.backend.config import config_dict as backend_config
 from dtbase.core.constants import SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME
 from dtbase.core.db import (
     connect_db,
@@ -18,9 +18,11 @@ from dtbase.core.db import (
 from dtbase.core.db_docker import (
     check_for_docker,
     start_docker_postgres,
-    stop_docker_postgres
+    stop_docker_postgres,
 )
 from dtbase.core.utils import create_user
+from dtbase.webapp.app import create_app as create_frontend_app
+from dtbase.webapp.config import config_dict as frontend_config
 
 
 # if we start a new docker container, store the ID so we can stop it later
@@ -35,6 +37,23 @@ def reset_tables():
 
 
 @pytest.fixture()
+def frontend_app():
+    config = frontend_config["Test"]
+    app = create_frontend_app(config)
+    yield app
+
+
+@pytest.fixture()
+def frontend_client(frontend_app):
+    return frontend_app.test_client()
+
+
+@pytest.fixture()
+def frontend_runner(frontend_app):
+    return frontend_app.test_cli_runner()
+
+
+@pytest.fixture()
 def session():
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     session = session_open(engine)
@@ -45,8 +64,8 @@ def session():
 
 @pytest.fixture()
 def app():
-    config = config_dict["Test"]
-    app = create_app(config)
+    config = backend_config["Test"]
+    app = create_backend_app(config)
     yield app
     reset_tables()
 
@@ -64,11 +83,11 @@ def testuser(app):
 
 
 @pytest.fixture()
-def runner(app):
+def backend_runner(app):
     return app.test_cli_runner()
 
 
-def pytest_configure(config):
+def pytest_configure():
     """
     Allows plugins and conftest files to perform initial configuration.
     This hook is called for every plugin and initial conftest
@@ -90,7 +109,7 @@ def pytest_configure(config):
     print("pytest_configure: end")
 
 
-def pytest_unconfigure(config):
+def pytest_unconfigure():
     """
     called before test process is exited.
     """

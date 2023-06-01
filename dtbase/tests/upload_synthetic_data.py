@@ -1,7 +1,7 @@
 from dtbase.core.locations import (
     insert_location_schema,
     insert_location_identifier,
-    insert_location
+    insert_location,
 )
 
 from dtbase.core.sensors import (
@@ -24,28 +24,18 @@ def insert_trh_sensor(sensor_unique_id, session):
     Insert a temperature / relative humidity sensor.
     """
     insert_sensor_measure(
-        name="Temperature",
-        units="Degrees C",
-        datatype="float",
-        session=session
+        name="Temperature", units="Degrees C", datatype="float", session=session
     )
     insert_sensor_measure(
-        name="Humidity",
-        units="Percent",
-        datatype="float",
-        session=session
+        name="Humidity", units="Percent", datatype="float", session=session
     )
     insert_sensor_type(
         name="TRH",
         description="Temperature/Humidity",
-        measures=["Temperature","Humidity"],
+        measures=["Temperature", "Humidity"],
         session=session,
     )
-    insert_sensor(
-        type_name="TRH",
-        unique_identifier=sensor_unique_id,
-        session=session
-    )
+    insert_sensor(type_name="TRH", unique_identifier=sensor_unique_id, session=session)
 
 
 def insert_trh_readings(session):
@@ -66,14 +56,14 @@ def insert_trh_readings(session):
         sensor_uniq_id="TRH1",
         readings=temps,
         timestamps=timestamps,
-        session=session
+        session=session,
     )
     insert_sensor_readings(
         measure_name="Humidity",
         sensor_uniq_id="TRH1",
         readings=humids,
         timestamps=timestamps,
-        session=session
+        session=session,
     )
     try:
         session.commit()

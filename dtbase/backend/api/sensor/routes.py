@@ -3,7 +3,7 @@ Module (routes.py) to handle API endpoints related to sensors
 """
 from datetime import datetime, timedelta
 import json
-
+import sqlalchemy as sqla
 from flask import request, jsonify
 from flask_login import login_required
 
@@ -31,7 +31,7 @@ def insert_sensor_type():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["name", "description", "measures"]
     error_response = check_keys(payload, required_keys, "/insert_sensor_type")
     if error_response:
@@ -39,8 +39,8 @@ def insert_sensor_type():
 
     idnames = []
     db.session.begin()
-    try:
-        for measure in payload["measures"]:
+    for measure in payload["measures"]:
+        try:
             sensors.insert_sensor_measure(
                 name=measure["name"],
                 units=measure["units"],
@@ -48,15 +48,18 @@ def insert_sensor_type():
                 session=db.session,
             )
             idnames.append(measure["name"])
+        except sqla.exc.IntegrityError:
+            db.session.rollback()
+    try:
         sensors.insert_sensor_type(
             name=payload["name"],
             description=payload["description"],
             measures=idnames,
             session=db.session,
         )
-    except Exception:
+    except sqla.exc.IntegrityError:
         db.session.rollback()
-        raise
+
     db.session.commit()
     return jsonify(payload), 201
 
@@ -78,12 +81,15 @@ def insert_sensor(type_name):
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"unique_identifier"}
     error_response = check_keys(payload, required_keys, "/insert_sensor")
     if error_response:
         return error_response
-    sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
+    try:
+        sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
+    except sqla.exc.IntegrityError:
+        db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
 
@@ -98,8 +104,9 @@ def insert_sensor_location():
     {
       "sensor_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:str>
+      "coordinates": <coordinates to the location:dict>
     }
+    where the coordinates dict is keyed by location identifiers.
     and optionally also
     {
       "installation_datetime": <date from which the sensor has been at this location:str>
@@ -107,7 +114,7 @@ def insert_sensor_location():
     If no installation date is given, it's assumed to be now.
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"sensor_identifier", "location_schema", "coordinates"}
     error_response = check_keys(payload, required_keys, "/insert_sensor_location")
     if error_response:
@@ -137,7 +144,7 @@ def list_sensor_locations():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = {"unique_identifier"}
     error_response = check_keys(payload, required_keys, "/list_sensor_location")
     if error_response:
@@ -163,7 +170,7 @@ def insert_sensor_readings():
     }
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
     required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
     error_response = check_keys(payload, required_keys, "/insert_sensor_readings")
     if error_response:
@@ -203,15 +210,43 @@ def insert_sensor_readings():
 @blueprint.route("/list", methods=["GET"])
 # @login_required
 def list_sensors():
-    """List sensors in the database."""
+    """
+    List sensors in the database.
+    Will return results in the form:
+    [
+        {
+        "id": <id:int>,
+        "name": <name:str>,
+        "notes": <notes:str>,
+        "sensor_type_id": <sensor_type_id:int>,
+        "sensor_type_name": <sensor_type_name:str>,
+        "unique_identifier": <unique_identifier:str>
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensors(session=db.session)
     return jsonify(result), 200
 
 
 @blueprint.route("/list/<type_name>", methods=["GET"])
 # @login_required
-def list_sensors_of_a_type(type_name):
-    """List sensors of a particular type in the database."""
+def list_sensors_of_type(type_name):
+    """
+    List sensors of a particular type in the database.
+        Will return results in the form:
+    [
+        {
+        "id": <id:int>,
+        "name": <name:str>,
+        "notes": <notes:str>,
+        "sensor_type_id": <sensor_type_id:int>,
+        "sensor_type_name": <sensor_type_name:str>,
+        "unique_identifier": <unique_identifier:str>
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensors(type_name=type_name, session=db.session)
     return jsonify(result), 200
 
@@ -219,7 +254,22 @@ def list_sensors_of_a_type(type_name):
 @blueprint.route("/list_sensor_types", methods=["GET"])
 # @login_required
 def list_sensor_types():
-    """List sensor types in the database."""
+    """
+    List sensor types in the database.
+    Returns results in the form:
+    [
+        {
+        "description": <description:str>,
+        "id": <id:int>,
+        "measures": [
+            {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>},
+            ...
+            ],
+        "name": "sensor_name"
+        },
+        ...
+    ]
+    """
     result = sensors.list_sensor_types(session=db.session)
     return jsonify(result), 200
 
@@ -227,7 +277,14 @@ def list_sensor_types():
 @blueprint.route("/list_measures", methods=["GET"])
 # @login_required
 def list_sensor_measures():
-    """List sensor measures in the database."""
+    """
+    List sensor measures in the database.
+    Returns results in the form:
+    [
+    {"datatype": <datatype:str>, "id": <id:int>, "name": <name:str>, "units": <units:str>},
+    ...
+    ]
+    """
     result = sensors.list_sensor_measures(session=db.session)
     return jsonify(result), 200
 
@@ -245,7 +302,7 @@ def get_sensor_readings():
         dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
     """
 
-    payload = json.loads(request.get_json())
+    payload = request.get_json()
 
     required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
     error_response = check_keys(payload, required_keys, "/get_sensor_readings")
@@ -277,7 +334,8 @@ def get_sensor_readings():
 
     # Convert readings to JSON-friendly format
     readings_json = [
-        {"value": reading[0], "timestamp": reading[1]} for reading in readings
+        {"value": reading[0], "timestamp": reading[1].isoformat()}
+        for reading in readings
     ]
 
     return jsonify(readings_json), 200
