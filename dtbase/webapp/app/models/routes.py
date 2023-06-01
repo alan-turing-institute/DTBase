@@ -151,29 +151,39 @@ def fetch_run_data(run_id):
 # @login_required
 def index():
     """Index page."""
-
+    model_list = []
+    run_ids = []
     try:
         model_list = fetch_all_models()
         print(f"model_list is {model_list}")
     except ConnectionError:
         return redirect("/backend_not_found_error")
     if request.method == "GET":
-        return render_template("models.html", models=model_list)
+        print("GET REQUEST")
+        return render_template("models.html", models=model_list, model_data={})
 
     else:  # POST request
+        print(f"POST REQUEST {request.form}")
         if "model_name" in request.form and not "run_id" in request.form:
             model_name = request.form["model_name"]
-            run_ids = get_runs_for_model(model_name)
-            return render_template("models.html", models=model_list, runs=run_ids)
-
-    if len(model_list) > 0:
-        model_name = request.form["model_name"]
-        model_data = fetch_latest_run_data(model_name)
-    else:
-        model_name = ""
-        model_data = []
-    return render_template(
-        "models.html",
-        models=model_list,
-        model_data=json.dumps(model_data),
-    )
+            run_ids = get_run_ids(model_name)
+            print(f"Got run_ids {run_ids}")
+            return render_template(
+                "models.html",
+                models=model_list,
+                selected_model_name=model_name,
+                run_ids=run_ids,
+                model_data={},
+            )
+        elif "model_name" in request.form and "run_id" in request.form:
+            model_name = request.form["model_name"]
+            run_id = request.form["run_id"]
+            model_data = fetch_run_data(run_id)
+        return render_template(
+            "models.html",
+            models=model_list,
+            run_ids=run_ids,
+            selected_model_name=model_name,
+            run_id=run_id,
+            model_data=json.dumps(model_data),
+        )
