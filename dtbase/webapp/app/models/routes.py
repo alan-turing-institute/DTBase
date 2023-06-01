@@ -35,9 +35,9 @@ def fetch_all_models():
     return models
 
 
-def get_latest_run_id(model_name):
+def get_run_ids(model_name):
     """
-    Get the db id corresponding to the latest run for the specified model.
+    Get the db id corresponding to all the run for the specified model.
 
     Args:
         model:str, the name of the model to search for
@@ -56,8 +56,8 @@ def get_latest_run_id(model_name):
     runs = response.json()
     if len(runs) == 0:
         return None
-    run_id = runs[-1]["id"]
-    return run_id
+    run_ids = [run["id"] for run in runs]
+    return run_ids
 
 
 def get_run_pred_data(run_id):
@@ -131,16 +131,15 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     }
 
 
-def fetch_latest_run_data(model_name):
+def fetch_run_data(run_id):
     """
     Fetch all the info for the latest prediction run for a given model.
 
     Args:
-       model_name:str, the name of the Model.
+       run_id:int, identifier of the model run.
     Returns:
        dict, with keys "pred_data", "sensor_data".
     """
-    run_id = get_latest_run_id(model_name)
     pred_data = get_run_pred_data(run_id)
     # find the earliest time in the predicted data
     earliest_timestamp = pred_data[list(pred_data.keys())[0]][0]["timestamp"]
@@ -158,9 +157,17 @@ def index():
         print(f"model_list is {model_list}")
     except ConnectionError:
         return redirect("/backend_not_found_error")
-    # for now just show results for the latest run of the first model
+    if request.method == "GET":
+        return render_template("models.html", models=model_list)
+
+    else:  # POST request
+        if "model_name" in request.form and not "run_id" in request.form:
+            model_name = request.form["model_name"]
+            run_ids = get_runs_for_model(model_name)
+            return render_template("models.html", models=model_list, runs=run_ids)
+
     if len(model_list) > 0:
-        model_name = model_list[0]["name"]
+        model_name = request.form["model_name"]
         model_data = fetch_latest_run_data(model_name)
     else:
         model_name = ""
