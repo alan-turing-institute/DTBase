@@ -47,13 +47,16 @@ def insert_types(dbsession):
     sensors.insert_sensor_type(
         name="weather",
         description="Weather sensor for temperature and rain",
-        measures=["temperature", "is raining"],
+        measures=[
+            {"name": "temperature", "units": "Kelvin", "datatype": "float"},
+            {"name": "is raining", "units": "", "datatype": "boolean"},
+        ],
         session=dbsession,
     )
     sensors.insert_sensor_type(
         name="temperature",
         description="Temperature sensor",
-        measures=["temperature"],
+        measures=[{"name": "temperature", "units": "Kelvin", "datatype": "float"}],
         session=dbsession,
     )
 
@@ -139,7 +142,7 @@ def test_insert_sensor_types_duplicate(session):
         )
 
 
-def test_insert_sensor_types_no_measurer(session):
+def test_insert_sensor_types_no_measure(session):
     """Try to insert a sensor type that uses measures that don't exist."""
     insert_types(session)
     error_msg = "No sensor measure named 'is raining misspelled'"

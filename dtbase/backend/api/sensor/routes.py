@@ -37,7 +37,6 @@ def insert_sensor_type():
     if error_response:
         return error_response
 
-    idnames = []
     db.session.begin()
     for measure in payload["measures"]:
         try:
@@ -47,14 +46,13 @@ def insert_sensor_type():
                 datatype=measure["datatype"],
                 session=db.session,
             )
-            idnames.append(measure["name"])
         except sqla.exc.IntegrityError:
             db.session.rollback()
     try:
         sensors.insert_sensor_type(
             name=payload["name"],
             description=payload["description"],
-            measures=idnames,
+            measures=payload["measures"],
             session=db.session,
         )
     except sqla.exc.IntegrityError:
