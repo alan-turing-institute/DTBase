@@ -482,6 +482,24 @@ API endpoints for the models is as follows.
     ]
     ```
 
+### `/model/get_model_run_sensor_measure`
+* A GET request, will get the corresponding sensor_id and measure for a given model run.
+    - Payload should have the form
+    ```
+    {
+        run_id: <run_id:int> (id of the model run),
+        
+    }
+    ```
+
+    - returns status code 200, alongside result in the form:
+    ```
+    {
+       "sensor_unique_id": <sensor_unique_id:str>,
+       "measure_name": <measure_name:str>
+    }
+    ```
+
 ### `/model/get_model_run`
 * A GET request, will get the output of a model run for a given model measure.
     - Payload should have the form
