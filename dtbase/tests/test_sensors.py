@@ -150,7 +150,10 @@ def test_insert_sensor_types_no_measure(session):
         sensors.insert_sensor_type(
             name="weather misspelled",
             description="Temperature and rain misspelled",
-            measures=["temperature", "is raining misspelled"],
+            measures=[
+                {"name": "temperature", "units": "Kelvin"},
+                {"name": "is raining misspelled", "units": ""},
+            ],
             session=session,
         )
 

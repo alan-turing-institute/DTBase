@@ -32,7 +32,10 @@ def insert_trh_sensor(sensor_unique_id, session):
     insert_sensor_type(
         name="TRH",
         description="Temperature/Humidity",
-        measures=["Temperature", "Humidity"],
+        measures=[
+            {"name": "Temperature", "units": "Degrees C", "datatype": "float"},
+            {"name": "Humidity", "units": "Percent", "datatype": "float"},
+        ],
         session=session,
     )
     insert_sensor(type_name="TRH", unique_identifier=sensor_unique_id, session=session)
