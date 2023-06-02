@@ -55,7 +55,7 @@ def get_run_ids(model_name):
         raise RuntimeError(f"A backend call failed: {response}")
     runs = response.json()
     if len(runs) == 0:
-        return None
+        return []
     run_ids = [run["id"] for run in runs]
     return run_ids
 
@@ -67,7 +67,7 @@ def get_run_pred_data(run_id):
     Args:
         run_id:int, database ID of the ModelRun
     Returns:
-        dict, keyed by ModelMeasure, containing list of (value,timestamp) tuples.
+        dict, keyed by ModelMeasure, containing list of dicts {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
     """
     # now get the output of the model for that run
     try:
@@ -90,7 +90,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
        earliest_timestamp: str, ISO format timestamp of the earliest prediction point
 
     Returns:
-       dict, with keys "sensor_uniq_id", "measure_name", "readings"
+       dict, with keys "sensor_uniq_id", "measure_name", "readings", where "readings" is a list of (value, timestamp) tuples.
     """
     try:
         response = utils.backend_call(
