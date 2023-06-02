@@ -35,9 +35,9 @@ def fetch_all_models():
     return models
 
 
-def get_latest_run_id(model_name):
+def get_run_ids(model_name):
     """
-    Get the db id corresponding to the latest run for the specified model.
+    Get the db id corresponding to all the run for the specified model.
 
     Args:
         model:str, the name of the model to search for
@@ -55,9 +55,9 @@ def get_latest_run_id(model_name):
         raise RuntimeError(f"A backend call failed: {response}")
     runs = response.json()
     if len(runs) == 0:
-        return None
-    run_id = runs[-1]["id"]
-    return run_id
+        return []
+    run_ids = [run["id"] for run in runs]
+    return run_ids
 
 
 def get_run_pred_data(run_id):
@@ -67,7 +67,7 @@ def get_run_pred_data(run_id):
     Args:
         run_id:int, database ID of the ModelRun
     Returns:
-        dict, keyed by ModelMeasure, containing list of (value,timestamp) tuples.
+        dict, keyed by ModelMeasure, containing list of dicts {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
     """
     # now get the output of the model for that run
     try:
@@ -90,7 +90,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
        earliest_timestamp: str, ISO format timestamp of the earliest prediction point
 
     Returns:
-       dict, with keys "sensor_uniq_id", "measure_name", "readings"
+       dict, with keys "sensor_uniq_id", "measure_name", "readings", where "readings" is a list of (value, timestamp) tuples.
     """
     try:
         response = utils.backend_call(
@@ -131,16 +131,15 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     }
 
 
-def fetch_latest_run_data(model_name):
+def fetch_run_data(run_id):
     """
     Fetch all the info for the latest prediction run for a given model.
 
     Args:
-       model_name:str, the name of the Model.
+       run_id:int, identifier of the model run.
     Returns:
        dict, with keys "pred_data", "sensor_data".
     """
-    run_id = get_latest_run_id(model_name)
     pred_data = get_run_pred_data(run_id)
     # find the earliest time in the predicted data
     earliest_timestamp = pred_data[list(pred_data.keys())[0]][0]["timestamp"]
@@ -152,21 +151,39 @@ def fetch_latest_run_data(model_name):
 # @login_required
 def index():
     """Index page."""
-
+    model_list = []
+    run_ids = []
     try:
         model_list = fetch_all_models()
         print(f"model_list is {model_list}")
     except ConnectionError:
         return redirect("/backend_not_found_error")
-    # for now just show results for the latest run of the first model
-    if len(model_list) > 0:
-        model_name = model_list[0]["name"]
-        model_data = fetch_latest_run_data(model_name)
-    else:
-        model_name = ""
-        model_data = []
-    return render_template(
-        "models.html",
-        models=model_list,
-        model_data=json.dumps(model_data),
-    )
+    if request.method == "GET":
+        print("GET REQUEST")
+        return render_template("models.html", models=model_list, model_data={})
+
+    else:  # POST request
+        print(f"POST REQUEST {request.form}")
+        if "model_name" in request.form and not "run_id" in request.form:
+            model_name = request.form["model_name"]
+            run_ids = get_run_ids(model_name)
+            print(f"Got run_ids {run_ids}")
+            return render_template(
+                "models.html",
+                models=model_list,
+                selected_model_name=model_name,
+                run_ids=run_ids,
+                model_data={},
+            )
+        elif "model_name" in request.form and "run_id" in request.form:
+            model_name = request.form["model_name"]
+            run_id = request.form["run_id"]
+            model_data = fetch_run_data(run_id)
+        return render_template(
+            "models.html",
+            models=model_list,
+            run_ids=run_ids,
+            selected_model_name=model_name,
+            run_id=run_id,
+            model_data=json.dumps(model_data),
+        )
