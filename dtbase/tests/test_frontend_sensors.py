@@ -168,3 +168,96 @@ def test_sensors_readings_post_sensor(frontend_client):
             assert "<th>Humidity</th>" in html_content
             # 5 rows of data plus the header row
             assert html_content.count("<tr>") == 6
+
+
+def test_add_sensor_type_no_backend(frontend_client):
+    with frontend_client:
+        response = frontend_client.get(
+            "/sensors/add-sensor-type", follow_redirects=True
+        )
+        assert response.status_code == 200
+        html_content = response.data.decode("utf-8")
+        assert "Backend API not found" in html_content
+
+
+def test_add_sensor_type_no_existing_measures(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            response = frontend_client.get("/sensors/add-sensor-type")
+            assert response.status_code == 200
+            html_content = response.data.decode("utf-8")
+            assert "Enter New Sensor Type" in html_content
+            assert "SensorType Name:" in html_content
+            assert "Description" in html_content
+            assert "Select existing measure" in html_content
+
+
+def test_add_sensor_type_submit_empty(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.post("http://localhost:5000/sensor/insert_sensor_type", json=[])
+            response = frontend_client.post("/sensors/add-sensor-type", data={})
+            with frontend_client.session_transaction() as session:
+                flash_message = dict(session["_flashes"])
+            assert response.status_code == 302
+            assert (
+                flash_message["error"]
+                == "An error occurred while adding the sensor type: <Response [200]>"
+            )
+
+
+def test_add_sensor_type_submit_duplicate(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            m.get(
+                "http://localhost:5000/sensor/list_sensor_types",
+                json=[{"name": "testname"}],
+            )
+            m.post(
+                "http://localhost:5000/sensor/insert_sensor_type",
+                json=[],
+            )
+            response = frontend_client.post(
+                "/sensors/add-sensor-type",
+                data={
+                    "name": "testname",
+                    "description": "nothing",
+                    "measure_name[]": "x",
+                    "measure_units[]": "m",
+                    "measure_datatype[]": "float",
+                },
+            )
+
+            assert response.status_code == 200
+            html_content = response.data.decode("utf-8")
+            assert "The sensor type &#39;testname&#39; already exists" in html_content
+
+
+def test_add_sensor_type_submit_ok(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.post(
+                "http://localhost:5000/sensor/insert_sensor_type",
+                json=[],
+                status_code=201,
+            )
+            response = frontend_client.post(
+                "/sensors/add-sensor-type",
+                data={
+                    "name": "testname",
+                    "description": "nothing",
+                    "measure_name[]": "x",
+                    "measure_units[]": "m",
+                    "measure_datatype[]": "float",
+                },
+            )
+            with frontend_client.session_transaction() as session:
+                flash_message = dict(session["_flashes"])
+                print(f"FLASH MESSAGE {flash_message}")
+                assert flash_message["success"] == "Sensor type added successfully"
