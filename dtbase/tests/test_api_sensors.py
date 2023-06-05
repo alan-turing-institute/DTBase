@@ -57,6 +57,37 @@ def test_insert_sensor(client):
         assert response.status_code == 201
 
 
+def insert_temperature_sensor(client):
+    # insert a temperature sensor
+    type_data = {
+        "name": "simpletemp",
+        "description": "Simple temperature sensor",
+        "measures": [
+            {"name": "temperature", "units": "Kelvin", "datatype": "float"},
+        ],
+    }
+    response = client.post("/sensor/insert_sensor_type", json=type_data)
+    return response
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_two_sensor_types_sharing_measure(client):
+    with client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        response = insert_temperature_sensor(client)
+        assert response.status_code == 201
+        response = client.get("/sensor/list_sensor_types")
+        stypes = response.json
+        assert len(stypes) == 2
+        weather = next(t for t in stypes if t["name"] == "weather")
+        assert isinstance(weather, dict)
+        assert len(weather["measures"]) == 2
+        temp = next(t for t in stypes if t["name"] == "simpletemp")
+        assert isinstance(temp, dict)
+        assert len(temp["measures"]) == 1
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensors_of_a_type(client):
     with client:
