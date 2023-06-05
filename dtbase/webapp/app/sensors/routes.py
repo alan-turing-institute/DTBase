@@ -376,7 +376,10 @@ def submit_sensor_type():
 @login_required
 @blueprint.route("/add-sensor", methods=["GET"])
 def new_sensor():
-    response = utils.backend_call("get", "/sensor/list_sensor_types")
+    try:
+        response = utils.backend_call("get", "/sensor/list_sensor_types")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
     sensor_types = response.json()
     print(sensor_types)
     return render_template("sensor_form.html", sensor_types=sensor_types)
@@ -413,7 +416,7 @@ def submit_sensor():
 def sensor_list_table():
     try:
         sensor_type_response = utils.backend_call("get", "/sensor/list_sensor_types")
-    except RuntimeError:
+    except ConnectionError:
         return redirect("/backend_not_found_error")
 
     sensor_types = sensor_type_response.json()

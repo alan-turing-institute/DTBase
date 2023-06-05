@@ -261,3 +261,93 @@ def test_add_sensor_type_submit_ok(frontend_client):
                 flash_message = dict(session["_flashes"])
                 print(f"FLASH MESSAGE {flash_message}")
                 assert flash_message["success"] == "Sensor type added successfully"
+
+
+def test_add_sensor_no_backend(frontend_client):
+    with frontend_client:
+        response = frontend_client.get("/sensors/add-sensor", follow_redirects=True)
+        assert response.status_code == 200
+        html_content = response.data.decode("utf-8")
+        assert "Backend API not found" in html_content
+
+
+def test_add_sensor_no_sensor_types(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            response = frontend_client.get("/sensors/add-sensor", follow_redirects=True)
+            html_content = response.data.decode("utf-8")
+            assert "Add New Sensor" in html_content
+
+
+def test_add_sensor_ok(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://localhost:5000/sensor/list_sensor_types",
+                json=[{"name": "testtype"}],
+            )
+            m.post(
+                "http://localhost:5000/sensor/insert_sensor/testtype", status_code=201
+            )
+            response = frontend_client.post(
+                "/sensors/add-sensor",
+                data={
+                    "name": "testsensor",
+                    "unique_identifier": "testsensor1",
+                    "sensor_type": "testtype",
+                    "notes": "humm",
+                },
+            )
+            with frontend_client.session_transaction() as session:
+                flash_message = dict(session["_flashes"])
+                assert flash_message["success"] == "Sensor added successfully"
+
+
+def test_sensor_list_no_backend(frontend_client):
+    with frontend_client:
+        response = frontend_client.get("/sensors/sensor-list", follow_redirects=True)
+        assert response.status_code == 200
+        html_content = response.data.decode("utf-8")
+        assert "Backend API not found" in html_content
+
+
+def test_sensor_list_no_sensor_types(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            response = frontend_client.get(
+                "/sensors/sensor-list", follow_redirects=True
+            )
+            assert response.status_code == 200
+            html_content = response.data.decode("utf-8")
+            assert "Select a sensor type" in html_content
+
+
+def test_sensor_list_ok(frontend_client):
+    with frontend_client:
+        with requests_mock.Mocker() as m:
+            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get(
+                "http://localhost:5000/sensor/list/testtype",
+                json=[
+                    {
+                        "name": "sensor1",
+                        "notes": "",
+                        "sensor_type": "testtype",
+                        "unique_identifier": "sensor1",
+                    },
+                    {
+                        "name": "sensor2",
+                        "notes": "some notes",
+                        "sensor_type": "testtype",
+                        "unique_identifier": "sensor2",
+                    },
+                ],
+            )
+            response = frontend_client.get(
+                "/sensors/sensor-list", follow_redirects=True
+            )
+            assert response.status_code == 200
+            html_content = response.data.decode("utf-8")
+            assert '<div id="sensorTable"></div>' in html_content
