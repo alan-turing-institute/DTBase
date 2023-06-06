@@ -38,6 +38,7 @@ def remove_time_zone(dataframe: pd.DataFrame):
 def get_training_data(
     measures_list=None,
     sensors_list=None,
+    date_to=None,
     delta_days=None,
     session=None,
 ):
@@ -49,6 +50,7 @@ def get_training_data(
     Args:
         measures_list (list of str): if given, override the 'include_measures' from the config.
         sensors_list (list of str): if given, override the 'include_sensors' from the config.
+        date_to (datetime): Last day of training data. Defaults to datetime.now()
         delta_days (int): Number of days in the past from which to retrieve data.
             Defaults to None.
         num_rows (int, optional): Number of rows to limit the data to. Defaults to None.
@@ -74,7 +76,8 @@ def get_training_data(
 
     if not session:
         session = get_sqlalchemy_session()
-    date_to = datetime.datetime.now()
+    if date_to is None:
+        date_to = datetime.datetime.now()
     delta = datetime.timedelta(days=num_days_training)
     date_from = date_to - delta
     print(f"Training data from {date_from} to {date_to}")
