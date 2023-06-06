@@ -86,18 +86,19 @@ def get_training_data(
         sensors_list = sensors_config["include_sensors"]
     if not measures_list:
         measures_list = sensors_config["include_measures"]
+        # this will be a list of tuples (measure_name, units)
     for measure in measures_list:
         for sensor in sensors_list:
-            columns = [measure, "sensor_unique_id", "timestamp"]
+            columns = [measure[0], "sensor_unique_id", "timestamp"]
             readings = get_sensor_readings(
-                measure_name=measure,
+                measure_name=measure[0],
                 sensor_uniq_id=sensor,
                 dt_from=date_from,
                 dt_to=date_to,
                 session=session,
             )
             entries = [
-                {measure: r[0], "sensor_unique_id": sensor, "timestamp": r[1]}
+                {measure[0]: r[0], "sensor_unique_id": sensor, "timestamp": r[1]}
                 for r in readings
             ]
             df = pd.DataFrame(entries)

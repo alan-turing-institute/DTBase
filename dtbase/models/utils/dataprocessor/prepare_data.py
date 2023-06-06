@@ -238,9 +238,10 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     # replace them with typically observed values. Note that if there is not enough data
     # to compute typically observed values, missing observations will not be replaced.
     measures = sensors_config["include_measures"]
+    # measures will be a list of tuples (measure_name, units)
     for key in keys_sensor_data:
         for measure in measures:
-            values = sensor_data[key][measure]
+            values = sensor_data[key][measure[0]]
             if values.isna().any():
                 sensor_data[key][measure] = impute_missing_values(values)
     logger.info("Done preparing the data. Ready to feed to ARIMA model.")

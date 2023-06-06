@@ -17,7 +17,10 @@ from dtbase.core.models import (
     model_id_from_name,
     scenario_id_from_description,
 )
-from dtbase.core.sensors import measure_id_from_name, sensor_id_from_unique_identifier
+from dtbase.core.sensors import (
+    measure_id_from_name_and_units,
+    sensor_id_from_unique_identifier,
+)
 from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
@@ -72,9 +75,10 @@ def run_pipeline(session=None) -> None:
 
     db_measures = list_model_measures(session=session)
     db_measure_names = [m["name"] for m in db_measures]
+    # base_measures_list will be a list of tuples (measure_name, units)
     for base_measure in base_measures_list:
         for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
-            measure = m + base_measure
+            measure = m + base_measure[0]
             if not measure in db_measure_names:
                 insert_model_measure(measure, "", "float", session=session)
 
@@ -88,21 +92,23 @@ def run_pipeline(session=None) -> None:
             unique_identifier=sensor, session=session
         )
         for base_measure in base_measures_list:
-            sensor_measure_id = measure_id_from_name(base_measure, session=session)
-            values = prep_data[sensor][base_measure]
+            sensor_measure_id = measure_id_from_name_and_units(
+                base_measure[0], base_measure[1], session=session
+            )
+            values = prep_data[sensor][base_measure[0]]
             mean_forecast, conf_int, metrics = arima_pipeline(values)
             mean = {
-                "measure_name": "Mean " + base_measure,
+                "measure_name": "Mean " + base_measure[0],
                 "values": list(mean_forecast),
                 "timestamps": list(mean_forecast.index),
             }
             upper = {
-                "measure_name": "Upper Bound " + base_measure,
+                "measure_name": "Upper Bound " + base_measure[0],
                 "values": list(conf_int.mean_ci_upper),
                 "timestamps": list(conf_int.index),
             }
             lower = {
-                "measure_name": "Lower Bound " + base_measure,
+                "measure_name": "Lower Bound " + base_measure[0],
                 "values": list(conf_int.mean_ci_lower),
                 "timestamps": list(conf_int.index),
             }
