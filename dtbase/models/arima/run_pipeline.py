@@ -4,7 +4,7 @@ import sys
 from collections import defaultdict
 import pandas as pd
 import logging, coloredlogs
-
+from datetime import datetime
 
 from dtbase.core.models import (
     list_model_measures,
@@ -27,6 +27,8 @@ from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
 
+DT_TO = datetime.fromisoformat("2022-05-01")
+
 
 def run_pipeline(session=None) -> None:
     # set up logging
@@ -36,7 +38,8 @@ def run_pipeline(session=None) -> None:
     coloredlogs.install(level="INFO")
 
     # fetch training data from the database
-    sensor_data = get_training_data()
+
+    sensor_data = get_training_data(date_to=DT_TO)
 
     # clean the training data
     cleaned_data = clean_data(sensor_data[0])
