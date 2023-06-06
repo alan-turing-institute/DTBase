@@ -169,8 +169,9 @@ The endpoints are:
     {
       "sensor_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:str>
+      "coordinates": <coordinates to the location:dict>
     }
+    where the coordinates dict is keyed by location identifiers.
     ```
     and optionally also
     ```
@@ -199,7 +200,7 @@ The endpoints are:
     ```
 
 ### `/sensor/insert_sensor_readings`
-* A POST request, will ad a sensor reading for a given sensor.
+* A POST request, will add a sensor reading for a given sensor for a given measure.
     - Payload should have the form
     ```
     {
@@ -275,14 +276,14 @@ The endpoints are:
     ```
 
 ### `/sensor/sensor_readings`
-* A GET request, will list all readings between two timestamps for a specified sensor. Each timestamp (datetime) is specified in ISO format (i.e., %Y-%m-%dT%H:%M:%S)
+* A GET request, will list all readings between two timestamps for a specified sensor for a specified measure. Each timestamp (datetime) is specified in ISO format (i.e., %Y-%m-%dT%H:%M:%S)
     - Payload should have the form
     ```
     {
         measure_name: <measure_name:str>,
         sensor_uniq_id: <sensor_uniq_id:str>,
-        dt_from: <dt_from:datetime>,
-        dt_to: <dt_to:datetime>
+        dt_from: <dt_from:str>,
+        dt_to: <dt_to:str>
     }
     ```
 
@@ -291,7 +292,7 @@ The endpoints are:
       else, it returns status code 200, alongside results in the form.
     ```
     [
-        {"timestamp": <timestamp:datetime>, "value": <value:integer|float|string|boolean>},
+        {"timestamp": <timestamp:str>, "value": <value:integer|float|string|boolean>},
         ...
     ]
     ```
@@ -479,6 +480,24 @@ API endpoints for the models is as follows.
         },
         ...
     ]
+    ```
+
+### `/model/get_model_run_sensor_measure`
+* A GET request, will get the corresponding sensor_id and measure for a given model run.
+    - Payload should have the form
+    ```
+    {
+        run_id: <run_id:int> (id of the model run),
+        
+    }
+    ```
+
+    - returns status code 200, alongside result in the form:
+    ```
+    {
+       "sensor_unique_id": <sensor_unique_id:str>,
+       "measure_name": <measure_name:str>
+    }
     ```
 
 ### `/model/get_model_run`

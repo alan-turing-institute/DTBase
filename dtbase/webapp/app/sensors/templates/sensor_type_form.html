@@ -1,0 +1,47 @@
+{% extends "base_site.html" %}
+
+{% block title %} DTBase {% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h3>Enter New Sensor Type</h2>
+    <form id="sensor-type-form" method="POST">
+        <div class="form-group">
+            <label for="name">SensorType Name:</label>
+            <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="SensorType Name" value="{{ form_data.name if form_data }}">
+        </div>
+        <div class="form-group">
+            <label for="name">Description</label>
+            <input type="text" class="form-control custom-input" id="description" name="description" required placeholder="Description" value="{{ form_data.description if form_data }}">
+        </div>
+
+
+        <div class="form-group">
+            <div class="existing-measure-group">
+                <label>Select existing measure:</label>
+                <div class="add-measure-wrapper d-flex">
+                    <select class="form-control custom-select existing-measure-select existing-measure-dropdown">
+                        <option value="">-- Select measure --</option>
+                        {% for measure in existing_measures %}
+                            <option value="{{ measure.id }}">{{ measure.name }} ({{ measure.units }})</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary btn-add-measure">+</button>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-margin">Submit</button>
+    </form>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super()}}
+
+<script>
+    const existing_measures = {{ existing_measures|tojson }};
+</script>
+<script src="{{ url_for('static', filename='javascript/sensor_type.js') }}"></script>
+
+{% endblock javascripts %}

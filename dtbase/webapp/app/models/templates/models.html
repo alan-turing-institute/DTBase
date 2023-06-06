@@ -13,34 +13,64 @@
     <div class="row">
       <div class="col">
         <h3>Choose predictive model</h3>
-        <form>
+        <form method="post">
           <div>
 
             <div>
-              Model
+              Select a model:
               <select
-                  id="modelSelector"
+                  id="model_name"
                   class="selectpicker"
-                  name="modelSelector"
-                  onchange="changeModel()">
+                  name="model_name"
+                onchange="this.form.submit()">
+		{% if not selected_model_name %}
+		<option value="" selected disabled hidden>Choose model</option>
+		{% else %}
+		<option value="{{ selected_model_name }}" selected>{{ selected_model_name }}</option>
+		{% endif %}
                 {% for m in models %}
                 <option
                     value="{{ m.name }}"
-                    {% if model and smname == model %} selected {% endif %}
+                    {% if selected_model_name and m.name == selected_model_name %} selected {% endif %}
                     >
                     {{m.name}}
                 </option>
                 {% endfor %}
               </select>
             </div>
-    </div>
+	  </div>
+	  {% if selected_model_name %}
+	  <div>
+	    Select a model run:
+	    <select
+                  id="run_id"
+                  class="selectpicker"
+                  name="run_id"
+              onchange="this.form.submit()">
+	      {% if not run_id %}
+		<option value="" selected disabled hidden>Choose run ID</option>
+		{% else %}
+		<option value="{{ run_id }}" selected>{{ run_id }}</option>
+		{% endif %}
+                {% for r in run_ids %}
+                <option
+                    value="{{ r }}"
+                    {% if run_id and r == run_id %} selected {% endif %}
+                    >
+                    {{r}}
+                </option>
+                {% endfor %}
+              </select>
+	  </div>
+	  {% endif %}
+	</form>
 
     {% if model_data %}
     <div class="row">
       <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
           <div class="x_title">
-            <h2>Model  predictions</h2>
+            <h2>Model predictions</h2>
             <ul class="nav navbar-right panel_toolbox">
               <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
               </li>
@@ -98,7 +128,9 @@
   }
 
   const model_data = JSON.parse('{{model_data | safe}}');
-  plot_predictions(model_data);
+  if (Object.keys(model_data).length > 0) {
+      plot_predictions(model_data);
+  }
 
 </script>
 

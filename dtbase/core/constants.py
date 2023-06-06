@@ -87,9 +87,14 @@ SQL_TEST_CONNECTION_STRING = make_conn_string(
     SQL_TEST_PORT,
 )
 
-SQL_CONNECTION_STRING_DEFAULT = "%s/%s" % (SQL_CONNECTION_STRING, SQL_DEFAULT_DBNAME)
-SQL_CONNECTION_STRING_CROP = "%s/%s" % (SQL_CONNECTION_STRING, SQL_DBNAME)
+# backend API base URL, used by frontend, ingress, and model functions.
+CONST_BACKEND_URL = (
+    os.environ["DT_BACKEND_URL"]
+    if "DT_BACKEND_URL" in os.environ
+    else "http://localhost:5000"
+)
 
+# how many rows to display in tables
 CONST_MAX_RECORDS = 50000
 
 CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -100,28 +105,12 @@ DEFAULT_USER_PASS = (
     os.environ["DT_DEFAULT_USER_PASS"] if "DT_DEFAULT_USER_PASS" in os.environ else None
 )
 
-# backend API base URL, used by frontend, ingress, and model functions.
-CONST_BACKEND_URL = (
-    os.environ["DT_BACKEND_URL"]
-    if "DT_BACKEND_URL" in os.environ
-    else "http://localhost:5000"
-)
-
-
-# Testing-related constants - filenames and filepaths
-
-CONST_TEST_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "tests")
-)
-CONST_TESTDATA_BASE_FOLDER = os.path.join(CONST_TEST_DIR, "data")
-
-
 # The following are some examples of how one might store URLs and API keys
 # for data sources that we want to use for data ingress.
 
 # Weather-related misc constants
-CONST_LAT = 51.45  #  latitude
-CONST_LON = 0.14  # longitude
+CONST_LAT = os.environ["DT_LAT"] if "DT_LAT" in os.environ else "DUMMY"  #  latitude
+CONST_LON = os.environ["DT_LONG"] if "DT_LONG" in os.environ else "DUMMY"  #  longitude
 
 # We use OpenWeatherMap as an example of how to get weather data
 # (both historical and forecast).

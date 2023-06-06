@@ -14,7 +14,7 @@ def backend_call(request_type, end_point_path, payload):
     request_func = getattr(requests, request_type)
     url = f"{CONST_BACKEND_URL}{end_point_path}"
     headers = {"content-type": "application/json"}
-    response = request_func(url, headers=headers, json=json.dumps(payload))
+    response = request_func(url, headers=headers, json=payload)
     return response
 
 
