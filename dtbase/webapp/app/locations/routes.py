@@ -110,7 +110,10 @@ def submit_location_schema():
 @login_required
 @blueprint.route("/new_location", methods=["GET"])
 def new_location():
-    response = utils.backend_call("get", "/location/list_location_schemas")
+    try:
+        response = utils.backend_call("get", "/location/list_location_schemas")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
     schemas = response.json()
     print(schemas)
     return render_template("location_form.html", schemas=schemas)
@@ -127,7 +130,6 @@ def submit_location():
     values = []
     response = utils.backend_call("get", f"/location/get_schema_details/{schema_name}")
     schema = response.json()
-
     try:
         # Convert form values to their respective datatypes as defined in the schema
         form_data = utils.convert_form_values(schema["identifiers"], request.form)
