@@ -5,7 +5,7 @@ import json
 import requests
 import urllib
 
-BACKEND_URL = os.environ["DT_BACKEND_URL"]
+from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
 
 def parse_rfc1123_datetime(string):
@@ -34,7 +34,48 @@ def backend_call(request_type, end_point_path, payload=None):
     url = f"{BACKEND_URL}{end_point_path}"
     if payload:
         headers = {"content-type": "application/json"}
-        response = request_func(url, headers=headers, json=json.dumps(payload))
+        response = request_func(url, headers=headers, json=payload)
     else:
         response = request_func(url)
     return response
+
+
+def convert_form_values(variables, form, prefix="identifier"):
+    """
+    Prepared the form and converts values to their respective datatypes as defined in the schema.
+    Returns a dictionary of converted values.
+    """
+
+    # Define a dictionary mapping type names to conversion functions
+    conversion_functions = {
+        "integer": int,
+        "float": float,
+        "string": str,
+        "boolean": lambda x: x.lower() == "true",
+    }
+
+    converted_values = {}
+
+    for variable in variables:
+        value = form.get(f"{prefix}_{variable['name']}")
+        datatype = variable["datatype"]
+
+        # Get the conversion function for this datatype
+        conversion_function = conversion_functions.get(datatype)
+
+        if not conversion_function:
+            raise ValueError(
+                f"Unknown datatype '{datatype}' for variable '{variable['name']}'"
+            )
+
+        try:
+            # Convert the value to the correct datatype
+            converted_value = conversion_function(value)
+        except ValueError:
+            raise ValueError(
+                f"Invalid value '{value}' for variable '{variable['name']}' (expected {datatype})"
+            )
+
+        converted_values[variable["name"]] = converted_value
+
+    return converted_values

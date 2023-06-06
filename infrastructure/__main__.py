@@ -11,6 +11,7 @@ from pulumi import Config, Output, export
 CONFIG = Config()
 
 BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:dev"
+FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:dev"
 RESOURCE_NAME_PREFIX = CONFIG.get("resource-name-prefix")
 SQL_SERVER_USER = "dbadmin"
 SQL_DB_NAME = "dtdb"
@@ -104,7 +105,9 @@ def create_storage_account(resource_group):
     return storage_account
 
 
-def create_webapp(name, resource_group, app_service_plan, sql_server, app_insights):
+def create_backend_webapp(
+    name, resource_group, app_service_plan, sql_server, app_insights
+):
     _sql_host = Output.format("{0}.postgres.database.azure.com", sql_server.name)
     _sql_user = Output.format("{0}@{1}", SQL_SERVER_USER, sql_server.name)
     webapp_settings = [
@@ -127,6 +130,7 @@ def create_webapp(name, resource_group, app_service_plan, sql_server, app_insigh
             ("DT_SQL_USER", _sql_user),
             ("DT_SQL_DBNAME", SQL_DB_NAME),
             ("DT_DEFAULT_USER_PASS", f"{DEFAULT_USER_PASSWORD}"),
+            ("WEBSITES_PORT", "5000"),
         )
     ]
     webapp = web.WebApp(
@@ -137,6 +141,41 @@ def create_webapp(name, resource_group, app_service_plan, sql_server, app_insigh
             app_settings=webapp_settings,
             always_on=True,
             linux_fx_version=f"DOCKER|{BACKEND_DOCKER_URL}",
+        ),
+        https_only=True,
+    )
+    return webapp
+
+
+def create_frontend_webapp(
+    name, resource_group, app_service_plan, app_insights, backend_url
+):
+    webapp_settings = [
+        web.NameValuePairArgs(name=name, value=value)
+        for name, value in (
+            ("APPINSIGHTS_INSTRUMENTATIONKEY", app_insights.instrumentation_key),
+            (
+                "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                app_insights.instrumentation_key.apply(
+                    lambda key: "InstrumentationKey=" + key
+                ),
+            ),
+            ("ApplicationInsightsAgent_EXTENSION_VERSION", "~2"),
+            ("WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
+            ("DOCKER_REGISTRY_SERVER_URL", "https://index.docker.io/v1"),
+            ("DOCKER_ENABLE_CI", "true"),
+            ("DT_BACKEND_URL", backend_url),
+            ("WEBSITES_PORT", "8000"),
+        )
+    ]
+    webapp = web.WebApp(
+        f"{RESOURCE_NAME_PREFIX}-{name}",
+        resource_group_name=resource_group.name,
+        server_farm_id=app_service_plan.id,
+        site_config=web.SiteConfigArgs(
+            app_settings=webapp_settings,
+            always_on=True,
+            linux_fx_version=f"DOCKER|{FRONTEND_DOCKER_URL}",
         ),
         https_only=True,
     )
@@ -182,7 +221,7 @@ def main():
     sa_connection_string = get_connection_string(
         storage_account.name, resource_group.name
     )
-    backend = create_webapp(
+    backend = create_backend_webapp(
         "backend", resource_group, app_service_plan, sql_server, app_insights
     )
 
@@ -202,10 +241,26 @@ def main():
         create_postgres_firewall_rules(
             resource_group, sql_server, POSTGRES_ALLOWED_IPS, firewall_ips
         )
-
+    backend_url = backend.default_host_name.apply(
+        lambda endpoint: "https://" + endpoint
+    )
     export(
-        "endpoint",
-        backend.default_host_name.apply(lambda endpoint: "https://" + endpoint),
+        "backend_endpoint",
+        backend_url,
+    )
+    frontend = create_frontend_webapp(
+        "frontend",
+        resource_group,
+        app_service_plan,
+        app_insights,
+        backend_url,
+    )
+    frontend_url = frontend.default_host_name.apply(
+        lambda endpoint: "https://" + endpoint
+    )
+    export(
+        "frontend_endpoint",
+        frontend_url,
     )
 
 

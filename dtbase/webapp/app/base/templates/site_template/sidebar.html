@@ -1,20 +1,80 @@
-<div>
-  <div>
-    <h3>
-    <a class="nav-link" href="/home/index">DTBase</a>
-    </h3>
-  </div>
+<div class="d-flex flex-column align-items-start p-3 bg-light" style="width: 240px; min-height: 100vh;">
+  <a href="/" class="d-flex mb-3 mb-md-0 me-md-auto link-dark text-decoration-none pb-3 border-bottom w-100">
+    <span class="fs-3">DTBase</span>
+  </a>
+  <hr>
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="/home/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/home/index' else '' }}"
+        aria-current="page">
+        <i class="fa fa-home me-2 fa-fw"></i>
+        Home
+      </a>
+    </li>
 
-  <nav class="navbar">
-    <div class="container-fluid">
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="/home/index">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="/sensors/index">Sensors</a></li>
-        <li class="nav-item"><a class="nav-link" href="/models/index">Models</a></li>
-        <li class="nav-item"><a class="nav-link" href="/locations/index">Locations</a></li>
-        <li class="nav-item"><a class="nav-link" href="/users/index">Users</a></li>
-      </ul>
-    </div>
+    <li class="mb-1">
+      <button
+        class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}"
+        data-bs-toggle="collapse" data-bs-target="#sensorsCollapse" aria-expanded="false">
+        <i class="fa fa-thermometer-half fa-fw"></i>
+        Sensors
+        <i class="fa fa-caret-down ms-2"></i>
+      </button>
+      <div class="collapse" id="sensorsCollapse">
+        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+	  <li><a href="/sensors/add-sensor-type" class="link-dark rounded text-decoration-none ms-4 ">Add sensor type</a>
+          </li>
+	  <li><a href="/sensors/add-sensor" class="link-dark rounded text-decoration-none ms-4 ">Add sensor</a>
+          </li>
+	  <li><a href="/sensors/sensor-list" class="link-dark rounded text-decoration-none ms-4 ">List sensors</a>
+          </li>
+	  <li><a href="/sensors/time-series-plots" class="link-dark rounded text-decoration-none ms-4 ">Time-series plots</a>
+          </li>
+          <li><a href="/sensors/readings" class="link-dark rounded text-decoration-none ms-4 ">Raw sensor readings</a>
+          </li>
+          <!-- Add more items here -->
+        </ul>
+      </div>
+    </li>
+    <li>
+      <a href="/models/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/models/index' else '' }}">
+        <i class="fa fa-cogs me-2 fa-fw"></i>
+        Models
+      </a>
+    </li>
 
-  </nav>
+
+    <li class="mb-1">
+      <button
+        class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/locations/index' else '' }}"
+        data-bs-toggle="collapse" data-bs-target="#locationsCollapse" aria-expanded="false">
+        <i class="fa fa-map-marker me-2 fa-fw"></i>
+        Locations
+        <i class="fa fa-caret-down ms-2"></i>
+      </button>
+      <div class="collapse" id="locationsCollapse">
+        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+          <li><a href="/locations/new_location_schema" class="link-dark rounded text-decoration-none ms-4 ">New location schema</a>
+          </li>
+          <li><a href="/locations/new_location" class="link-dark rounded text-decoration-none ms-4 ">New location</a>
+          </li>
+          <li><a href="/locations/locations_table" class="link-dark rounded text-decoration-none ms-4 ">Locations table</a>
+          </li>
+          <!-- Add more items here -->
+        </ul>
+      </div>
+    </li>
+
+
+    <li>
+      <a href="/users/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
+        <i class="fa fa-users me-2 fa-fw"></i>
+        Users
+      </a>
+    </li>
+  </ul>
+  <hr>
 </div>

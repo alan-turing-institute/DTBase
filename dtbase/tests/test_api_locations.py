@@ -29,9 +29,7 @@ def test_insert_location_schema(client):
                 {"name": "room", "units": None, "datatype": "string"},
             ],
         }
-        response = client.post(
-            "/location/insert_location_schema", json=json.dumps(schema)
-        )
+        response = client.post("/location/insert_location_schema", json=schema)
         assert response.status_code == 201
 
 
@@ -47,7 +45,7 @@ def test_insert_location_no_schema(client):
             "values": [5.0, 0.1, 4.4],
         }
 
-        response = client.post("/location/insert_location", json=json.dumps(location))
+        response = client.post("/location/insert_location", json=location)
         assert response.status_code == 201
 
 
@@ -57,9 +55,7 @@ def test_insert_location_nonexisting_schema(client):
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
             location = {"a": 123.4, "b": 432.1}
-            response = client.post(
-                "/location/insert_location/ab", json=json.dumps(location)
-            )
+            response = client.post("/location/insert_location/ab", json=location)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
@@ -73,16 +69,12 @@ def test_insert_location_existing_schema(client):
                 {"name": "y", "units": "mm", "datatype": "float"},
             ],
         }
-        response = client.post(
-            "/location/insert_location_schema", json=json.dumps(schema)
-        )
+        response = client.post("/location/insert_location_schema", json=schema)
         assert response.status_code == 201
 
         # now use that schema to insert a location
         location = {"x": 123.4, "y": 432.1}
-        response = client.post(
-            "/location/insert_location/xy", json=json.dumps(location)
-        )
+        response = client.post("/location/insert_location/xy", json=location)
         assert response.status_code == 201
 
 
@@ -114,8 +106,8 @@ def test_list_location_identifiers(client):
                 {"name": "test4", "units": None, "datatype": "integer"},
             ],
         }
-        client.post("/location/insert_location_schema", json=json.dumps(schema1))
-        client.post("/location/insert_location_schema", json=json.dumps(schema2))
+        client.post("/location/insert_location_schema", json=schema1)
+        client.post("/location/insert_location_schema", json=schema2)
 
         # Test list_location_identifiers
         response = client.get("/location/list_location_identifiers")
@@ -150,8 +142,8 @@ def test_list_location_schemas(client):
                 {"name": "test4", "units": None, "datatype": "integer"},
             ],
         }
-        client.post("/location/insert_location_schema", json=json.dumps(schema1))
-        client.post("/location/insert_location_schema", json=json.dumps(schema2))
+        client.post("/location/insert_location_schema", json=schema1)
+        client.post("/location/insert_location_schema", json=schema2)
 
         # Test list_location_schemas
         response = client.get("/location/list_location_schemas")
@@ -175,9 +167,7 @@ def test_delete_location_schema(client):
                 {"name": "test2", "units": None, "datatype": "integer"},
             ],
         }
-        response = client.post(
-            "/location/insert_location_schema", json=json.dumps(schema)
-        )
+        response = client.post("/location/insert_location_schema", json=schema)
         assert response.status_code == 201
 
         # Check if the schema was inserted successfully
@@ -207,19 +197,19 @@ def test_delete_location(client):
                 {"name": "y", "units": "m", "datatype": "float"},
             ],
         }
-        client.post("/location/insert_location_schema", json=json.dumps(schema))
+        client.post("/location/insert_location_schema", json=schema)
 
         location = {"x": 1.0, "y": 2.0}
-        client.post("/location/insert_location/test-schema", json=json.dumps(location))
+        client.post("/location/insert_location/test-schema", json=location)
 
         # Test delete_location
         response = client.delete(
             "/location/delete_location/test-schema",
-            json=json.dumps(location),
+            json=location,
         )
         assert response.status_code == 200
 
         # # Check if the location was deleted
-        response = client.get("/location/list/test-schema", json=json.dumps(location))
+        response = client.get("/location/list/test-schema", json=location)
         assert response.status_code == 200
         assert len(response.json) == 0
