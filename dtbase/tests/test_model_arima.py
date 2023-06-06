@@ -27,7 +27,7 @@ def test_arima_get_temperature(session):
 def test_arima_get_humidity(session):
     insert_trh_readings(session)
     tables = get_training_data(
-        measures_list=["Humidity"], delta_days=20, session=session
+        measures_list=[("Humidity", "Percent")], delta_days=20, session=session
     )
     assert isinstance(tables, tuple)
     assert len(tables) == 1
@@ -42,7 +42,9 @@ def test_arima_get_humidity(session):
 def test_arima_get_temperature_humidity(session):
     insert_trh_readings(session)
     tables = get_training_data(
-        measures_list=["Temperature", "Humidity"], delta_days=20, session=session
+        measures_list=[("Temperature", "Degrees"), ("Humidity", "Percent")],
+        delta_days=20,
+        session=session,
     )
     assert isinstance(tables, tuple)
     assert len(tables) == 2
@@ -87,7 +89,7 @@ def test_arima_prepare(session):
 def test_arima_pipeline(session):
     insert_trh_readings(session)
     tables = get_training_data(
-        measures_list=["Temperature"], delta_days=20, session=session
+        measures_list=[("Temperature", "Degrees")], delta_days=20, session=session
     )
     cleaned_data = clean_data(tables[0])
     prepared_data = prepare_data(cleaned_data)
