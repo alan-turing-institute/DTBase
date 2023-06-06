@@ -9,6 +9,7 @@ import re
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required
 import pandas as pd
+from requests.exceptions import ConnectionError
 
 from dtbase.core.constants import CONST_MAX_RECORDS
 
@@ -315,13 +316,6 @@ def submit_sensor_type():
     measure_units = request.form.getlist("measure_units[]")
     measure_datatypes = request.form.getlist("measure_datatype[]")
     measure_existing = request.form.getlist("measure_existing[]")
-
-    # print the values
-    print("Names: ", measure_names)
-    print("Units: ", measure_units)
-    print("Datatypes: ", measure_datatypes)
-    print("Existing: ", measure_existing)
-
     measures = [
         {
             "name": measure_name,
@@ -343,7 +337,7 @@ def submit_sensor_type():
         "measures": measures,
     }
 
-    # check if the schema already exists
+    # check if the sensor type already exists
     existing_types_response = utils.backend_call("get", "/sensor/list_sensor_types")
     existing_types = existing_types_response.json()
     if any(sensor_type["name"] == name for sensor_type in existing_types):
@@ -382,7 +376,10 @@ def submit_sensor_type():
 @login_required
 @blueprint.route("/add-sensor", methods=["GET"])
 def new_sensor():
-    response = utils.backend_call("get", "/sensor/list_sensor_types")
+    try:
+        response = utils.backend_call("get", "/sensor/list_sensor_types")
+    except ConnectionError:
+        return redirect("/backend_not_found_error")
     sensor_types = response.json()
     print(sensor_types)
     return render_template("sensor_form.html", sensor_types=sensor_types)
