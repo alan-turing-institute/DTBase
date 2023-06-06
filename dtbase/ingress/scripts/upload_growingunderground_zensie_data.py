@@ -4,11 +4,13 @@
 Upload some curated Zensie temperature and relative humidity data
 provided in a csv file.
 """
-
+import os
 import requests
 import pandas as pd
 
+# BASE_URL = "https://dtbasetest-backend0736b858.azurewebsites.net"
 BASE_URL = "http://localhost:5000"
+
 TUNNEL_AISLES_DICT = {
     "Tunnel3": ["A", "B"],
     "Tunnel4": ["E"],
@@ -25,7 +27,12 @@ SENSORS = {
     23: {"name": "Farm_T/RH_16B4", "unique_identifier": "01295"},
 }
 
-FILENAME = "ZensieTRH_18-23-27_last_year.csv"
+FILENAME = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "..",
+    "data",
+    "ZensieTRH_18-23-27_2021-22.csv",
+)
 
 
 def add_gu_location_schema():
@@ -88,7 +95,7 @@ def add_sensor_type():
     }
     r = requests.post(BASE_URL + "/sensor/insert_sensor_type", json=payload)
     if r.status_code != 201:
-        raise RuntimeError(f"Error uploading location {r.content}")
+        raise RuntimeError(f"Error uploading sensor type {r.content}")
     return
 
 
@@ -127,3 +134,16 @@ def add_sensor_data(filename):
             r = requests.post(BASE_URL + "/sensor/insert_sensor_readings", json=payload)
             if r.status_code != 201:
                 raise RuntimeError(f"Error uploading sensor data{r.content}")
+
+
+if __name__ == "__main__":
+    print("Uploading location schema ...")
+    add_gu_location_schema()
+    print("Uploading locations ...")
+    add_gu_locations()
+    print("Uploading sensor types ...")
+    add_sensor_type()
+    print("Uploading sensors ...")
+    add_sensors()
+    print("Uploading sensor data ...")
+    add_sensor_data(FILENAME)
