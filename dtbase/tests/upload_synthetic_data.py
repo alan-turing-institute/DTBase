@@ -19,31 +19,34 @@ from dtbase.tests.generate_synthetic_data import (
 )
 
 
-def insert_trh_sensor(sensor_unique_id, session):
+def insert_trh_sensor(sensor_unique_id, session, suffix):
     """
     Insert a temperature / relative humidity sensor.
     """
     insert_sensor_measure(
-        name="Temperature", units="Degrees C", datatype="float", session=session
+        name="Temperature" + suffix, units="Degrees C", datatype="float", session=session
     )
     insert_sensor_measure(
-        name="Humidity", units="Percent", datatype="float", session=session
+        name="Humidity" + suffix, units="Percent", datatype="float", session=session
     )
     insert_sensor_type(
-        name="TRH",
+        name=sensor_unique_id,
         description="Temperature/Humidity",
-        measures=["Temperature", "Humidity"],
+        measures=["Temperature" + suffix, "Humidity" + suffix],
         session=session,
     )
-    insert_sensor(type_name="TRH", unique_identifier=sensor_unique_id, session=session)
+    insert_sensor(type_name=sensor_unique_id, unique_identifier=sensor_unique_id, session=session)
 
 
-def insert_trh_readings(session):
+def insert_trh_readings(session, sensor_unique_id="TRH1", measure_suffix=None):
     """
     Insert a set of temperature and humidity readings for a sensor
     with unique_identifier 'TRH1'
     """
-    insert_trh_sensor("TRH1", session)
+    if measure_suffix is None:
+        measure_suffix = ''
+
+    insert_trh_sensor(sensor_unique_id, session, measure_suffix)
     readings = generate_trh_readings(sensor_ids=[1])
     # readings will be a pandas dataframe.
     # we want to extract some columns as lists, and convert timestamps to datetime
@@ -52,15 +55,15 @@ def insert_trh_readings(session):
     temps = list(readings.temperature)
     humids = list(readings.humidity)
     insert_sensor_readings(
-        measure_name="Temperature",
-        sensor_uniq_id="TRH1",
+        measure_name="Temperature" + measure_suffix,
+        sensor_uniq_id=sensor_unique_id,
         readings=temps,
         timestamps=timestamps,
         session=session,
     )
     insert_sensor_readings(
-        measure_name="Humidity",
-        sensor_uniq_id="TRH1",
+        measure_name="Humidity" + measure_suffix,
+        sensor_uniq_id=sensor_unique_id,
         readings=humids,
         timestamps=timestamps,
         session=session,

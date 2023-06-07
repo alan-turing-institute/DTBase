@@ -22,16 +22,20 @@ from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
-from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.clean_data import clean_data, clean_data_list
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
 
+logger = logging.getLogger(__name__)
 
 def run_pipeline(session=None) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
+    field_styles["levelname"][
+        "color"
+    ] = "yellow"  # change the default levelname color from black to yellow
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
@@ -39,7 +43,7 @@ def run_pipeline(session=None) -> None:
     sensor_data = get_training_data()
 
     # clean the training data
-    cleaned_data = clean_data(sensor_data[0])
+    cleaned_data = clean_data_list(sensor_data)
 
     # prepare the clean data for the ARIMA model
     prep_data = prepare_data(cleaned_data)
@@ -87,9 +91,12 @@ def run_pipeline(session=None) -> None:
         sensor_id = sensor_id_from_unique_identifier(
             unique_identifier=sensor, session=session
         )
-        for base_measure in base_measures_list:
+        # filter measures_list: only retrieve measures related to the current sensor
+        base_measures_list_ = set(base_measures_list).intersection(set(prep_data[sensor].columns))
+        for base_measure in base_measures_list_:
             sensor_measure_id = measure_id_from_name(base_measure, session=session)
             values = prep_data[sensor][base_measure]
+            logger.info('running arima pipeline for %s sensor, %s measure', sensor, base_measure)
             mean_forecast, conf_int, metrics = arima_pipeline(values)
             mean = {
                 "measure_name": "Mean " + base_measure,

@@ -191,9 +191,9 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
 def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
-    the ARIMA pipeline. Parameters relevant to this function in data_config.ini are
-    `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The last two
-    are employed to replace missing observations.
+    the model (e.g. ARIMA, HODMD, ...) pipeline. Parameters relevant to this function in 
+    data_config.ini are `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The 
+    last two are employed to replace missing observations.
 
     Parameters:
         sensor_data: this is the output of `clean_data.clean_data`.
@@ -211,7 +211,7 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
             and the combination of parameters `days_interval` and `weekly_seasonality`
             allows it.
     """
-    logger.info("Preparing the data to feed to ARIMA model...")
+    logger.info("Preparing the data to feed to the model...")
     if other_config["days_interval"] != 30:
         logger.warning(
             "The `days_interval` parameter in data_config.ini has been set to something different than 30."
@@ -239,10 +239,13 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     # to compute typically observed values, missing observations will not be replaced.
     measures = sensors_config["include_measures"]
     for key in keys_sensor_data:
-        for measure in measures:
+        sensor_data_cols = set(sensor_data[key].columns.tolist())
+        filtered_measures = sensor_data_cols.intersection(set(measures))
+
+        for measure in filtered_measures:
             values = sensor_data[key][measure]
             if values.isna().any():
                 sensor_data[key][measure] = impute_missing_values(values)
-    logger.info("Done preparing the data. Ready to feed to ARIMA model.")
+    logger.info("Done preparing the data. Ready to feed to the model.")
 
     return sensor_data
