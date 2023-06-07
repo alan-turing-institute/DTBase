@@ -14,7 +14,7 @@ from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
 
 
-@blueprint.route("/insert_sensor_type", methods=["POST"])
+@blueprint.route("/insert-sensor-type", methods=["POST"])
 # @login_required
 def insert_sensor_type():
     """
@@ -62,17 +62,18 @@ def insert_sensor_type():
     return jsonify(payload), 201
 
 
-@blueprint.route("/insert_sensor/<type_name>", methods=["POST"])
+@blueprint.route("/insert-sensor", methods=["POST"])
 # @login_required
-def insert_sensor(type_name):
+def insert_sensor():
     """
     Add a sensor to the database.
 
     POST request should have json data (mimetype "application/json") containing
     {
+      "type_name": <sensor_type_name:str>,
       "unique_identifier": <unique identifier:str>,
     }
-    by which the sensor will be distinguished from all othres, and optionally
+    by which the sensor will be distinguished from all others, and optionally
     {
       "name": <human readable name:str>,
       "notes": <human readable notes:str>
@@ -80,19 +81,19 @@ def insert_sensor(type_name):
     """
 
     payload = request.get_json()
-    required_keys = {"unique_identifier"}
+    required_keys = {"unique_identifier", "type_name"}
     error_response = check_keys(payload, required_keys, "/insert_sensor")
     if error_response:
         return error_response
     try:
-        sensors.insert_sensor(type_name=type_name, **payload, session=db.session)
+        sensors.insert_sensor(**payload, session=db.session)
     except sqla.exc.IntegrityError:
         db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
 
 
-@blueprint.route("/insert_sensor_location", methods=["POST"])
+@blueprint.route("/insert-sensor-location", methods=["POST"])
 # @login_required
 def insert_sensor_location():
     """
@@ -100,7 +101,7 @@ def insert_sensor_location():
 
     POST request should have json data (mimetype "application/json") containing
     {
-      "sensor_identifier": <unique identifier of the sensor:str>,
+      "unique_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
       "coordinates": <coordinates to the location:dict>
     }
@@ -113,14 +114,14 @@ def insert_sensor_location():
     """
 
     payload = request.get_json()
-    required_keys = {"sensor_identifier", "location_schema", "coordinates"}
-    error_response = check_keys(payload, required_keys, "/insert_sensor_location")
+    required_keys = {"unique_identifier", "location_schema", "coordinates"}
+    error_response = check_keys(payload, required_keys, "/insert-sensor-location")
     if error_response:
         return error_response
     if "installation_datetime" not in payload:
         payload["installation_datetime"] = datetime.now()
     sensor_locations.insert_sensor_location(
-        sensor_uniq_id=payload["sensor_identifier"],
+        sensor_uniq_id=payload["unique_identifier"],
         schema_name=payload["location_schema"],
         coordinates=payload["coordinates"],
         installation_datetime=payload["installation_datetime"],
@@ -130,7 +131,7 @@ def insert_sensor_location():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list_sensor_locations", methods=["GET"])
+@blueprint.route("/list-sensor-locations", methods=["GET"])
 # @login_required
 def list_sensor_locations():
     """
@@ -144,7 +145,7 @@ def list_sensor_locations():
 
     payload = request.get_json()
     required_keys = {"unique_identifier"}
-    error_response = check_keys(payload, required_keys, "/list_sensor_location")
+    error_response = check_keys(payload, required_keys, "/list-sensor-locations")
     if error_response:
         return error_response
     result = sensor_locations.get_location_history(
@@ -153,7 +154,7 @@ def list_sensor_locations():
     return jsonify(result), 200
 
 
-@blueprint.route("/insert_sensor_readings", methods=["POST"])
+@blueprint.route("/insert-sensor-readings", methods=["POST"])
 # @login_required
 def insert_sensor_readings():
     """
@@ -162,20 +163,20 @@ def insert_sensor_readings():
     POST request should have JSON data (mimetype "application/json") containing
     {
       "measure_name": <measure_name:str>,
-      "sensor_uniq_id": <sensor_unique_identifier:str>,
+      "unique_identifier": <sensor_unique_identifier:str>,
       "readings": <list of readings>,
       "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
     }
     """
 
     payload = request.get_json()
-    required_keys = ["measure_name", "sensor_uniq_id", "readings", "timestamps"]
-    error_response = check_keys(payload, required_keys, "/insert_sensor_readings")
+    required_keys = ["measure_name", "unique_identifier", "readings", "timestamps"]
+    error_response = check_keys(payload, required_keys, "/insert-sensor-readings")
     if error_response:
         return error_response
 
     measure_name = payload["measure_name"]
-    sensor_uniq_id = payload["sensor_uniq_id"]
+    sensor_uniq_id = payload["unique_identifier"]
     readings = payload["readings"]
     timestamps = payload["timestamps"]
 
@@ -205,33 +206,14 @@ def insert_sensor_readings():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list", methods=["GET"])
+@blueprint.route("/list-sensors", methods=["GET"])
 # @login_required
 def list_sensors():
     """
-    List sensors in the database.
-    Will return results in the form:
-    [
-        {
-        "id": <id:int>,
-        "name": <name:str>,
-        "notes": <notes:str>,
-        "sensor_type_id": <sensor_type_id:int>,
-        "sensor_type_name": <sensor_type_name:str>,
-        "unique_identifier": <unique_identifier:str>
-        },
-        ...
-    ]
-    """
-    result = sensors.list_sensors(session=db.session)
-    return jsonify(result), 200
-
-
-@blueprint.route("/list/<type_name>", methods=["GET"])
-# @login_required
-def list_sensors_of_type(type_name):
-    """
     List sensors of a particular type in the database.
+    Optionally takes a payload of the form
+    {"type_name": <sensor_type_name:str>}
+
         Will return results in the form:
     [
         {
@@ -239,17 +221,23 @@ def list_sensors_of_type(type_name):
         "name": <name:str>,
         "notes": <notes:str>,
         "sensor_type_id": <sensor_type_id:int>,
-        "sensor_type_name": <sensor_type_name:str>,
+        "type_name": <sensor_type_name:str>,
         "unique_identifier": <unique_identifier:str>
         },
         ...
     ]
     """
-    result = sensors.list_sensors(type_name=type_name, session=db.session)
+    payload = request.get_json()
+    if "type_name" in payload.keys():
+        result = sensors.list_sensors(
+            type_name=payload.get("type_name"), session=db.session
+        )
+    else:
+        sensors.list_sensors(session=db.session)
     return jsonify(result), 200
 
 
-@blueprint.route("/list_sensor_types", methods=["GET"])
+@blueprint.route("/list-sensor-types", methods=["GET"])
 # @login_required
 def list_sensor_types():
     """
@@ -272,7 +260,7 @@ def list_sensor_types():
     return jsonify(result), 200
 
 
-@blueprint.route("/list_measures", methods=["GET"])
+@blueprint.route("/list-measures", methods=["GET"])
 # @login_required
 def list_sensor_measures():
     """
@@ -287,7 +275,7 @@ def list_sensor_measures():
     return jsonify(result), 200
 
 
-@blueprint.route("/sensor_readings", methods=["GET"])
+@blueprint.route("/sensor-readings", methods=["GET"])
 # @login_required
 def get_sensor_readings():
     """
@@ -295,20 +283,20 @@ def get_sensor_readings():
 
     GET request should have JSON data (mimetype "application/json") containing:
         measure_name: Name of the sensor measure to get readings for.
-        sensor_uniq_id: Unique identifier for the sensor to get readings for.
+        unique_identifier: Unique identifier for the sensor to get readings for.
         dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
         dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
     """
 
     payload = request.get_json()
 
-    required_keys = ["measure_name", "sensor_uniq_id", "dt_from", "dt_to"]
-    error_response = check_keys(payload, required_keys, "/get_sensor_readings")
+    required_keys = ["measure_name", "unique_identifier", "dt_from", "dt_to"]
+    error_response = check_keys(payload, required_keys, "/get-sensor-readings")
     if error_response:
         return error_response
 
     measure_name = payload.get("measure_name")
-    sensor_uniq_id = payload.get("sensor_uniq_id")
+    sensor_uniq_id = payload.get("unique_identifier")
     dt_from = payload.get("dt_from")
     dt_to = payload.get("dt_to")
 
@@ -339,19 +327,41 @@ def get_sensor_readings():
     return jsonify(readings_json), 200
 
 
-@blueprint.route("/delete_sensor/<unique_identifier>", methods=["DELETE"])
+@blueprint.route("/delete-sensor", methods=["DELETE"])
 # @login_required
-def delete_sensor(unique_identifier):
-    """Delete a sensor from the database."""
+def delete_sensor():
+    """
+    Delete a sensor from the database.
+
+    Expects a payload of the form
+    {"unique_identifier": <sensor_unique_id:str>}
+    """
+    payload = request.get_json()
+    required_keys = ["unique_identifier"]
+    error_response = check_keys(payload, required_keys, "/delete-sensor")
+    unique_identifier = payload.get("unique_identifier")
+    if error_response:
+        return error_response
     sensors.delete_sensor(unique_identifier=unique_identifier, session=db.session)
     db.session.commit()
     return jsonify({"message": "Sensor deleted"}), 200
 
 
-@blueprint.route("/delete_sensor_type/<type_name>", methods=["DELETE"])
+@blueprint.route("/delete-sensor-type", methods=["DELETE"])
 # @login_required
-def delete_sensor_type(type_name):
-    """Delete a sensor type from the database."""
+def delete_sensor_type():
+    """
+    Delete a sensor type from the database.
+
+    Expects a payload of the form
+    {"type_name": <sensor_type_name:str>}
+    """
+    payload = request.get_json()
+    required_keys = ["type_name"]
+    error_response = check_keys(payload, required_keys, "/delete-sensor-type")
+    type_name = payload.get("type_name")
+    if error_response:
+        return error_response
     sensors.delete_sensor_type(type_name=type_name, session=db.session)
     db.session.commit()
     return jsonify({"message": "Sensor type deleted"}), 200
