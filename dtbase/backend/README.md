@@ -128,7 +128,7 @@ The Sensor data model is as follows.   Every _Sensor_ has a _SensorType_ which i
 
 The endpoints are:
 
-### `/sensor/insert_sensor_type`
+### `/sensor/insert-sensor-type`
 * A POST request, will add a new sensor type.
     - Payload should have the form
     ```
@@ -145,11 +145,12 @@ The endpoints are:
 
     - returns status code 201, alongside the payload.
 
-### `/sensor/insert_sensor/<type_name>`
+### `/sensor/insert-sensor`
 * A POST request, will add a new sensor for an existing sensor type.
     - Payload should have the form
     ```
     {
+      "type_name": <sensor_type_name:str>,
       "unique_identifier": <unique identifier:str>,
     }
     ```
@@ -162,12 +163,12 @@ The endpoints are:
     ```
     - returns status code 201, alongside the payload.
 
-### `/sensor/insert_sensor_location`
+### `/sensor/insert-sensor-location`
 * A POST request, will add a new sensor location.
     - Payload should have the form
     ```
     {
-      "sensor_identifier": <unique identifier of the sensor:str>,
+      "unique_identifier": <unique identifier of the sensor:str>,
       "location_schema": <name of the location schema to use:str>,
       "coordinates": <coordinates to the location:dict>
     }
@@ -183,7 +184,7 @@ The endpoints are:
 
     - returns status code 201, alongside the payload.
 
-### `/sensor/list_sensor_locations`
+### `/sensor/list-sensor-locations`
 * A GET request, will list the location history of a sensor.
     - Payload should specify the id of the sensor in the form
     ```
@@ -199,13 +200,13 @@ The endpoints are:
     ]
     ```
 
-### `/sensor/insert_sensor_readings`
+### `/sensor/insert-sensor-readings`
 * A POST request, will add a sensor reading for a given sensor for a given measure.
     - Payload should have the form
     ```
     {
       "measure_name": <measure_name:str>,
-      "sensor_uniq_id": <sensor_unique_identifier:str>,
+      "unique_identifier": <sensor_unique_identifier:str>,
       "readings": <list of readings>,
       "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
     }
@@ -213,8 +214,14 @@ The endpoints are:
 
     - returns status code 201, alongside the payload.
 
-### `/sensor/list`
+### `/sensor/list-sensors`
 * A GET request, will list all sensors.
+    - Optionally, to filter by type name, include payload of the form
+    ```
+    {
+      "type_name": <sensor_type_name:str>,
+    }
+    ```
     - returns status code 200, alongside results of all sensors in the form
     ```
     [
@@ -230,24 +237,7 @@ The endpoints are:
     ]
     ```
 
-### `/sensor/list/<type_name>`
-* A GET request, will list all sensors for a specified sensor type.
-    - returns status code 200, alongside results in the form
-    ```
-    [
-        {
-            "id": <id:int>,
-            "name": <name:str>,
-            "notes": <notes:str>,
-            "sensor_type_id": <sensor_type_id:int>,
-            "sensor_type_name": <sensor_type_name:str>,
-            "unique_identifier": <unique_identifier:str>
-        },
-        ...
-    ]
-    ```
-
-### `/sensor/list_sensor_types`
+### `/sensor/list-sensor-types`
 * A GET request, will list all sensor types.
     - returns status code 200, alongside results in the form
     ```
@@ -259,13 +249,13 @@ The endpoints are:
                 {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>},
                 ...
                 ],
-            "name": "sensor_name"
+            "name": <name:str>
         },
         ...
     ]
     ```
 
-### `/sensor/list_measures`
+### `/sensor/list-measures`
 * A GET request, will list all defined sensor measures.
     - returns status code 200, alongside results in the form
     ```
@@ -275,13 +265,13 @@ The endpoints are:
     ]
     ```
 
-### `/sensor/sensor_readings`
+### `/sensor/sensor-readings`
 * A GET request, will list all readings between two timestamps for a specified sensor for a specified measure. Each timestamp (datetime) is specified in ISO format (i.e., %Y-%m-%dT%H:%M:%S)
     - Payload should have the form
     ```
     {
         measure_name: <measure_name:str>,
-        sensor_uniq_id: <sensor_uniq_id:str>,
+        unique_identifier: <sensor_uniq_id:str>,
         dt_from: <dt_from:str>,
         dt_to: <dt_to:str>
     }
@@ -297,15 +287,27 @@ The endpoints are:
     ]
     ```
 
-### `/sensor/delete_sensor/<unique_identifier>`
+### `/sensor/delete-sensor`
 * A DELETE request, will delete a sensor.
+    - Payload should have the form
+    ```
+    {
+        unique_identifier: <sensor_uniq_id:str>
+    }
+    ```
     - returns status code 200, alongside message in the form
     ```
     {"message": "Sensor deleted"}
     ```
 
-### `/sensor/delete_sensor_type/<type_name>`
+### `/sensor/delete_sensor_type`
 * A DELETE request, will delete a sensor type.
+    - Payload should have the form
+    ```
+    {
+        type_name: <sensor_type_name:str>
+    }
+    ```
     - returns status code 200, alongside message in the form
     ```
     {"message": "Sensor type deleted"}
