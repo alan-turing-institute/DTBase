@@ -9,11 +9,11 @@ from dtbase.webapp import utils
 
 
 @login_required
-@blueprint.route("/new_location_schema", methods=["GET"])
+@blueprint.route("/new-location-schema", methods=["GET"])
 def new_location_schema(form_data=None):
     try:
         existing_identifiers_response = utils.backend_call(
-            "get", "/location/list_location_identifiers"
+            "get", "/location/list-location-identifiers"
         )
     except ConnectionError:
         return redirect("/backend_not_found_error")
@@ -26,7 +26,7 @@ def new_location_schema(form_data=None):
 
 
 @login_required
-@blueprint.route("/new_location_schema", methods=["POST"])
+@blueprint.route("/new-location-schema", methods=["POST"])
 def submit_location_schema():
     name = request.form.get("name")
     description = request.form.get("description")
@@ -64,7 +64,7 @@ def submit_location_schema():
 
     # check if the schema already exists
     existing_schemas_response = utils.backend_call(
-        "get", "/location/list_location_schemas"
+        "get", "/location/list-location-schemas"
     )
     existing_schemas = existing_schemas_response.json()
     if any(schema["name"] == name for schema in existing_schemas):
@@ -73,7 +73,7 @@ def submit_location_schema():
 
     # check if any of the identifiers already exist
     existing_identifiers_response = utils.backend_call(
-        "get", "/location/list_location_identifiers"
+        "get", "/location/list-location-identifiers"
     )
 
     existing_identifiers = existing_identifiers_response.json()
@@ -91,7 +91,7 @@ def submit_location_schema():
 
     try:
         response = utils.backend_call(
-            "post", "/location/insert_location_schema", form_data
+            "post", "/location/insert-location-schema", form_data
         )
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
@@ -108,10 +108,10 @@ def submit_location_schema():
 
 
 @login_required
-@blueprint.route("/new_location", methods=["GET"])
+@blueprint.route("/new-location", methods=["GET"])
 def new_location():
     try:
-        response = utils.backend_call("get", "/location/list_location_schemas")
+        response = utils.backend_call("get", "/location/list-location-schemas")
     except ConnectionError:
         return redirect("/backend_not_found_error")
     schemas = response.json()
@@ -120,7 +120,7 @@ def new_location():
 
 
 @login_required
-@blueprint.route("/new_location", methods=["POST"])
+@blueprint.route("/new-location", methods=["POST"])
 def submit_location():
     # Retrieve the name of the schema
     schema_name = request.form.get("schema")
@@ -128,7 +128,8 @@ def submit_location():
     # Retrieve the identifiers and values based on the schema
     identifiers = []
     values = []
-    response = utils.backend_call("get", f"/location/get_schema_details/{schema_name}")
+    payload = {"location_schema": schema_name}
+    response = utils.backend_call("get", "/location/get-schema-details", payload)
     schema = response.json()
     try:
         # Convert form values to their respective datatypes as defined in the schema
@@ -139,9 +140,9 @@ def submit_location():
 
     try:
         # Send a POST request to the backend
-        response = utils.backend_call(
-            "post", "/location/insert_location/" + schema_name, form_data
-        )
+        payload = form_data
+        payload["location_schema"] = schema_name
+        response = utils.backend_call("post", "/location/insert-location", payload)
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect(url_for(".new_location"))
@@ -157,10 +158,10 @@ def submit_location():
 
 
 @login_required
-@blueprint.route("/locations_table", methods=["GET"])
+@blueprint.route("/locations-table", methods=["GET"])
 def locations_table():
     try:
-        schemas_response = utils.backend_call("get", "/location/list_location_schemas")
+        schemas_response = utils.backend_call("get", "/location/list-location-schemas")
     except ConnectionError:
         return redirect("/backend_not_found_error")
 
@@ -169,8 +170,9 @@ def locations_table():
 
     for schema in schemas:
         try:
+            payload = {"location_schema": schema["name"]}
             locations_response = utils.backend_call(
-                "get", f"/location/list/{schema['name']}"
+                "get", "/location/list-locations", payload
             )
         except ConnectionError:
             return redirect("/backend_not_found_error")

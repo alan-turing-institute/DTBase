@@ -112,13 +112,13 @@ def insert_sensor_location(client):
         ],
         "values": [X_COORD, Y_COORD],
     }
-    response = client.post("/location/insert_location", json=location)
-    schema_name = response.json["schema_name"]
+    response = client.post("/location/insert-location", json=location)
+    location_schema = response.json["schema_name"]
 
     # Set the sensor location
     sensor_location = {
         "unique_identifier": UNIQ_ID1,
-        "location_schema": schema_name,
+        "schema_name": location_schema,
         "coordinates": {"x": X_COORD, "y": Y_COORD},
     }
     response = client.post("/sensor/insert-sensor-location", json=sensor_location)

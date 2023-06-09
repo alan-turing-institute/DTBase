@@ -112,9 +112,8 @@ def insert_sensor_location():
     }
     If no installation date is given, it's assumed to be now.
     """
-
     payload = request.get_json()
-    required_keys = {"unique_identifier", "location_schema", "coordinates"}
+    required_keys = {"unique_identifier", "schema_name", "coordinates"}
     error_response = check_keys(payload, required_keys, "/insert-sensor-location")
     if error_response:
         return error_response
@@ -122,7 +121,7 @@ def insert_sensor_location():
         payload["installation_datetime"] = datetime.now()
     sensor_locations.insert_sensor_location(
         sensor_uniq_id=payload["unique_identifier"],
-        schema_name=payload["location_schema"],
+        schema_name=payload["schema_name"],
         coordinates=payload["coordinates"],
         installation_datetime=payload["installation_datetime"],
         session=db.session,

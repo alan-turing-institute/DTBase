@@ -29,7 +29,7 @@ def test_insert_location_schema(client):
                 {"name": "room", "units": None, "datatype": "string"},
             ],
         }
-        response = client.post("/location/insert_location_schema", json=schema)
+        response = client.post("/location/insert-location-schema", json=schema)
         assert response.status_code == 201
 
 
@@ -45,7 +45,7 @@ def test_insert_location_no_schema(client):
             "values": [5.0, 0.1, 4.4],
         }
 
-        response = client.post("/location/insert_location", json=location)
+        response = client.post("/location/insert-location", json=location)
         assert response.status_code == 201
 
 
@@ -54,8 +54,10 @@ def test_insert_location_nonexisting_schema(client):
     with client:
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
-            location = {"a": 123.4, "b": 432.1}
-            response = client.post("/location/insert_location/ab", json=location)
+            location = {"a": 123.4, "b": 432.1, "schema_name": "fakey"}
+            response = client.post(
+                "/location/insert-location-for-schema", json=location
+            )
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
@@ -69,19 +71,19 @@ def test_insert_location_existing_schema(client):
                 {"name": "y", "units": "mm", "datatype": "float"},
             ],
         }
-        response = client.post("/location/insert_location_schema", json=schema)
+        response = client.post("/location/insert-location-schema", json=schema)
         assert response.status_code == 201
 
         # now use that schema to insert a location
-        location = {"x": 123.4, "y": 432.1}
-        response = client.post("/location/insert_location/xy", json=location)
+        location = {"x": 123.4, "y": 432.1, "schema_name": "xy"}
+        response = client.post("/location/insert-location-for-schema", json=location)
         assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_locations_no_coords(client):
     with client:
-        response = client.get("/location/list/xy")
+        response = client.get("/location/list-locations", json={"schema_name": "xy"})
         assert response.status_code == 200
         assert isinstance(response.json, list)
 
@@ -106,11 +108,11 @@ def test_list_location_identifiers(client):
                 {"name": "test4", "units": None, "datatype": "integer"},
             ],
         }
-        client.post("/location/insert_location_schema", json=schema1)
-        client.post("/location/insert_location_schema", json=schema2)
+        client.post("/location/insert-location-schema", json=schema1)
+        client.post("/location/insert-location-schema", json=schema2)
 
         # Test list_location_identifiers
-        response = client.get("/location/list_location_identifiers")
+        response = client.get("/location/list-location-identifiers")
         assert response.status_code == 200
 
         # Check if the inserted identifiers are in the response
@@ -142,11 +144,11 @@ def test_list_location_schemas(client):
                 {"name": "test4", "units": None, "datatype": "integer"},
             ],
         }
-        client.post("/location/insert_location_schema", json=schema1)
-        client.post("/location/insert_location_schema", json=schema2)
+        client.post("/location/insert-location-schema", json=schema1)
+        client.post("/location/insert-location-schema", json=schema2)
 
         # Test list_location_schemas
-        response = client.get("/location/list_location_schemas")
+        response = client.get("/location/list-location-schemas")
         assert response.status_code == 200
 
         # Check if the inserted schemas are in the response
@@ -167,20 +169,22 @@ def test_delete_location_schema(client):
                 {"name": "test2", "units": None, "datatype": "integer"},
             ],
         }
-        response = client.post("/location/insert_location_schema", json=schema)
+        response = client.post("/location/insert-location-schema", json=schema)
         assert response.status_code == 201
 
         # Check if the schema was inserted successfully
-        response = client.get("/location/list_location_schemas")
+        response = client.get("/location/list-location-schemas")
         schemas = response.get_json()
         assert any(s["name"] == "test-schema" for s in schemas)
 
         # Delete the location schema
-        response = client.delete("/location/delete_location_schema/test-schema")
+        response = client.delete(
+            "/location/delete-location-schema", json={"schema_name": "test-schema"}
+        )
         assert response.status_code == 200
 
         # Check if the schema was deleted successfully
-        response = client.get("/location/list_location_schemas")
+        response = client.get("/location/list-location-schemas")
         schemas = response.get_json()
         assert not any(s["name"] == "test-schema" for s in schemas)
 
@@ -197,19 +201,19 @@ def test_delete_location(client):
                 {"name": "y", "units": "m", "datatype": "float"},
             ],
         }
-        client.post("/location/insert_location_schema", json=schema)
+        client.post("/location/insert-location-schema", json=schema)
 
-        location = {"x": 1.0, "y": 2.0}
-        client.post("/location/insert_location/test-schema", json=location)
+        location = {"x": 1.0, "y": 2.0, "schema_name": "test-schema"}
+        client.post("/location/insert-location-for-schema", json=location)
 
         # Test delete_location
         response = client.delete(
-            "/location/delete_location/test-schema",
+            "/location/delete-location",
             json=location,
         )
         assert response.status_code == 200
 
         # # Check if the location was deleted
-        response = client.get("/location/list/test-schema", json=location)
+        response = client.get("/location/list-locations", json=location)
         assert response.status_code == 200
         assert len(response.json) == 0
