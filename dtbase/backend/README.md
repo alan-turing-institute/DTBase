@@ -11,7 +11,7 @@ Locations can be defined using any combination of floating point, integer, or st
 
 The following endpoints are implemented:
 
-### `/location/insert_location_schema`
+### `/location/insert-location-schema`
 * A POST request will add a new location schema and its identifying variables.
     - Payload should have the form
     ```
@@ -28,7 +28,7 @@ The following endpoints are implemented:
     - returns the payload, with status code 201
 
 
-### `/location/insert_location`
+### `/location/insert-location`
 * A POST request will add a new location, with a schema and its identifying variables.
 The schema name will be a concatenation of the identifier names.
     - Payload should have the form:
@@ -52,29 +52,35 @@ The schema name will be a concatenation of the identifier names.
     ```
 
 
-### `/location/insert_location/<schema_name>`
+### `/location/insert-location-for-schema`
 * A POST request will add a new location, with a previously defined schema.
     - Payload should have the form
     ```
     {
-      <identifier_name>: <value>,
+      "schema_name": <schema_name:str>, 
+      <identifier_name>: <value:float|int|str|bool>,
       ...
     }
     ```
-    for every identifier in the schema.
+    with an identifier name and value for every identifier in the schema.
     - returns status code 201, along with the payload.
 
 
-### `/location/list/<schema_name>`
+### `/location/list-locations`
 * A GET request will list the Locations corresponding to the specified schema:
-    - optionally filter by coordinates, if given payload of the form
+    - optionally filter by coordinates, if given identifiers in the payload,
+      which should be of the form
     ```
-    {"identifier_name": "value", ... }
+    {  
+       "schema_name" : <schema_name:str>,
+       "<identifier_name>": <value:float|int|str|bool>,
+        ... 
+    }
     ```
     - returns `[{"id": <id:int> , <identifier_name:str>: <value>, ...}, ...]`
 
 
-### `/location/list_location_schemas`
+### `/location/list-location-schemas`
 * A GET request will list all schemas:
 
     - returns
@@ -82,7 +88,7 @@ The schema name will be a concatenation of the identifier names.
     [{"id": <id:int>, "name": <name:str>, "description":<description:str>,}, ...]
     ```
 
-### `/location/list_location_identifiers`
+### `/location/list-location-identifiers`
 * A GET request will list all identifiers:
 
     - returns
@@ -98,8 +104,12 @@ The schema name will be a concatenation of the identifier names.
     ]
     ```
 
-### `/location/delete_location_schema/<schema_name>`
-* A DELETE request will remove the schema with the specified name:
+### `/location/delete-location-schema`
+* A DELETE request will remove the schema with the specified name.
+    - payload should contain:
+    ```
+    {"schema_name": <schema_name:str>}
+    ```
     - returns
     ```
       {
@@ -108,10 +118,17 @@ The schema name will be a concatenation of the identifier names.
       }
      ```
 
-### `/location/delete_location/<schema_name>`
+### `/location/delete-location`
 * A DELETE request will remove the location with the specified schema name and values specified in the payload:
 
-    - payload: `{<identifier:str> :<value>}, ...}`
+    - payload: 
+    ```
+    {
+       "schema_name" : <schema_name:str>,
+        <identifier_name:str>: <value:float|int|str|bool>, 
+	...
+    }
+    ```
 
     - returns
     ```
@@ -300,7 +317,7 @@ The endpoints are:
     {"message": "Sensor deleted"}
     ```
 
-### `/sensor/delete_sensor_type`
+### `/sensor/delete-sensor-type`
 * A DELETE request, will delete a sensor type.
     - Payload should have the form
     ```
@@ -317,7 +334,7 @@ The endpoints are:
 
 API endpoints for the models is as follows.
 
-### `/model/insert_model`
+### `/model/insert-model`
 * A POST request, will add a model.
     - Payload should have the form
     ```
@@ -328,7 +345,7 @@ API endpoints for the models is as follows.
 
     - returns status code 201, alongside the payload.
 
-### `/model/list_models`
+### `/model/list-models`
 * A GET request, will list all models.
     - returns status code 200, alongside result in the form:
     ```
@@ -338,7 +355,7 @@ API endpoints for the models is as follows.
     ]
     ```
 
-### `/model/delete_model`
+### `/model/delete-model`
 * A DELETE request, will remove a model with the specified name.
     - Payload should have the form
     ```
@@ -352,7 +369,7 @@ API endpoints for the models is as follows.
     {"message": "Model deleted."}
     ```
 
-### `/model/insert_model_scenario`
+### `/model/insert-model-scenario`
 * A POST request, will add a model scenario for a given model.
     - Payload should have the form
     ```
@@ -364,7 +381,7 @@ API endpoints for the models is as follows.
 
     - returns status code 201, alongside the payload.
 
-### `/model/list_model_scenarios`
+### `/model/list-model-scenarios`
 * A GET request, will list all model scenarios.
     - returns status code 200, alongside result in the form:
     ```
@@ -374,7 +391,7 @@ API endpoints for the models is as follows.
     ]
     ```
 
-### `/model/delete_model_scenario`
+### `/model/delete-model-scenario`
 * A DELETE request, will remove a model scenario with the specified model name.
     - Payload should have the form
     ```
@@ -389,7 +406,7 @@ API endpoints for the models is as follows.
     {"message": "Model scenario deleted."}
     ```
 
-### `/model/insert_model_measure`
+### `/model/insert-model-measure`
 * A POST request, will add a new model measure.'
     - Payload should have the form
     ```
@@ -404,7 +421,7 @@ API endpoints for the models is as follows.
     - returns status code 201, alongside the payload.
 
 
-### `/model/list_model_measures`
+### `/model/list-model-measures`
 * A GET request, will list all model measures.
     - returns status code 200, alongside result in the form:
     ```
@@ -419,7 +436,7 @@ API endpoints for the models is as follows.
     ]
     ```
 
-### `/model/delete_model_measure`
+### `/model/delete-model-measure`
 * A DELETE request, will remove a model measure with the specified measure name.
     - Payload should have the form
     ```
@@ -431,7 +448,7 @@ API endpoints for the models is as follows.
     {"message": "Model measure deleted"}
     ```
 
-### `/model/insert_model_run`
+### `/model/insert-model-run`
 * A POST request, will add a model run.
     - Payload should have the form
     ```
@@ -456,7 +473,7 @@ API endpoints for the models is as follows.
     - returns status code 201, alongside the payload.
 
 
-### `/model/list_model_runs`
+### `/model/list-model-runs`
 * A GET request, will list all model runs.
     - Payload should have the form
     ```
@@ -484,7 +501,7 @@ API endpoints for the models is as follows.
     ]
     ```
 
-### `/model/get_model_run_sensor_measure`
+### `/model/get-model-run-sensor-measure`
 * A GET request, will get the corresponding sensor_id and measure for a given model run.
     - Payload should have the form
     ```
@@ -502,7 +519,7 @@ API endpoints for the models is as follows.
     }
     ```
 
-### `/model/get_model_run`
+### `/model/get-model-run`
 * A GET request, will get the output of a model run for a given model measure.
     - Payload should have the form
     ```
