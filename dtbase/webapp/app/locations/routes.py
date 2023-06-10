@@ -128,7 +128,7 @@ def submit_location():
     # Retrieve the identifiers and values based on the schema
     identifiers = []
     values = []
-    payload = {"location_schema": schema_name}
+    payload = {"schema_name": schema_name}
     response = utils.backend_call("get", "/location/get-schema-details", payload)
     schema = response.json()
     try:
@@ -141,8 +141,10 @@ def submit_location():
     try:
         # Send a POST request to the backend
         payload = form_data
-        payload["location_schema"] = schema_name
-        response = utils.backend_call("post", "/location/insert-location", payload)
+        payload["schema_name"] = schema_name
+        response = utils.backend_call(
+            "post", "/location/insert-location-for-schema", payload
+        )
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect(url_for(".new_location"))
@@ -170,7 +172,7 @@ def locations_table():
 
     for schema in schemas:
         try:
-            payload = {"location_schema": schema["name"]}
+            payload = {"schema_name": schema["name"]}
             locations_response = utils.backend_call(
                 "get", "/location/list-locations", payload
             )

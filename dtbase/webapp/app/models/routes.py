@@ -46,7 +46,7 @@ def get_run_ids(model_name):
     """
     try:
         response = utils.backend_call(
-            "get", "/model/list-model-runs", {"model-name": model_name}
+            "get", "/model/list-model-runs", {"model_name": model_name}
         )
     except ConnectionError as e:
         print("Error getting model runs - is the backend running?")
@@ -111,7 +111,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
             "/sensor/sensor-readings",
             payload={
                 "measure_name": measure_name,
-                "sensor_uniq_id": sensor_uniq_id,
+                "unique_identifier": sensor_uniq_id,
                 "dt_from": dt_from,
                 "dt_to": dt_to,
             },
