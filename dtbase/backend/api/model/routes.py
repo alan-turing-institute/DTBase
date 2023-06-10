@@ -15,7 +15,7 @@ from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
 
 
-@blueprint.route("/insert_model", methods=["POST"])
+@blueprint.route("/insert-model", methods=["POST"])
 # @login_required
 def insert_model():
     """
@@ -28,7 +28,7 @@ def insert_model():
     """
 
     payload = request.get_json()
-    error_response = check_keys(payload, ["name"], "/insert_model")
+    error_response = check_keys(payload, ["name"], "/insert-model")
     if error_response:
         return error_response
 
@@ -37,7 +37,7 @@ def insert_model():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list_models", methods=["GET"])
+@blueprint.route("/list-models", methods=["GET"])
 # @login_required
 def list_models():
     """
@@ -48,7 +48,7 @@ def list_models():
     return jsonify(result), 200
 
 
-@blueprint.route("/delete_model", methods=["DELETE"])
+@blueprint.route("/delete-model", methods=["DELETE"])
 # @login_required
 def delete_model():
     """
@@ -60,7 +60,7 @@ def delete_model():
     }
     """
     payload = request.get_json()
-    error_response = check_keys(payload, ["name"], "/delete_model")
+    error_response = check_keys(payload, ["name"], "/delete-model")
     if error_response:
         return error_response
 
@@ -69,7 +69,7 @@ def delete_model():
     return jsonify({"message": "Model deleted."}), 200
 
 
-@blueprint.route("/insert_model_scenario", methods=["POST"])
+@blueprint.route("/insert-model-scenario", methods=["POST"])
 def insert_model_scenario():
     """
     Insert a model scenario into the database.
@@ -89,7 +89,7 @@ def insert_model_scenario():
 
     payload = request.get_json()
     required_keys = ["model_name", "description"]
-    error_response = check_keys(payload, required_keys, "/insert_model")
+    error_response = check_keys(payload, required_keys, "/insert-model-scenario")
     if error_response:
         return error_response
 
@@ -98,7 +98,7 @@ def insert_model_scenario():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list_model_scenarios", methods=["GET"])
+@blueprint.route("/list-model-scenarios", methods=["GET"])
 def list_model_scenarios():
     """
     List all model scenarios in the database.
@@ -107,7 +107,7 @@ def list_model_scenarios():
     return jsonify(result), 200
 
 
-@blueprint.route("/delete_model_scenario", methods=["DELETE"])
+@blueprint.route("/delete-model-scenario", methods=["DELETE"])
 def delete_model_scenario():
     """
     Delete a model scenario from the database
@@ -129,7 +129,7 @@ def delete_model_scenario():
     return jsonify({"message": "Model scenario deleted."}), 200
 
 
-@blueprint.route("/insert_model_measure", methods=["POST"])
+@blueprint.route("/insert-model-measure", methods=["POST"])
 # @login_required
 def insert_model_measure():
     """
@@ -149,7 +149,7 @@ def insert_model_measure():
 
     payload = request.get_json()
     required_keys = {"name", "units", "datatype"}
-    error_response = check_keys(payload, required_keys, "/insert_model_measure")
+    error_response = check_keys(payload, required_keys, "/insert-model-measure")
     if error_response:
         return error_response
 
@@ -163,7 +163,7 @@ def insert_model_measure():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list_model_measures", methods=["GET"])
+@blueprint.route("/list-model-measures", methods=["GET"])
 # @login_required
 def list_models_measures():
     """
@@ -173,7 +173,7 @@ def list_models_measures():
     return jsonify(model_measures), 200
 
 
-@blueprint.route("/delete_model_measure", methods=["DELETE"])
+@blueprint.route("/delete-model-measure", methods=["DELETE"])
 # @login_required
 def delete_model_measure():
     """Delete a model measure from the database.
@@ -185,7 +185,7 @@ def delete_model_measure():
     """
     payload = request.get_json()
     required_keys = {"name"}
-    error_response = check_keys(payload, required_keys, "/delete_model_measure")
+    error_response = check_keys(payload, required_keys, "/delete-model-measure")
     if error_response:
         return error_response
     models.delete_model_measure(name=payload["name"], session=db.session)
@@ -193,7 +193,7 @@ def delete_model_measure():
     return jsonify({"message": "Model measure deleted"}), 200
 
 
-@blueprint.route("/insert_model_run", methods=["POST"])
+@blueprint.route("/insert-model-run", methods=["POST"])
 # @login_required
 def insert_model_run():
     """
@@ -220,7 +220,7 @@ def insert_model_run():
 
     payload = request.get_json()
     required_keys = {"model_name", "scenario_description", "measures_and_values"}
-    error_response = check_keys(payload, required_keys, "/insert_model_run")
+    error_response = check_keys(payload, required_keys, "/insert-model-run")
     if error_response:
         return error_response
     models.insert_model_run(**payload, session=db.session)
@@ -228,7 +228,7 @@ def insert_model_run():
     return jsonify(payload), 201
 
 
-@blueprint.route("/list_model_runs", methods=["GET"])
+@blueprint.route("/list-model-runs", methods=["GET"])
 # @login_required
 def list_model_runs():
     """
@@ -249,7 +249,7 @@ def list_model_runs():
 
     payload = request.get_json()
     required_keys = ["model_name"]
-    error_response = check_keys(payload, required_keys, "/list_model_runs")
+    error_response = check_keys(payload, required_keys, "/list-model-runs")
     if error_response:
         return error_response
 
@@ -280,7 +280,7 @@ def list_model_runs():
     return jsonify(model_runs), 200
 
 
-@blueprint.route("/get_model_run", methods=["GET"])
+@blueprint.route("/get-model-run", methods=["GET"])
 # @login_required
 def get_model_run():
     """
@@ -296,7 +296,7 @@ def get_model_run():
     """
     payload = request.get_json()
     required_keys = ["run_id"]
-    error_response = check_keys(payload, required_keys, "/get_model_run")
+    error_response = check_keys(payload, required_keys, "/get-model-run")
     if error_response:
         return error_response
 
@@ -310,7 +310,7 @@ def get_model_run():
     return jsonify(converted_results), 200
 
 
-@blueprint.route("/get_model_run_sensor_measure", methods=["GET"])
+@blueprint.route("/get-model-run-sensor-measure", methods=["GET"])
 # @login_required
 def get_model_run_sensor_measure():
     """
@@ -327,7 +327,7 @@ def get_model_run_sensor_measure():
     """
     payload = request.get_json()
     required_keys = ["run_id"]
-    error_response = check_keys(payload, required_keys, "/get_model_run_sensor_measure")
+    error_response = check_keys(payload, required_keys, "/get-model-run-sensor-measure")
     if error_response:
         return error_response
     result = models.get_model_run_sensor_measures(**payload)

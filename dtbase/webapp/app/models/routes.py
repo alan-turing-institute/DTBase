@@ -25,7 +25,7 @@ def fetch_all_models():
         List of dicts, one for each model
     """
     try:
-        response = utils.backend_call("get", "/model/list_models")
+        response = utils.backend_call("get", "/model/list-models")
     except ConnectionError as e:
         print("Error getting model list - is the backend running?")
         raise e
@@ -46,7 +46,7 @@ def get_run_ids(model_name):
     """
     try:
         response = utils.backend_call(
-            "get", "/model/list_model_runs", {"model_name": model_name}
+            "get", "/model/list-model-runs", {"model-name": model_name}
         )
     except ConnectionError as e:
         print("Error getting model runs - is the backend running?")
@@ -71,7 +71,7 @@ def get_run_pred_data(run_id):
     """
     # now get the output of the model for that run
     try:
-        response = utils.backend_call("get", "/model/get_model_run", {"run_id": run_id})
+        response = utils.backend_call("get", "/model/get-model-run", {"run_id": run_id})
     except ConnectionError as e:
         print(f"Error getting run {run_id} - is the backend running?")
         raise e
@@ -94,7 +94,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     """
     try:
         response = utils.backend_call(
-            "get", "/model/get_model_run_sensor_measure", {"run_id": run_id}
+            "get", "/model/get-model-run-sensor-measure", {"run_id": run_id}
         )
     except ConnectionError as e:
         print(f"Error getting run sensor data for {run_id} - is backend running?")
@@ -108,7 +108,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     try:
         response = utils.backend_call(
             "get",
-            "/sensor/sensor_readings",
+            "/sensor/sensor-readings",
             payload={
                 "measure_name": measure_name,
                 "sensor_uniq_id": sensor_uniq_id,
