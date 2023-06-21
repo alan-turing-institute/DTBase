@@ -25,7 +25,7 @@ def fetch_all_sensor_types():
         List of dictionaries, one for each sensor type, including a dict of measures for each
     """
     try:
-        response = utils.backend_call("get", "/sensor/list_sensor_types")
+        response = utils.backend_call("get", "/sensor/list-sensor-types")
     except:
         raise RuntimeError("No response from backend")
     if response.status_code != 200:
@@ -43,7 +43,8 @@ def fetch_all_sensors(sensor_type):
     """
     if not sensor_type:
         return []
-    response = utils.backend_call("get", f"/sensor/list/{sensor_type}")
+    payload = {"type_name": sensor_type}
+    response = utils.backend_call("get", "/sensor/list-sensors", payload)
     if response.status_code != 200:
         # TODO Write a more useful reaction to this.
         raise RuntimeError(f"A backend call failed: {response}")
@@ -74,9 +75,9 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
                 "dt_from": dt_from,
                 "dt_to": dt_to,
                 "measure_name": measure["name"],
-                "sensor_uniq_id": sensor_id,
+                "unique_identifier": sensor_id,
             }
-            response = utils.backend_call("get", "/sensor/sensor_readings", payload)
+            response = utils.backend_call("get", "/sensor/sensor-readings", payload)
             if response.status_code != 200:
                 # TODO Write a more useful reaction to this.
                 raise RuntimeError(f"A backend call failed: {response}")
@@ -293,7 +294,7 @@ def new_sensor_type(form_data=None):
     Form to add a new SensorType, with associated measures.
     """
     try:
-        existing_measures_response = utils.backend_call("get", "/sensor/list_measures")
+        existing_measures_response = utils.backend_call("get", "/sensor/list-measures")
     except ConnectionError:
         return redirect("/backend_not_found_error")
     existing_measures = existing_measures_response.json()
@@ -338,14 +339,14 @@ def submit_sensor_type():
     }
 
     # check if the sensor type already exists
-    existing_types_response = utils.backend_call("get", "/sensor/list_sensor_types")
+    existing_types_response = utils.backend_call("get", "/sensor/list-sensor-types")
     existing_types = existing_types_response.json()
     if any(sensor_type["name"] == name for sensor_type in existing_types):
         flash(f"The sensor type '{name}' already exists.", "error")
         return new_sensor_type(form_data=form_data)
 
     # check if any of the measures already exist
-    existing_measures_response = utils.backend_call("get", "/sensor/list_measures")
+    existing_measures_response = utils.backend_call("get", "/sensor/list-measures")
 
     existing_measures = existing_measures_response.json()
     # new measures shouldn't have the same name as existing measures
@@ -360,7 +361,7 @@ def submit_sensor_type():
                     return new_sensor_type(form_data=form_data)
 
     try:
-        response = utils.backend_call("post", "/sensor/insert_sensor_type", form_data)
+        response = utils.backend_call("post", "/sensor/insert-sensor-type", form_data)
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect("/backend_not_found_error")
@@ -377,7 +378,7 @@ def submit_sensor_type():
 @blueprint.route("/add-sensor", methods=["GET"])
 def new_sensor():
     try:
-        response = utils.backend_call("get", "/sensor/list_sensor_types")
+        response = utils.backend_call("get", "/sensor/list-sensor-types")
     except ConnectionError:
         return redirect("/backend_not_found_error")
     sensor_types = response.json()
@@ -392,13 +393,13 @@ def submit_sensor():
     print(f"============={form_data}================")
     payload = {}
     for k, v in form_data.items():
-        if k != "sensor_type":
+        if k == "sensor_type":
+            payload["type_name"] = v
+        else:
             payload[k] = v
     try:
         # Send a POST request to the backend
-        response = utils.backend_call(
-            "post", "/sensor/insert_sensor/" + form_data["sensor_type"], payload
-        )
+        response = utils.backend_call("post", "/sensor/insert-sensor", payload)
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect(url_for(".new_sensor"))
@@ -415,7 +416,7 @@ def submit_sensor():
 @blueprint.route("/sensor-list", methods=["GET"])
 def sensor_list_table():
     try:
-        sensor_type_response = utils.backend_call("get", "/sensor/list_sensor_types")
+        sensor_type_response = utils.backend_call("get", "/sensor/list-sensor-types")
     except ConnectionError:
         return redirect("/backend_not_found_error")
 
@@ -424,8 +425,9 @@ def sensor_list_table():
 
     for sensor_type in sensor_types:
         try:
+            payload = {"type_name": sensor_type["name"]}
             sensors_response = utils.backend_call(
-                "get", f"/sensor/list/{sensor_type['name']}"
+                "get", "/sensor/list-sensors", payload
             )
         except ConnectionError:
             return redirect("/backend_not_found_error")

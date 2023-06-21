@@ -45,7 +45,7 @@ def add_sensor_types(sensor_types):
     """
     for sensor_type in sensor_types:
         logging.info(f"Inserting sensor type {sensor_type['name']}")
-        response = backend_call("post", "/sensor/insert_sensor_type", sensor_type)
+        response = backend_call("post", "/sensor/insert-sensor-type", sensor_type)
         log_rest_response(response)
 
 
@@ -53,14 +53,16 @@ def add_sensors(sensors):
     """
     Add sensors to the database.
     Args:
-        sensors: dict of format {<sensor_uniq_id:str>: {"type":<sensor_type:str>, ...}, ...}
-
+        sensors: list of dicts, of format:
+           [
+            { "unique_identifier": <sensor_uniq_id:str>,
+              "type_name":<sensor_type:str>
+            }, ...
+           ]
     """
-    for sensor_id, sensor_info in sensors.items():
-        sensor_type = sensor_info["type"]
-        logging.info(f"Inserting sensor {sensor_id}")
-        payload = {}  # sensor_info
-        payload["unique_identifier"] = sensor_id
-
-        response = backend_call("post", f"/sensor/insert_sensor/{sensor_type}", payload)
+    for sensor_info in sensors:
+        sensor_type = sensor_info["type_name"]
+        logging.info(f"Inserting sensor {sensor_info['unique_identifier']}")
+        payload = sensor_info
+        response = backend_call("post", f"/sensor/insert-sensor", payload)
         log_rest_response(response)

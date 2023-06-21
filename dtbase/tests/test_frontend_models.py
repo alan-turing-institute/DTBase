@@ -49,7 +49,7 @@ def test_models_index_no_backend(frontend_client):
 def test_models_index_no_models(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/model/list_models", json=[])
+            m.get("http://localhost:5000/model/list-models", json=[])
             response = frontend_client.get("/models/index")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -60,10 +60,10 @@ def test_models_index_no_runs(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/model/list_models",
+                "http://localhost:5000/model/list-models",
                 json=[{"name": "model1"}, {"name": "model2"}],
             )
-            m.get("http://localhost:5000/model/list_model_runs", json=[])
+            m.get("http://localhost:5000/model/list-model-runs", json=[])
             response = frontend_client.get("/models/index")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -83,18 +83,18 @@ def test_models_index_with_data(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/model/list_models",
+                "http://localhost:5000/model/list-models",
                 json=[{"name": "model1"}, {"name": "model2"}],
             )
-            m.get("http://localhost:5000/model/list_model_runs", json=[1, 2])
+            m.get("http://localhost:5000/model/list-model-runs", json=[1, 2])
             m.get(
-                "http://localhost:5000/model/get_model_run", json=MOCK_PREDICTION_DATA
+                "http://localhost:5000/model/get-model-run", json=MOCK_PREDICTION_DATA
             )
             m.get(
-                "http://localhost:5000/model/get_model_run_sensor_measure",
+                "http://localhost:5000/model/get-model-run-sensor-measure",
                 json=MOCK_RUN_SENSOR_MEASURE_DATA,
             )
-            m.get("http://localhost:5000/sensor/sensor_readings", json=MOCK_SENSOR_DATA)
+            m.get("http://localhost:5000/sensor/sensor-readings", json=MOCK_SENSOR_DATA)
             response = frontend_client.get("/models/index")
             # select model1 and run_id 2
             response = frontend_client.post(

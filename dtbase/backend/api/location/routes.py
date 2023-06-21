@@ -11,13 +11,14 @@ from dtbase.backend.api.location import blueprint
 from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 from dtbase.core.utils import jsonify_query_result
+from dtbase.backend.utils import check_keys
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-@blueprint.route("/insert_location_schema", methods=["POST"])
+@blueprint.route("/insert-location-schema", methods=["POST"])
 # @login_required
 def insert_location_schema():
     """
@@ -35,11 +36,10 @@ def insert_location_schema():
     """
     try:
         payload = request.get_json()
-        for k in ["name", "description", "identifiers"]:
-            if not k in payload.keys():
-                raise RuntimeError(
-                    f"Must include '{k}' in POST request to /insert_location_schema"
-                )
+        required_keys = ["name", "description", "identifiers"]
+        error_response = check_keys(payload, required_keys, "/insert-location-schema")
+        if error_response:
+            return error_response
         idnames = []
         for identifier in payload["identifiers"]:
             if not identifier.get("is_existing", False):
@@ -68,7 +68,7 @@ def insert_location_schema():
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@blueprint.route("/insert_location", methods=["POST"])
+@blueprint.route("/insert-location", methods=["POST"])
 # @login_required
 def insert_location():
     """
@@ -87,11 +87,11 @@ def insert_location():
     """
 
     payload = request.get_json()
-    for k in ["identifiers", "values"]:
-        if not k in payload.keys():
-            raise RuntimeError(
-                f"Must include '{k}' in POST request to /insert_location"
-            )
+    required_keys = ["identifiers", "values"]
+    error_response = check_keys(payload, required_keys, "/insert-location")
+    if error_response:
+        return error_response
+
     db.session.begin()
     try:
         idnames = []
@@ -124,61 +124,90 @@ def insert_location():
         raise
 
 
-@blueprint.route("/insert_location/<schema_name>", methods=["POST"])
+@blueprint.route("/insert-location-for-schema", methods=["POST"])
 # @login_required
-def insert_location_existing_schema(schema_name):
+def insert_location_existing_schema():
     """
     Add a location to the database, given an existing schema name.
     POST request should have json data (mimetype "application/json")
     containing
     {
+      "schema_name": <schema_name:str>,
       "identifier1_name": "value1",
        ...
     }
-    for every identifier in the schema
+    with an identifier name and value for every identifier in the schema
 
     """
 
     payload = request.get_json()
-
-    locations.insert_location(schema_name=schema_name, **payload, session=db.session)
+    required_keys = ["schema_name"]
+    error_response = check_keys(payload, required_keys, "/insert-location-for-schema")
+    if error_response:
+        return error_response
+    locations.insert_location(**payload, session=db.session)
     db.session.commit()
     return jsonify(payload), 201
 
 
-@blueprint.route("/list/<schema_name>", methods=["GET"])
+@blueprint.route("/list-locations", methods=["GET"])
 # @login_required
-def list_locations(schema_name):
+def list_locations():
     """
-    List location in the database.
-    Optionally filter by coordinates, if given a dict in the payload of the form
+    List location in the database, filtered by schema name.
+    Optionally also filter by coordinates, if given identifiers in the payload.
+    Payload should be of the form:
     {
-      "identifier1_name": "value1",
+      "schema_name": <schema_name:str>,
+      "identifier1_name": <value1:float|int|str|bool>,
        ...
     }
 
+    Returns results in the form:
+    [
+     { <identifier1:str>: <value1:str>, ...}, ...
+    ]
+
     """
-    payload = request.get_json(force=True) if request.data else {}
+    payload = request.get_json()
+    required_keys = ["schema_name"]
+    error_response = check_keys(payload, required_keys, "/list-locations")
+    if error_response:
+        return error_response
     result = locations.list_locations(
-        schema_name=schema_name,
         **payload,
         session=db.session,
     )
     return jsonify(result), 200
 
 
-@blueprint.route("/list_location_schemas", methods=["GET"])
+@blueprint.route("/list-location-schemas", methods=["GET"])
 # @login_required
 def list_location_schemas():
     """
     List location schemas in the database.
+
+    Returns results in the form:
+    [
+      {
+       "name": <name:str>,
+       "description": <description:str>,
+       "identifiers": [
+          {
+            "name": <identifier_name:str>,
+            "units": <units:str>,
+            "datatype":<"float"|"integer"|"string"|"boolean">
+           }, ...
+       ]
+      }
+    ]
     """
 
     result = locations.list_location_schemas(session=db.session)
     return jsonify(result), 200
 
 
-@blueprint.route("/list_location_identifiers", methods=["GET"])
+@blueprint.route("/list-location-identifiers", methods=["GET"])
 # @login_required
 def list_location_identifiers():
     """
@@ -189,26 +218,43 @@ def list_location_identifiers():
     return jsonify(result), 200
 
 
-@blueprint.route("/get_schema_details/<schema_name>", methods=["GET"])
+@blueprint.route("/get-schema-details", methods=["GET"])
 # @login_required
-def get_schema_details(schema_name):
+def get_schema_details():
     """
     Get a location schema and its identifiers from the database.
-    """
 
+    Payload should have the form:
+    {'schema_name': <schema_name:str>}
+
+    Returns results in the form:
+    {
+
+    }
+    """
+    payload = request.get_json()
+    schema_name = payload["schema_name"]
     result = locations.get_schema_details(schema_name, session=db.session)
     return jsonify(result), 200
 
 
-@blueprint.route("/delete_location_schema/<schema_name>", methods=["DELETE"])
+@blueprint.route("/delete-location-schema", methods=["DELETE"])
 # @login_required
-def delete_location_schema(schema_name):
+def delete_location_schema():
     """
     Delete a location schema from the database.
-    Endpoint URL: /delete_location_schema/<schema_name>
+    Payload should have the form:
+    {'schema_name': <schema_name:str>}
+
     """
 
     # Call delete_location_schema and check that it doesn't error.
+    payload = request.get_json()
+    schema_name = payload["schema_name"]
+    required_keys = ["schema_name"]
+    error_response = check_keys(payload, required_keys, "/delete-location-schema")
+    if error_response:
+        return error_response
     try:
         locations.delete_location_schema(schema_name=schema_name, session=db.session)
         db.session.commit()
@@ -233,17 +279,23 @@ def delete_location_schema(schema_name):
         )
 
 
-@blueprint.route("/delete_location/<schema_name>", methods=["DELETE"])
+@blueprint.route("/delete-location", methods=["DELETE"])
 # @login_required
-def delete_location(schema_name):
+def delete_location():
     """
     Delete a location with the specified schema name and coordinates.
+
+    Payload should have the form:
+    {"schema_name": <schema_name:str>}
     """
     payload = request.get_json()
+    required_keys = ["schema_name"]
+    error_response = check_keys(payload, required_keys, "/delete-location")
+    if error_response:
+        return error_response
+    schema_name = payload["schema_name"]
     try:
-        locations.delete_location_by_coordinates(
-            schema_name, session=db.session, **payload
-        )
+        locations.delete_location_by_coordinates(session=db.session, **payload)
         db.session.commit()
         return jsonify({"message": "Location deleted successfully."}), 200
     except ValueError as e:
