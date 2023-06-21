@@ -106,6 +106,6 @@ def get_training_data(
 
     # useful filter when multiple sensors and measures are specified in the configuration.
     data_tables = [table for table in data_tables if len(table) > 0]
-    
+
     session_close(session)
     return tuple(data_tables)

@@ -24,7 +24,10 @@ def insert_trh_sensor(sensor_unique_id, session, suffix):
     Insert a temperature / relative humidity sensor.
     """
     insert_sensor_measure(
-        name="Temperature" + suffix, units="Degrees C", datatype="float", session=session
+        name="Temperature" + suffix,
+        units="Degrees C",
+        datatype="float",
+        session=session,
     )
     insert_sensor_measure(
         name="Humidity" + suffix, units="Percent", datatype="float", session=session
@@ -38,7 +41,9 @@ def insert_trh_sensor(sensor_unique_id, session, suffix):
         ],
         session=session,
     )
-    insert_sensor(type_name=sensor_unique_id, unique_identifier=sensor_unique_id, session=session)
+    insert_sensor(
+        type_name=sensor_unique_id, unique_identifier=sensor_unique_id, session=session
+    )
 
 
 def insert_trh_readings(session, sensor_unique_id="TRH1", measure_suffix=None):
@@ -47,7 +52,7 @@ def insert_trh_readings(session, sensor_unique_id="TRH1", measure_suffix=None):
     with unique_identifier 'TRH1'
     """
     if measure_suffix is None:
-        measure_suffix = ''
+        measure_suffix = ""
 
     insert_trh_sensor(sensor_unique_id, session, measure_suffix)
     readings = generate_trh_readings(sensor_ids=[1])
