@@ -2,6 +2,10 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+.container h3 {
+    margin-top: 20px; /* Adjust this value according to your needs */
+}
+
 .nav-pills .nav-link {
   border-radius: 0.5rem;
 }
@@ -10,4 +14,54 @@ body {
   background-color: #0d6efd;
   color: white;
   width: 100% !important;
+}
+
+.form-group {
+  width: 40%; /* adjust as needed */
+   /* centers the form if you want */
+   margin-bottom: 10px; 
+}
+
+.add-identifier-wrapper .existing-identifier-select,
+.add-identifier-wrapper  {
+  width: 60%; /* adjust as needed */
+}
+
+.btn-add-identifier {
+  width: 10%;
+}
+
+
+.add-identifier-wrapper .btn-add-identifier {
+  margin-left: 5%; /* adjust as needed */
+}
+
+.identifier-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Adjust this value according to your needs */
+    margin-top: 20px; /* This will add space before each row */
+}
+
+.btn-margin{
+  margin-top: 5px;
+}
+
+.custom-input {
+    width: 50%; 
+}
+
+.location-table{
+  max-width: 50%;  
+  table-layout: fixed;
+  overflow: hidden;  /* Hide content that is wider than the max-width */
+  text-overflow: ellipsis;  /* Add ... at the end of the content if it is too wide */
+  white-space: nowrap;  /* Prevent the content from wrapping to the next line */
+}
+
+.num-column {
+  width: 70px;  
+  /* bold the text */
+  font-weight: bold;
 }

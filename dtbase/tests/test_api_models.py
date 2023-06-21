@@ -73,13 +73,13 @@ PRODUCT3 = {
 
 
 def insert_model(client, name):
-    response = client.post("/model/insert_model", json=json.dumps({"name": name}))
+    response = client.post("/model/insert-model", json={"name": name})
     assert response.status_code == 201
 
 
 def insert_model_measures(client):
-    response1 = client.post("/model/insert_model_measure", json=json.dumps(MEASURE1))
-    response2 = client.post("/model/insert_model_measure", json=json.dumps(MEASURE2))
+    response1 = client.post("/model/insert-model-measure", json=MEASURE1)
+    response2 = client.post("/model/insert-model-measure", json=MEASURE2)
     return response1, response2
 
 
@@ -88,8 +88,8 @@ def insert_model_scenarios(client):
     insert_model(client, MODEL_NAME2)
     responses = [
         client.post(
-            "/model/insert_model_scenario",
-            json=json.dumps({"model_name": model_name, "description": scenario}),
+            "/model/insert-model-scenario",
+            json={"model_name": model_name, "description": scenario},
         )
         for model_name, scenario in (
             (MODEL_NAME1, SCENARIO1),
@@ -120,9 +120,9 @@ def insert_model_runs(client):
         "measures_and_values": [PRODUCT3],
         "create_scenario": True,
     }
-    response1 = client.post("/model/insert_model_run", json=json.dumps(run1))
-    response2 = client.post("/model/insert_model_run", json=json.dumps(run2))
-    response3 = client.post("/model/insert_model_run", json=json.dumps(run3))
+    response1 = client.post("/model/insert-model-run", json=run1)
+    response2 = client.post("/model/insert-model-run", json=run2)
+    response3 = client.post("/model/insert-model-run", json=run3)
     return response1, response2, response3
 
 
@@ -130,7 +130,7 @@ def insert_model_runs(client):
 def test_insert_model(client):
     with client:
         model = {"name": MODEL_NAME1}
-        response = client.post("/model/insert_model", json=json.dumps(model))
+        response = client.post("/model/insert-model", json=model)
         assert response.status_code == 201
 
 
@@ -142,7 +142,7 @@ def test_list_models(client):
         insert_model(client, MODEL_NAME2)
 
         # list models
-        response = client.get("/model/list_models")
+        response = client.get("/model/list-models")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 2
@@ -155,13 +155,11 @@ def test_delete_model(client):
         insert_model(client, MODEL_NAME1)
 
         # delete model
-        response = client.delete(
-            "/model/delete_model", json=json.dumps({"name": MODEL_NAME1})
-        )
+        response = client.delete("/model/delete-model", json={"name": MODEL_NAME1})
         assert response.status_code == 200
 
         # check that model was deleted
-        response = client.get("/model/list_models")
+        response = client.get("/model/list-models")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 0
@@ -182,7 +180,7 @@ def test_list_model_scenarios(client):
         # add a model scenario
         insert_model_scenarios(client)
         # list model scenarios
-        response = client.get("/model/list_model_scenarios")
+        response = client.get("/model/list-model-scenarios")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 3
@@ -195,13 +193,13 @@ def test_delete_model_scenario(client):
         insert_model_scenarios(client)
         # delete model scenario
         response = client.delete(
-            "/model/delete_model_scenario",
-            json=json.dumps({"model_name": MODEL_NAME1, "description": SCENARIO1}),
+            "/model/delete-model-scenario",
+            json={"model_name": MODEL_NAME1, "description": SCENARIO1},
         )
         assert response.status_code == 200
 
         # check that model scenario was deleted
-        response = client.get("/model/list_model_scenarios")
+        response = client.get("/model/list-model-scenarios")
         assert response.status_code == 200
         assert isinstance(response.json, list)
         assert len(response.json) == 2
@@ -219,7 +217,7 @@ def test_insert_model_measures(client):
 def test_list_model_measures(client):
     with client:
         insert_model_measures(client)
-        response = client.get("/model/list_model_measures")
+        response = client.get("/model/list-model-measures")
         assert response.status_code == 200
         response_data = response.json
         assert len(response_data) == 2
@@ -237,11 +235,11 @@ def test_delete_model_measures(client):
     with client:
         insert_model_measures(client)
         response = client.delete(
-            "/model/delete_model_measure",
-            json=json.dumps({"name": MEASURE_NAME1}),
+            "/model/delete-model-measure",
+            json={"name": MEASURE_NAME1},
         )
         assert response.status_code == 200
-        response = client.get("/model/list_model_measures")
+        response = client.get("/model/list-model-measures")
         response_data = response.json
         assert len(response_data) == 1
 
@@ -266,7 +264,7 @@ def test_list_model_runs(client):
             "scenario": SCENARIO1,
         }
 
-        responses = client.get("/model/list_model_runs", json=json.dumps(runs))
+        responses = client.get("/model/list-model-runs", json=runs)
 
         assert responses.status_code == 200
         assert isinstance(responses.json, list)
@@ -284,8 +282,7 @@ def test_get_model_run(client):
             "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
             "scenario": SCENARIO1,
         }
-        # print(json.dumps(runs))
-        responses = client.get("/model/list_model_runs", json=json.dumps(runs))
+        responses = client.get("/model/list-model-runs", json=runs)
         print(responses.json[0]["id"])
         run_id = responses.json[0]["id"]
 
@@ -294,5 +291,5 @@ def test_get_model_run(client):
             # "measure_name": MEASURE_NAME1,
         }
 
-        responses = client.get("/model/get_model_run", json=json.dumps(run))
+        responses = client.get("/model/get-model-run", json=run)
         assert responses.status_code == 200

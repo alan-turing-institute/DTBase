@@ -18,12 +18,12 @@ function getSelectedSensorTypeStr() {
 
 function changeSensorType() {
   const sensorTypeStr = encodeURIComponent(getSelectedSensorTypeStr());
-  const url = "/home/index";
+  const url = "/sensors/time-series-plots";
   const params = "sensorType=" + sensorTypeStr;
   location.replace(url + "?" + params);
 }
 
-function requestTimeSeries(download) {
+function requestTimeSeries(url, download) {
   const sensorIds = getCheckedSensorIds();
   const startDatePicker = document.getElementById("startDatePicker");
   const endDatePicker = document.getElementById("endDatePicker");
@@ -42,7 +42,7 @@ function requestTimeSeries(download) {
   const endStr = encodeURIComponent(endDate);
   const idsStr = encodeURIComponent(sensorIds);
   const sensorTypeStr = getSelectedSensorTypeStr();
-  const url = "/home/index";
+
   const params =
     "startDate=" +
     startStr +
@@ -52,6 +52,7 @@ function requestTimeSeries(download) {
     idsStr +
     "&sensorType=" +
     sensorTypeStr;
+  console.log("requesting timeseries with params ", params);
   if (download) {
     // A clunky way to trigger a download: Make a form that generates a POST request.
     const form = document.createElement("form");

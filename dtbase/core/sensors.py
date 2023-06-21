@@ -13,22 +13,31 @@ from dtbase.core import utils
 
 
 @add_default_session
-def measure_id_from_name(measure_name, session=None):
-    """Find the id of a sensor measure of the given name.
+def measure_id_from_name_and_units(measure_name, measure_units, session=None):
+    """
+    Find the id of a sensor measure of the given name and units.
+    (Note that our uniqueness constraint is on the name+units combination)
 
     Args:
         measure_name: Name of the sensor measure
+        measure_units: Name of the sensor measure
         session: SQLAlchemy session. Optional.
 
     Returns:
         Database id of the sensor measure.
     """
-    query = sqla.select(SensorMeasure.id).where(SensorMeasure.name == measure_name)
+    query = sqla.select(SensorMeasure.id).where(
+        (SensorMeasure.name == measure_name) & (SensorMeasure.units == measure_units)
+    )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No sensor measure named '{measure_name}'")
+        raise ValueError(
+            f"No sensor measure named '{measure_name}' with units '{measure_units}'"
+        )
     if len(result) > 1:
-        raise ValueError(f"Multiple sensor measures named '{measure_name}'")
+        raise ValueError(
+            f"Multiple sensor measures named '{measure_name}' with units '{measure_units}'"
+        )
     return result[0][0]
 
 
@@ -92,6 +101,7 @@ def insert_sensor_measure(name, units, datatype, session=None):
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
+
     session.flush()
 
 
@@ -107,8 +117,8 @@ def insert_sensor_type(name, description, measures, session=None):
         name: Name of this sensor type
         description: Free form text description, for human consumption.
         measures: List of sensor measures that this sensor type can report.
-            This should be a list of strings, that are the names of existing measures
-            in the database.
+            This should be a list of dicts with keys 'name' and 'units', that
+            correspond to existing measures in the database.
         session: SQLAlchemy session. Optional.
 
     Returns:
@@ -117,11 +127,14 @@ def insert_sensor_type(name, description, measures, session=None):
     new_type = SensorType(name=name, description=description)
     session.add(new_type)
     session.flush()
-    for measure_name in measures:
-        measure_id = measure_id_from_name(measure_name, session=session)
+    for measure in measures:
+        measure_id = measure_id_from_name_and_units(
+            measure["name"], measure["units"], session=session
+        )
         session.add(
             SensorTypeMeasureRelation(type_id=new_type.id, measure_id=measure_id)
         )
+
     session.flush()
 
 
@@ -163,6 +176,9 @@ def insert_sensor_readings(
 
     Returns:
         None
+
+    Note that there can be two sensor measures with the same name (but
+    different units), so we look at the sensor_type to disambiguate.
     """
     if len(readings) != len(timestamps):
         raise ValueError(
@@ -210,7 +226,15 @@ def insert_sensor_readings(
     # All seems well, insert the values.
     # We use SQLAlchemy Core rather than ORM for performance reasons:
     # https://docs.sqlalchemy.org/en/14/faq/performance.html#i-m-inserting-400-000-rows-with-the-orm-and-it-s-really-slow
-    measure_id = measure_id_from_name(measure_name, session=session)
+    measures_for_sensor = get_measures_for_sensor_identifier(
+        sensor_uniq_id, session=session
+    )
+    measure_units = next(
+        m["units"] for m in measures_for_sensor if m["name"] == measure_name
+    )
+    measure_id = measure_id_from_name_and_units(
+        measure_name, measure_units, session=session
+    )
     sensor_id = sensor_id_from_unique_identifier(sensor_uniq_id, session=session)
     rows = [
         {
@@ -228,6 +252,29 @@ def insert_sensor_readings(
         rows,
     )
     session.flush()
+
+
+@add_default_session
+def get_measures_for_sensor_identifier(sensor_unique_id, session=None):
+    """
+    Get list of sensor measures for a sensor
+
+    Args:
+        sensor_unique_id:str, id of the sensor
+        session: SQLAlchemy session. Optional.
+    Returns:
+        measure_list:list of dicts, each with keys "id","name","units","datatype"
+    """
+    all_types = list_sensor_types(session=session)
+    query = sqla.select(
+        Sensor.type_id,
+    ).where(Sensor.unique_identifier == sensor_unique_id)
+    result = session.execute(query).fetchall()
+    sensor_type = next(st for st in all_types if st["id"] == result[0][0])
+    if sensor_type:
+        return sensor_type["measures"]
+    else:
+        return []
 
 
 @add_default_session
@@ -372,7 +419,7 @@ def list_sensor_types(session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        List of all sensor types.
+        List of all sensor types, each of which contains a dict of measures
     """
     measures_query = queries.sensor_measures_by_type()
     all_measures = session.execute(measures_query).mappings().all()

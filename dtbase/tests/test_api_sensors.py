@@ -25,7 +25,7 @@ def insert_weather_type(client):
             {"name": "is raining", "units": None, "datatype": "boolean"},
         ],
     }
-    response = client.post("/sensor/insert_sensor_type", json=json.dumps(type_data))
+    response = client.post("/sensor/insert-sensor-type", json=type_data)
     return response
 
 
@@ -40,10 +40,11 @@ def insert_weather_sensor(client):
     # Use that type to insert a sensor
     sensor = {
         "unique_identifier": UNIQ_ID1,
+        "type_name": "weather",
         "name": "Rooftop weather",
         "notes": "The blue weather sensor on the roof",
     }
-    response = client.post("/sensor/insert_sensor/weather", json=json.dumps(sensor))
+    response = client.post("/sensor/insert-sensor", json=sensor)
     return response
 
 
@@ -57,12 +58,43 @@ def test_insert_sensor(client):
         assert response.status_code == 201
 
 
+def insert_temperature_sensor(client):
+    # insert a temperature sensor
+    type_data = {
+        "name": "simpletemp",
+        "description": "Simple temperature sensor",
+        "measures": [
+            {"name": "temperature", "units": "Kelvin", "datatype": "float"},
+        ],
+    }
+    response = client.post("/sensor/insert-sensor-type", json=type_data)
+    return response
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_two_sensor_types_sharing_measure(client):
+    with client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        response = insert_temperature_sensor(client)
+        assert response.status_code == 201
+        response = client.get("/sensor/list-sensor-types")
+        stypes = response.json
+        assert len(stypes) == 2
+        weather = next(t for t in stypes if t["name"] == "weather")
+        assert isinstance(weather, dict)
+        assert len(weather["measures"]) == 2
+        temp = next(t for t in stypes if t["name"] == "simpletemp")
+        assert isinstance(temp, dict)
+        assert len(temp["measures"]) == 1
+
+
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_sensors_of_a_type(client):
     with client:
         response = insert_weather_type(client)
         assert response.status_code == 201
-        response = client.get("/sensor/list/weather")
+        response = client.get("/sensor/list-sensors", json={"type_name": "weather"})
         assert response.status_code == 200
         assert isinstance(response.json, list)
 
@@ -80,18 +112,16 @@ def insert_sensor_location(client):
         ],
         "values": [X_COORD, Y_COORD],
     }
-    response = client.post("/location/insert_location", json=json.dumps(location))
-    schema_name = response.json["schema_name"]
+    response = client.post("/location/insert-location", json=location)
+    location_schema = response.json["schema_name"]
 
     # Set the sensor location
     sensor_location = {
-        "sensor_identifier": UNIQ_ID1,
-        "location_schema": schema_name,
+        "unique_identifier": UNIQ_ID1,
+        "schema_name": location_schema,
         "coordinates": {"x": X_COORD, "y": Y_COORD},
     }
-    response = client.post(
-        "/sensor/insert_sensor_location", json=json.dumps(sensor_location)
-    )
+    response = client.post("/sensor/insert-sensor-location", json=sensor_location)
     return response
 
 
@@ -108,8 +138,8 @@ def test_get_sensor_locations(client):
         response = insert_sensor_location(client)
         # Check that the sensor location has been set
         response = client.get(
-            "/sensor/list_sensor_locations",
-            json=json.dumps({"unique_identifier": UNIQ_ID1}),
+            "/sensor/list-sensor-locations",
+            json={"unique_identifier": UNIQ_ID1},
         )
         assert response.status_code == 200
         assert response.json[0]["x"] == X_COORD
@@ -128,7 +158,7 @@ def test_insert_sensor_readings(client):
         # Test the insert_sensor_readings API endpoint
         sensor_readings = {
             "measure_name": "temperature",
-            "sensor_uniq_id": UNIQ_ID1,
+            "unique_identifier": UNIQ_ID1,
             "readings": [290.5, 291.0, 291.5],
             "timestamps": [
                 "2023-03-29T00:00:00",
@@ -136,9 +166,7 @@ def test_insert_sensor_readings(client):
                 "2023-03-29T02:00:00",
             ],
         }
-        response = client.post(
-            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
-        )
+        response = client.post("/sensor/insert-sensor-readings", json=sensor_readings)
         assert response.status_code == 201
 
 
@@ -154,7 +182,7 @@ def test_get_sensor_readings(client):
         # Insert sensor readings
         sensor_readings = {
             "measure_name": "temperature",
-            "sensor_uniq_id": UNIQ_ID1,
+            "unique_identifier": UNIQ_ID1,
             "readings": [290.5, 291.0, 291.5],
             "timestamps": [
                 "2023-03-29T00:00:00",
@@ -162,19 +190,17 @@ def test_get_sensor_readings(client):
                 "2023-03-29T02:00:00",
             ],
         }
-        response = client.post(
-            "/sensor/insert_sensor_readings", json=json.dumps(sensor_readings)
-        )
+        response = client.post("/sensor/insert-sensor-readings", json=sensor_readings)
         assert response.status_code == 201
 
         # Test the get_sensor_readings API endpoint
         get_readings = {
             "measure_name": "temperature",
-            "sensor_uniq_id": UNIQ_ID1,
+            "unique_identifier": UNIQ_ID1,
             "dt_from": "2023-03-29T00:00:00",
             "dt_to": "2023-03-29T02:00:00",
         }
-        response = client.get("/sensor/sensor_readings", json=json.dumps(get_readings))
+        response = client.get("/sensor/sensor-readings", json=get_readings)
         assert response.status_code == 200
         assert len(response.json) == 3
         for reading in response.json:
@@ -188,7 +214,7 @@ def test_list_sensor_measures(client):
         response = insert_weather_type(client)
         assert response.status_code == 201
 
-        response = client.get("/sensor/list_measures")
+        response = client.get("/sensor/list-measures")
         assert response.status_code == 200
         assert isinstance(response.json, list)
 
@@ -199,7 +225,7 @@ def test_list_sensor_types(client):
         response = insert_weather_type(client)
         assert response.status_code == 201
 
-        response = client.get("/sensor/list_sensor_types")
+        response = client.get("/sensor/list-sensor-types")
         assert response.status_code == 200
         assert isinstance(response.json, list)
 
@@ -213,7 +239,9 @@ def test_delete_sensor(client):
         response = insert_weather_sensor(client)
         assert response.status_code == 201
 
-        response = client.delete(f"/sensor/delete_sensor/{UNIQ_ID1}")
+        response = client.delete(
+            "/sensor/delete-sensor", json={"unique_identifier": UNIQ_ID1}
+        )
         assert response.status_code == 200
 
 
@@ -222,5 +250,7 @@ def test_delete_sensor_type(client):
     with client:
         response = insert_weather_type(client)
         assert response.status_code == 201
-        response = client.delete("/sensor/delete_sensor_type/weather")
+        response = client.delete(
+            "/sensor/delete-sensor-type", json={"type_name": "weather"}
+        )
         assert response.status_code == 200

@@ -191,8 +191,8 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
 def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
-    the model (e.g. ARIMA, HODMD, ...) pipeline. Parameters relevant to this function in 
-    data_config.ini are `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The 
+    the model (e.g. ARIMA, HODMD, ...) pipeline. Parameters relevant to this function in
+    data_config.ini are `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The
     last two are employed to replace missing observations.
 
     Parameters:
@@ -238,12 +238,13 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     # replace them with typically observed values. Note that if there is not enough data
     # to compute typically observed values, missing observations will not be replaced.
     measures = sensors_config["include_measures"]
+    # measures will be a list of tuples (measure_name, units)
     for key in keys_sensor_data:
         sensor_data_cols = set(sensor_data[key].columns.tolist())
         filtered_measures = sensor_data_cols.intersection(set(measures))
 
         for measure in filtered_measures:
-            values = sensor_data[key][measure]
+            values = sensor_data[key][measure[0]]
             if values.isna().any():
                 sensor_data[key][measure] = impute_missing_values(values)
     logger.info("Done preparing the data. Ready to feed to the model.")
