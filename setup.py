@@ -13,7 +13,7 @@ setup(
     author="The Alan Turing Institute Research Engineering Group",
     license="MIT",
     packages=find_packages(),
-    package_data={"dtbase": ["models/arima/config_arima.ini"]},
+    package_data={"dtbase": ["models/arima/arima/config_arima.ini", "models/utils/dataprocessor/data_config.ini"]},
     entry_points={
         "console_scripts": ["dtbase_start_postgres_docker=dtbase.core.db_docker:main"]
     },
