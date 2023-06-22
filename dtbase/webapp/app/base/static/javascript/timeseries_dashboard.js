@@ -18,7 +18,7 @@ function getSelectedSensorTypeStr() {
 
 function changeSensorType() {
   const sensorTypeStr = encodeURIComponent(getSelectedSensorTypeStr());
-  const url = "/sensors/index";
+  const url = "/sensors/time-series-plots";
   const params = "sensorType=" + sensorTypeStr;
   location.replace(url + "?" + params);
 }
@@ -42,7 +42,7 @@ function requestTimeSeries(url, download) {
   const endStr = encodeURIComponent(endDate);
   const idsStr = encodeURIComponent(sensorIds);
   const sensorTypeStr = getSelectedSensorTypeStr();
-  //const url = "/sensors/index";
+
   const params =
     "startDate=" +
     startStr +

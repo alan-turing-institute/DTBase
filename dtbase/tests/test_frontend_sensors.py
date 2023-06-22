@@ -46,7 +46,7 @@ def test_sensors_timeseries_no_backend(frontend_client):
 def test_sensors_timeseries_no_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -57,12 +57,11 @@ def test_sensors_timeseries_dummy_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types",
+                "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "dummyType1"}, {"name": "dummyType2"}],
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list/dummyType1", json=[])
-            m.get("http://localhost:5000/sensor/list/dummyType2", json=[])
+            m.get("http://localhost:5000/sensor/list-sensors", json=[])
             response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -74,11 +73,11 @@ def test_sensors_timeseries_no_sensor_data(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types",
+                "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "sensorType1"}],
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list/sensorType1", json=MOCK_SENSORS)
+            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
             response = frontend_client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -89,12 +88,12 @@ def test_sensors_timeseries_with_data(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types", json=MOCK_SENSOR_TYPES
+                "http://localhost:5000/sensor/list-sensor-types", json=MOCK_SENSOR_TYPES
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list/sensorType1", json=MOCK_SENSORS)
+            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
             m.get(
-                "http://localhost:5000/sensor/sensor_readings",
+                "http://localhost:5000/sensor/sensor-readings",
                 json=MOCK_SENSOR_READINGS,
             )
             # URL will now include startDate, endDate, sensorIds etc
@@ -119,7 +118,7 @@ def test_sensors_readings_no_backend(frontend_client):
 def test_sensors_readings_initial_get(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             response = frontend_client.get("/sensors/readings")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -129,7 +128,7 @@ def test_sensors_readings_initial_get(frontend_client):
 def test_sensors_readings_post_time_period(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             response = frontend_client.post(
                 "/sensors/readings",
                 data={"startDate": "2023-01-01", "endDate": "2023-02-01"},
@@ -143,11 +142,11 @@ def test_sensors_readings_post_sensor(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types", json=MOCK_SENSOR_TYPES
+                "http://localhost:5000/sensor/list-sensor-types", json=MOCK_SENSOR_TYPES
             )
-            m.get("http://localhost:5000/sensor/list/sensorType1", json=MOCK_SENSORS)
+            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
             m.get(
-                "http://localhost:5000/sensor/sensor_readings",
+                "http://localhost:5000/sensor/sensor-readings",
                 json=MOCK_SENSOR_READINGS,
             )
             response = frontend_client.post(
@@ -183,7 +182,7 @@ def test_add_sensor_type_no_backend(frontend_client):
 def test_add_sensor_type_no_existing_measures(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            m.get("http://localhost:5000/sensor/list-measures", json=[])
             response = frontend_client.get("/sensors/add-sensor-type")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -196,9 +195,9 @@ def test_add_sensor_type_no_existing_measures(frontend_client):
 def test_add_sensor_type_submit_empty(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_measures", json=[])
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
-            m.post("http://localhost:5000/sensor/insert_sensor_type", json=[])
+            m.get("http://localhost:5000/sensor/list-measures", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
+            m.post("http://localhost:5000/sensor/insert-sensor-type", json=[])
             response = frontend_client.post("/sensors/add-sensor-type", data={})
             with frontend_client.session_transaction() as session:
                 flash_message = dict(session["_flashes"])
@@ -212,13 +211,13 @@ def test_add_sensor_type_submit_empty(frontend_client):
 def test_add_sensor_type_submit_duplicate(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_measures", json=[])
+            m.get("http://localhost:5000/sensor/list-measures", json=[])
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types",
+                "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "testname"}],
             )
             m.post(
-                "http://localhost:5000/sensor/insert_sensor_type",
+                "http://localhost:5000/sensor/insert-sensor-type",
                 json=[],
             )
             response = frontend_client.post(
@@ -240,10 +239,10 @@ def test_add_sensor_type_submit_duplicate(frontend_client):
 def test_add_sensor_type_submit_ok(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_measures", json=[])
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-measures", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             m.post(
-                "http://localhost:5000/sensor/insert_sensor_type",
+                "http://localhost:5000/sensor/insert-sensor-type",
                 json=[],
                 status_code=201,
             )
@@ -274,7 +273,7 @@ def test_add_sensor_no_backend(frontend_client):
 def test_add_sensor_no_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             response = frontend_client.get("/sensors/add-sensor", follow_redirects=True)
             html_content = response.data.decode("utf-8")
             assert "Add New Sensor" in html_content
@@ -284,12 +283,10 @@ def test_add_sensor_ok(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
-                "http://localhost:5000/sensor/list_sensor_types",
+                "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "testtype"}],
             )
-            m.post(
-                "http://localhost:5000/sensor/insert_sensor/testtype", status_code=201
-            )
+            m.post("http://localhost:5000/sensor/insert-sensor", status_code=201)
             response = frontend_client.post(
                 "/sensors/add-sensor",
                 data={
@@ -315,7 +312,7 @@ def test_sensor_list_no_backend(frontend_client):
 def test_sensor_list_no_sensor_types(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             response = frontend_client.get(
                 "/sensors/sensor-list", follow_redirects=True
             )
@@ -327,9 +324,9 @@ def test_sensor_list_no_sensor_types(frontend_client):
 def test_sensor_list_ok(frontend_client):
     with frontend_client:
         with requests_mock.Mocker() as m:
-            m.get("http://localhost:5000/sensor/list_sensor_types", json=[])
+            m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
             m.get(
-                "http://localhost:5000/sensor/list/testtype",
+                "http://localhost:5000/sensor/list-sensors",
                 json=[
                     {
                         "name": "sensor1",

@@ -23,30 +23,55 @@ def insert_trh_sensor(sensor_unique_id, session):
     """
     Insert a temperature / relative humidity sensor.
     """
-    insert_sensor_measure(
-        name="Temperature", units="Degrees C", datatype="float", session=session
-    )
-    insert_sensor_measure(
-        name="Humidity", units="Percent", datatype="float", session=session
-    )
-    insert_sensor_type(
-        name="TRH",
-        description="Temperature/Humidity",
-        measures=[
-            {"name": "Temperature", "units": "Degrees C", "datatype": "float"},
-            {"name": "Humidity", "units": "Percent", "datatype": "float"},
-        ],
-        session=session,
-    )
-    insert_sensor(type_name="TRH", unique_identifier=sensor_unique_id, session=session)
+    try:
+        insert_sensor_measure(
+            name="Temperature",
+            units="Degrees C",
+            datatype="float",
+            session=session,
+        )
+    except:
+        session.rollback()
+    try:
+        insert_sensor_measure(
+            name="Humidity", units="Percent", datatype="float", session=session
+        )
+    except:
+        session.rollback()
+    try:
+        insert_sensor_type(
+            name=sensor_unique_id,
+            description="Temperature/Humidity",
+            measures=[
+                {"name": "Temperature", "units": "Degrees C", "datatype": "float"},
+                {"name": "Humidity", "units": "Percent", "datatype": "float"},
+            ],
+            session=session,
+        )
+    except:
+        session.rollback()
+    try:
+        insert_sensor(
+            type_name=sensor_unique_id,
+            unique_identifier=sensor_unique_id,
+            session=session,
+        )
+    except:
+        session.rollback()
 
 
-def insert_trh_readings(session):
+def insert_trh_readings(session, sensor_unique_id="TRH1", insert_sensor=True):
     """
     Insert a set of temperature and humidity readings for a sensor
     with unique_identifier 'TRH1'
     """
-    insert_trh_sensor("TRH1", session)
+    if insert_sensor:
+        try:
+            insert_trh_sensor(sensor_unique_id, session)
+        except:
+            print("Sensor already inserted")
+            session.rollback()
+    # generate the Temperature and Humidity readings
     readings = generate_trh_readings(sensor_ids=[1])
     # readings will be a pandas dataframe.
     # we want to extract some columns as lists, and convert timestamps to datetime
@@ -56,14 +81,14 @@ def insert_trh_readings(session):
     humids = list(readings.humidity)
     insert_sensor_readings(
         measure_name="Temperature",
-        sensor_uniq_id="TRH1",
+        sensor_uniq_id=sensor_unique_id,
         readings=temps,
         timestamps=timestamps,
         session=session,
     )
     insert_sensor_readings(
         measure_name="Humidity",
-        sensor_uniq_id="TRH1",
+        sensor_uniq_id=sensor_unique_id,
         readings=humids,
         timestamps=timestamps,
         session=session,

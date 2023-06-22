@@ -138,3 +138,7 @@ dmypy.json
 *.swp
 
 node_modules
+
+# directory storing plots from model runs
+plots
+./examples/plots

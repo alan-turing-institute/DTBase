@@ -72,8 +72,16 @@ def hourly_average_sensor(sensor_data, col_names, time_vector):
             performed. Note that the column "timestamp_hour_plus_minus"
             is renamed to "timestamp".
     """
+    _all_ids = set(sensors_list)
+    _ids = set(sensor_data['sensor_unique_id'].unique())
+    filtered_sensors_list = list(_all_ids.intersection(_ids))
+    if len(filtered_sensors_list) == 0:
+        raise ValueError('`sensor_unique_id` in `sensor_data` dataframe does not match any '\
+            'sensor id specified in data config file (*.ini)')
+    
     hour_averages = dict.fromkeys(
-        sensors_list
+        #sensors_list
+        filtered_sensors_list
     )  # creates empty dict with specified keys (requested sensors)
     keys = list(hour_averages.keys())
     grouped = sensor_data.groupby("sensor_unique_id")  # group by sensor id
@@ -246,3 +254,34 @@ def clean_data(sensor_readings):
         cleaned_data[key].set_index("timestamp", inplace=True)
 
     return cleaned_data
+
+def clean_data_list(sensor_readings_list):
+    """
+    Meta Parent function of this module: for each sensor readings in the list (argument), `clean_data`
+    is called to clean the readings.
+
+    Parameters:
+        sensor_readings: list of pandas dataframe containing e.g. temperature or humidity data
+            returned by get_data.get_training_data.
+
+    Returns:
+        cleaned_data: a dictionary with keys named after the user-requested sensors.
+            Use the "include_sensors" parameter in "data_config.ini" to specify the
+            sensors. The corresponding values for the dict keys are pandas dataframes
+            containing processed temperature and humidity data for each sensor
+            (the observations are averaged based on the proximity of the timestamp
+            to the full hour - use the "mins_from_the_hour" parameter in "data_config.ini"
+            to specify what timestamps to average together). The processed data is
+            time-ordered. The dataframes are indexed by timestamp. Specify the
+            timedelta between successive timestamps using the "time_delta" parameter
+            in "data_config.ini".
+    """
+    cleaned_data = [clean_data(data_) for data_ in sensor_readings_list]
+    keys = set([key for data_ in cleaned_data for key in data_.keys()])
+    concat_by_sensors = {}
+    for key in keys:
+        tmp = [data_[key] for data_ in cleaned_data if key in data_.keys()]
+        tmp = pd.concat(tmp, axis=1)
+        concat_by_sensors[key] = tmp
+
+    return concat_by_sensors

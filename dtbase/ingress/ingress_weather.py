@@ -102,10 +102,10 @@ SENSOR_TYPES = [
 
 
 # Mapping of sensor IDs to their types
-SENSORS = {
-    "OpenWeatherMapHistory": {"type": "weather"},
-    "OpenWeatherMapForecast": {"type": "weather"},
-}
+SENSORS = [
+    {"unique_identifier": "OpenWeatherMapHistory", "type_name": "weather"},
+    {"unique_identifier": "OpenWeatherMapForecast", "type_name": "weather"},
+]
 
 
 def query_openweathermap_api(dt_to):
@@ -216,12 +216,12 @@ def import_openweathermap_data(dt_to, sensor_uniq_id, create_sensors=False):
 
         payload = {
             "measure_name": METRICS_TO_MEASURES[metric]["name"],
-            "sensor_uniq_id": sensor_uniq_id,
+            "unique_identifier": sensor_uniq_id,
             "readings": values,
             "timestamps": timestamps,
         }
 
-        response = backend_call("post", "/sensor/insert_sensor_readings", payload)
+        response = backend_call("post", "/sensor/insert-sensor-readings", payload)
         log_rest_response(response)
     logging.info("Done uploading data.")
     error = ""
