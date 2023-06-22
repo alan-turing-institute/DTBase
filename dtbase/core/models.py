@@ -300,6 +300,7 @@ def insert_model_run(
         insert_model_product(
             model_run, measure_name, values, timestamps, session=session
         )
+    return model_run.id
 
 
 @add_default_session

@@ -15,12 +15,14 @@ def test_arima_get_temperature(session):
     insert_trh_readings(session)
     tables = get_training_data(delta_days=20, session=session)
     assert isinstance(tables, tuple)
-    assert len(tables) == 1
-    assert isinstance(tables[0], pd.DataFrame)
+    assert len(tables) == 2
+    for table in tables:
+        assert isinstance(table, pd.DataFrame)
+        assert "sensor_unique_id" in table.columns
+        assert "timestamp" in table.columns
+        assert len(table) > 0
     assert "Temperature" in tables[0].columns
-    assert "sensor_unique_id" in tables[0].columns
-    assert "timestamp" in tables[0].columns
-    assert len(tables[0]) > 0
+    assert "Humidity" in tables[1].columns
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

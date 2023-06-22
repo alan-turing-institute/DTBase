@@ -83,7 +83,10 @@ def test_new_location_post(frontend_client):
                     ],
                 },
             )
-            m.post("http://localhost:5000/location/insert-location", status_code=201)
+            m.post(
+                "http://localhost:5000/location/insert-location-for-schema",
+                status_code=201,
+            )
             response = frontend_client.post(
                 "/locations/new-location",
                 data={"schema": "xy", "identifier_x": 12.3, "identifier_y": 23.4},

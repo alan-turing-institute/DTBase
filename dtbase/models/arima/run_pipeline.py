@@ -58,10 +58,12 @@ def run_pipeline(session=None) -> None:
     model_id = None
     try:
         model_id = model_id_from_name("Arima", session=session)
+        logging.info(f"Found existing model id {model_id} in database")
     except (ValueError):
         # insert the model
         m = insert_model("Arima", session=session)
         model_id = m.id
+        logging.info(f"Adding model id {model_id} to database")
 
     # ensure we have the model scenario in the db, or insert if not
     scenario_id = None
@@ -69,27 +71,31 @@ def run_pipeline(session=None) -> None:
         scenario_id = scenario_id_from_description(
             model_name="Arima", description="BusinessAsUsual", session=session
         )
+        logging.info(f"Found existing scenario id {scenario_id} in database")
     except (ValueError):
         ms = insert_model_scenario(
             model_name="Arima", description="BusinessAsUsual", session=session
         )
         scenario_id = ms.id
+        logging.info(f"Adding scenario id {scenario_id} to database")
 
     # ensure that we have all measures in the database, or insert if not
     base_measures_list = config(section="sensors")["include_measures"]
 
     db_measures = list_model_measures(session=session)
     db_measure_names = [m["name"] for m in db_measures]
+    logging.info(f"measures to use: {base_measures_list}")
     # base_measures_list will be a list of tuples (measure_name, units)
     for base_measure in base_measures_list:
         for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
             measure = m + base_measure[0]
             if not measure in db_measure_names:
                 insert_model_measure(measure, "", "float", session=session)
-
+                logging.info(f"Inserting measure {measure} to db")
     session.commit()
     # run the ARIMA pipeline for every sensor
     sensor_unique_ids = list(prep_data.keys())
+    logging.info(f"Will look at sensors {sensor_unique_ids}")
     # loop through every sensor
     for sensor in sensor_unique_ids:
         session.begin()
@@ -97,14 +103,21 @@ def run_pipeline(session=None) -> None:
             unique_identifier=sensor, session=session
         )
         # filter measures_list: only retrieve measures related to the current sensor
-        base_measures_list_ = set(base_measures_list).intersection(
-            set(prep_data[sensor].columns)
-        )
-        for base_measure in base_measures_list_:
-            sensor_measure_id = measure_id_from_name(base_measure, session=session)
-            values = prep_data[sensor][base_measure]
+        #        base_measures_list_ = set(base_measures_list).intersection(
+        #            set(prep_data[sensor].columns)
+        #        )
+        base_measures_list = [
+            b for b in base_measures_list if b[0] in prep_data[sensor].columns
+        ]
+        for base_measure in base_measures_list:
+            sensor_measure_id = measure_id_from_name_and_units(
+                base_measure[0], base_measure[1], session=session
+            )
+            values = prep_data[sensor][base_measure[0]]
             logger.info(
-                "running arima pipeline for %s sensor, %s measure", sensor, base_measure
+                "running arima pipeline for %s sensor, %s measure",
+                sensor,
+                base_measure[0],
             )
             mean_forecast, conf_int, metrics = arima_pipeline(values)
             mean = {
@@ -134,10 +147,11 @@ def run_pipeline(session=None) -> None:
                 )
 
                 session.commit()
-
-            except:
+                logger.info(f"Inserted run {run_id}")
+            except Exception as e:
                 session.rollback()
                 session.close()
+                logger.info(f"Problem inserting model run: {e}")
         session.close()
 
 

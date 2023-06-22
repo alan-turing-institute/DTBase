@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
-logging.getLogger('matplotlib').setLevel(logging.WARNING)
+
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 import sys
 from collections import defaultdict
@@ -17,7 +18,10 @@ from dtbase.core.models import (
     model_id_from_name,
     scenario_id_from_description,
 )
-from dtbase.core.sensors import measure_id_from_name, sensor_id_from_unique_identifier
+from dtbase.core.sensors import (
+    measure_id_from_name_and_units,
+    sensor_id_from_unique_identifier,
+)
 from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
@@ -28,6 +32,7 @@ from dtbase.models.utils.config import config
 from dtbase.models.hodmd.hodmd_model import hodmd_pipeline
 
 logger = logging.getLogger(__name__)
+
 
 def fetch_data():
     # fetch training data from the database
@@ -40,6 +45,7 @@ def fetch_data():
     prep_data = prepare_data(cleaned_data)
 
     return prep_data
+
 
 def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> None:
     # set up logging
@@ -78,11 +84,12 @@ def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> Non
 
     # ensure that we have all measures in the database, or insert if not
     measures_list = config(section="sensors")["include_measures"]
+
     db_measures = list_model_measures(session=session)
     db_measure_names = [m["name"] for m in db_measures]
     for measure in measures_list:
-        if not measure in db_measure_names:
-            insert_model_measure(measure, "", "float", session=session)
+        if not measure[0] in db_measure_names:
+            insert_model_measure(measure[0], measure[1], "float", session=session)
 
     session.commit()
 
@@ -91,12 +98,18 @@ def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> Non
 
     # run HODMD pipeline
     if multi_measure:
-        hodmd_multi_measure(session, prep_data, sensor_unique_ids, measures_list, plots_save_path)
+        hodmd_multi_measure(
+            session, prep_data, sensor_unique_ids, measures_list, plots_save_path
+        )
     else:
-        hodmd_single_measure(session, prep_data, sensor_unique_ids, measures_list, plots_save_path)
+        hodmd_single_measure(
+            session, prep_data, sensor_unique_ids, measures_list, plots_save_path
+        )
 
 
-def hodmd_single_measure(session, prep_data, sensor_unique_ids, measures_list, save_path):
+def hodmd_single_measure(
+    session, prep_data, sensor_unique_ids, measures_list, save_path
+):
     # loop through every sensor
     for sensor in sensor_unique_ids:
         session.begin()
@@ -104,17 +117,30 @@ def hodmd_single_measure(session, prep_data, sensor_unique_ids, measures_list, s
             unique_identifier=sensor, session=session
         )
         # filter measures_list: only retrieve measures related to the current sensor
-        sensor_measures = set(measures_list).intersection(set(prep_data[sensor].columns))
+        sensor_measures = [
+            m for m in measures_list if m[0] in prep_data[sensor].columns
+        ]
         for measure in sensor_measures:
-            logger.info('running hodmd pipeline for %s sensor, %s measure', sensor, measure)
-            sensor_measure_id = measure_id_from_name(measure, session=session)
+            logger.info(
+                "running hodmd pipeline for %s sensor, %s measure", sensor, measure
+            )
+            sensor_measure_id = measure_id_from_name_and_units(
+                measure[0], measure[1], session=session
+            )
             data = prep_data[sensor][measure]
-            results, timestamps = hodmd_pipeline(data.index, data.values, [data.name, ], \
-                save_path=save_path, save_suffix='_{0}_{1}'.format(sensor, measure))
+            results, timestamps = hodmd_pipeline(
+                data.index,
+                data.values,
+                [
+                    data.name,
+                ],
+                save_path=save_path,
+                save_suffix="_{0}_{1}".format(sensor, measure[0]),
+            )
 
             measure_values = [
                 {
-                    "measure_name": measure,
+                    "measure_name": measure[0],
                     "values": list(results),
                     "timestamps": list(timestamps),
                 },
@@ -123,7 +149,7 @@ def hodmd_single_measure(session, prep_data, sensor_unique_ids, measures_list, s
                 run_id = insert_model_run(
                     model_name="HODMD",
                     scenario_description="BusinessAsUsual",
-                    measures_and_values=measures_values,
+                    measures_and_values=measure_values,
                     sensor_id=sensor_id,
                     sensor_measure_id=sensor_measure_id,
                     session=session,
@@ -134,7 +160,10 @@ def hodmd_single_measure(session, prep_data, sensor_unique_ids, measures_list, s
                 session.close()
         session.close()
 
-def hodmd_multi_measure(session, prep_data, sensor_unique_ids, measures_list, save_path):
+
+def hodmd_multi_measure(
+    session, prep_data, sensor_unique_ids, measures_list, save_path
+):
     # loop through every sensor
     for sensor in sensor_unique_ids:
         session.begin()
@@ -143,18 +172,24 @@ def hodmd_multi_measure(session, prep_data, sensor_unique_ids, measures_list, sa
         )
         data = prep_data[sensor]
         # filter measures_list: only retrieve measures related to the current sensor
-        sensor_measures = set(measures_list).intersection(set(data.columns))
-
-        logger.info('running hodmd pipeline for %s sensor across all measures', sensor)
-        results, timestamps = hodmd_pipeline(data.index, data.values, data.columns.tolist(), \
-            save_path=save_path, save_suffix='_{0}'.format(sensor))
+        sensor_measures = [
+            m for m in measures_list if m[0] in prep_data[sensor].columns
+        ]
+        logger.info("running hodmd pipeline for %s sensor across all measures", sensor)
+        results, timestamps = hodmd_pipeline(
+            data.index,
+            data.values,
+            data.columns.tolist(),
+            save_path=save_path,
+            save_suffix="_{0}".format(sensor),
+        )
 
         # results.shape: (num_sensor_measures, timeseries_predicitons)
         for idx, measure in enumerate(sensor_measures):
             measure_values = [
                 {
-                    "measure_name": measure,
-                    "values": list(results[idx]),
+                    "measure_name": measure[0],
+                    "values": results[idx].tolist(),
                     "timestamps": list(timestamps),
                 },
             ]
@@ -162,13 +197,17 @@ def hodmd_multi_measure(session, prep_data, sensor_unique_ids, measures_list, sa
                 run_id = insert_model_run(
                     model_name="HODMD",
                     scenario_description="BusinessAsUsual",
-                    measures_and_values=measures_values,
+                    measures_and_values=measure_values,
                     sensor_id=sensor_id,
-                    sensor_measure_id=measure_id_from_name(measure, session=session),
+                    sensor_measure_id=measure_id_from_name_and_units(
+                        measure[0], measure[1], session=session
+                    ),
                     session=session,
                 )
                 session.commit()
-            except:
+                logger.info(f"Inserted model run {run_id}")
+            except Exception as e:
+                logger.info(f"Problem inserting model run: {e}")
                 session.rollback()
                 session.close()
         session.close()
@@ -177,5 +216,6 @@ def hodmd_multi_measure(session, prep_data, sensor_unique_ids, measures_list, sa
 def main() -> None:
     run_pipeline()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

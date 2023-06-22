@@ -42,5 +42,6 @@ pulumi==3.56.0
 pulumi-azure-native==1.96.0
 
 statsmodels==0.13.5
+pydmd==0.4.1
 
 pre-commit

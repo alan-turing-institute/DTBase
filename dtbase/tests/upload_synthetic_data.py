@@ -46,15 +46,18 @@ def insert_trh_sensor(sensor_unique_id, session, suffix):
     )
 
 
-def insert_trh_readings(session, sensor_unique_id="TRH1", measure_suffix=None):
+def insert_trh_readings(
+    session, sensor_unique_id="TRH1", measure_suffix=None, insert_sensor=True
+):
     """
     Insert a set of temperature and humidity readings for a sensor
     with unique_identifier 'TRH1'
     """
     if measure_suffix is None:
         measure_suffix = ""
-
-    insert_trh_sensor(sensor_unique_id, session, measure_suffix)
+    if insert_sensor:
+        insert_trh_sensor(sensor_unique_id, session, measure_suffix)
+    # generate the Temperature and Humidity readings
     readings = generate_trh_readings(sensor_ids=[1])
     # readings will be a pandas dataframe.
     # we want to extract some columns as lists, and convert timestamps to datetime
