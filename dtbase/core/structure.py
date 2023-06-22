@@ -543,11 +543,7 @@ class ModelRun(BASE):
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     # arguments
-    __table_args__ = (
-        UniqueConstraint(
-            "model_id", "scenario_id", "sensor_measure_id", "time_created"
-        ),
-    )
+    __table_args__ = (UniqueConstraint("model_id", "scenario_id", "time_created"),)
 
 
 class ModelProduct(BASE):
