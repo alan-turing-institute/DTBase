@@ -2,10 +2,10 @@
 name = "dtbase"
 version = "0.1"
 description = "Core functionality for a generic digital twin"
-authors = [{name="The Alan Turing Institute Research Engineering Group"}]
+authors = [{name = "The Alan Turing Institute Research Engineering Group"}]
 requires-python = ">=3.8,<3.11"
 license = {file = "LICENSE"}
-readme = {file = "README.md"}
+readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
