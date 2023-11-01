@@ -3,12 +3,6 @@ Useful database-related functions for predictive models
 """
 
 import logging
-import sys
-import datetime
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
 
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME

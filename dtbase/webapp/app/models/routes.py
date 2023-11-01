@@ -1,13 +1,9 @@
 """
 A module for the main dashboard actions
 """
-import datetime as dt
 import json
-import re
 
 from flask import render_template, request, redirect
-from flask_login import login_required
-import pandas as pd
 
 from datetime import datetime
 from requests.exceptions import ConnectionError

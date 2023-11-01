@@ -1,16 +1,12 @@
 """
 Module (routes.py) to handle API endpoints related to Locations
 """
-from datetime import datetime, timedelta
-import json
 
 from flask import request, jsonify, make_response
-from flask_login import login_required
 
 from dtbase.backend.api.location import blueprint
 from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
 
 import logging

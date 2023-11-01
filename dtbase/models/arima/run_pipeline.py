@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-import os
 import sys
-from collections import defaultdict
-import pandas as pd
 import logging, coloredlogs
 
 
 from dtbase.core.models import (
     list_model_measures,
-    list_model_scenarios,
     insert_model_run,
-    insert_model_product,
     insert_model_measure,
     insert_model_scenario,
     insert_model,
@@ -25,7 +20,7 @@ from dtbase.models.utils.db_utils import (
     get_sqlalchemy_session,
 )
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
-from dtbase.models.utils.dataprocessor.clean_data import clean_data, clean_data_list
+from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline

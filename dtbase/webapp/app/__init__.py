@@ -1,5 +1,5 @@
 from flask import Flask, url_for
-from flask_login import LoginManager, login_required, UserMixin
+from flask_login import LoginManager, UserMixin
 from flask_cors import CORS
 
 from importlib import import_module

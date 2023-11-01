@@ -1,12 +1,9 @@
 """
 Test API endpoints for locations
 """
-import json
 import pytest
-from unittest import mock
 
 from dtbase.tests.conftest import check_for_docker
-from dtbase.backend.api.location import routes
 
 DOCKER_RUNNING = check_for_docker()
 

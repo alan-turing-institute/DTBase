@@ -4,7 +4,6 @@ import datetime as dt
 import sqlalchemy as sqla
 
 from dtbase.backend.utils import add_default_session
-from dtbase.core import queries
 from dtbase.core.structure import (
     Model,
     ModelMeasure,

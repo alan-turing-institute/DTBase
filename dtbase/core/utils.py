@@ -21,22 +21,14 @@ from dtbase.core.structure import (
     ModelFloatValue,
     ModelIntegerValue,
     ModelStringValue,
-    Location,
     LocationBooleanValue,
     LocationFloatValue,
-    LocationIdentifier,
     LocationIntegerValue,
-    LocationSchema,
-    LocationSchemaIdentifierRelation,
     LocationStringValue,
-    Sensor,
     SensorBooleanReading,
     SensorFloatReading,
     SensorIntegerReading,
-    SensorMeasure,
     SensorStringReading,
-    SensorType,
-    SensorTypeMeasureRelation,
 )
 
 

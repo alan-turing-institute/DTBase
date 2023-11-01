@@ -3,12 +3,9 @@ Test API endpoints for models
 """
 import datetime as dt
 
-import json
 import pytest
-from unittest import mock
 
 from dtbase.tests.conftest import check_for_docker
-from dtbase.backend.api.sensor import routes
 
 DOCKER_RUNNING = check_for_docker()
 

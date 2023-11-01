@@ -4,23 +4,14 @@ Each function returns a SQLAlchemy Query object. Turning these into subqueries o
 or executing them is the responsibility of the caller.
 """
 import sqlalchemy as sqla
-from sqlalchemy.orm import aliased, Query
+from sqlalchemy.orm import aliased
 
 from dtbase.core.structure import (
     Location,
-    LocationBooleanValue,
-    LocationFloatValue,
     LocationIdentifier,
-    LocationIntegerValue,
     LocationSchema,
     LocationSchemaIdentifierRelation,
-    LocationStringValue,
-    Sensor,
-    SensorBooleanReading,
-    SensorFloatReading,
-    SensorIntegerReading,
     SensorMeasure,
-    SensorStringReading,
     SensorType,
     SensorTypeMeasureRelation,
 )

@@ -1,9 +1,3 @@
-from dtbase.core.locations import (
-    insert_location_schema,
-    insert_location_identifier,
-    insert_location,
-)
-
 from dtbase.core.sensors import (
     insert_sensor_measure,
     insert_sensor_type,
@@ -14,8 +8,6 @@ from dtbase.core.sensors import (
 
 from dtbase.tests.generate_synthetic_data import (
     generate_trh_readings,
-    generate_weather,
-    generate_weather_forecast,
 )
 
 

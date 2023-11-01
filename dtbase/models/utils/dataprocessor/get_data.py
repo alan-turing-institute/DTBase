@@ -3,13 +3,9 @@ Data access module for ARIMA model and potentially others
 """
 
 import logging
-import sys
 import datetime
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from sqlalchemy import desc, asc, exc, func
 
 from dtbase.core.sensors import get_sensor_readings
 

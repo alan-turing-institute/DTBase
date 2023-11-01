@@ -5,7 +5,7 @@ drop database, and check its structure.
 
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy import create_engine, inspect
-from sqlalchemy.orm import RelationshipProperty, registry, sessionmaker
+from sqlalchemy.orm import RelationshipProperty, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
 
 from .constants import SQL_DEFAULT_DBNAME

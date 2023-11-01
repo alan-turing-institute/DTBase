@@ -1,8 +1,6 @@
 """
 Utility functions for e.g. uploading ingressed data to the db.
 """
-import os
-import json
 import logging
 import requests
 from dtbase.core.constants import (

@@ -5,13 +5,9 @@ from dtbase.backend.utils import add_default_session
 from dtbase.core import queries
 from dtbase.core.structure import (
     Location,
-    LocationBooleanValue,
-    LocationFloatValue,
     LocationIdentifier,
-    LocationIntegerValue,
     LocationSchema,
     LocationSchemaIdentifierRelation,
-    LocationStringValue,
 )
 from dtbase.core import utils
 

@@ -1,16 +1,13 @@
 """
 Module (routes.py) to handle API endpoints related to sensors
 """
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 import sqlalchemy as sqla
 from flask import request, jsonify
-from flask_login import login_required
 
 from dtbase.backend.api.sensor import blueprint
 from dtbase.core import sensors, sensor_locations
 from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
 
 

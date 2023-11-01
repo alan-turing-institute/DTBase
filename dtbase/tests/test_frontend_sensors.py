@@ -1,8 +1,6 @@
 """
 Test that the DTBase sensors pages load
 """
-from flask import url_for, request
-import pytest
 import requests_mock
 
 MOCK_SENSOR_TYPES = [

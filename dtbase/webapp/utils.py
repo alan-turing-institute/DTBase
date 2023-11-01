@@ -1,7 +1,5 @@
 """Utilities for the front end."""
 import datetime as dt
-import os
-import json
 import requests
 import urllib
 

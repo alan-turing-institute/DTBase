@@ -1,17 +1,14 @@
 """
 Module (routes.py) to handle endpoints related to models
 """
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 
 from flask import request, jsonify
-from flask_login import login_required
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import models
 from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
 
 

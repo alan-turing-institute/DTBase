@@ -1,7 +1,6 @@
 """
 A module for the main dashboard actions
 """
-import sys
 import datetime as dt
 import json
 import re

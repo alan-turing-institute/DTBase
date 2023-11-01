@@ -1,18 +1,12 @@
 """
 Python module to import data using the Openweathermap API
 """
-import os
-import json
 import logging
 import requests
 from datetime import datetime, timedelta
 import pandas as pd
 
 from dtbase.core.constants import (
-    CONST_BACKEND_URL,
-    CONST_LAT,
-    CONST_LON,
-    CONST_OPENWEATHERMAP_APIKEY,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
     CONST_OPENWEATHERMAP_FORECAST_URL,
 )
