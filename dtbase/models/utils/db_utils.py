@@ -10,9 +10,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from dtbase.core.db import connect_db, session_open, session_close
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
+
+# The below import is for exporting, other modules will import it from there
+from dtbase.core.db import session_close  # noqa: F401
+from dtbase.core.db import connect_db, session_open
 
 logger = logging.getLogger(__name__)
 
