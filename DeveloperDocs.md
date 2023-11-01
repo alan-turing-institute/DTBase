@@ -3,9 +3,9 @@
 * We recommend that you use a fresh Python environment (either via virtualenv, conda, or poetry), and **Python version >=3.8 and <= 3.10.**
 
 * Clone this repository and change to this directory.
-* Install the `dtbase` package and dependencies by running
+* Install the `dtbase` package and dependencies (including the optional development dependencies) by running
 ```
-pip install .
+pip install .[dev]
 ```
 * Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` if you will be using a cloud-based database, or `.secrets/dtenv_localdb.sh` if you will run a local postgres server using docker, and populate this file with values for the various environment variables (ask an existing developer for these).   Note that if using the docker option, you will need to have Docker installed and running on your machine.
 
