@@ -10,6 +10,6 @@
 6. In the key vault, create an RSA key (yes, needs to be RSA rather than ECDSA).
 7. Give yourself Encrypt and Decrypt permissions on the key vault.
 9. Create a new Pulumi stack with `pulumi stack init --secrets-provider="azurekeyvault://<NAME OF KEY VAULT>.vault.azure.net/keys/<NAME OF KEY>"`
-10. Make sure you're in a Python virtual environment with Pulumi SDK installed (requirements.txt has what you need).
+10. Make sure you're in a Python virtual environment with Pulumi SDK installed (`pip install .[infrastructure]` should cover your needs).
 11. Set all the necessary configurations with `pulumi config set` and `pulumi config set --secret`. You'll find these in `__main__.py`, or you can keep adding them until `pulumi up` stops complaining.
 12. Run `pulumi up` to stand up your new Pulumi stack.
