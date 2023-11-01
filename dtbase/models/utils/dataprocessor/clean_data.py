@@ -73,14 +73,16 @@ def hourly_average_sensor(sensor_data, col_names, time_vector):
             is renamed to "timestamp".
     """
     _all_ids = set(sensors_list)
-    _ids = set(sensor_data['sensor_unique_id'].unique())
+    _ids = set(sensor_data["sensor_unique_id"].unique())
     filtered_sensors_list = list(_all_ids.intersection(_ids))
     if len(filtered_sensors_list) == 0:
-        raise ValueError('`sensor_unique_id` in `sensor_data` dataframe does not match any '\
-            'sensor id specified in data config file (*.ini)')
-    
+        raise ValueError(
+            "`sensor_unique_id` in `sensor_data` dataframe does not match any "
+            "sensor id specified in data config file (*.ini)"
+        )
+
     hour_averages = dict.fromkeys(
-        #sensors_list
+        # sensors_list
         filtered_sensors_list
     )  # creates empty dict with specified keys (requested sensors)
     keys = list(hour_averages.keys())
@@ -254,6 +256,7 @@ def clean_data(sensor_readings):
         cleaned_data[key].set_index("timestamp", inplace=True)
 
     return cleaned_data
+
 
 def clean_data_list(sensor_readings_list):
     """
