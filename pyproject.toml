@@ -1,0 +1,82 @@
+[project]
+name = "dtbase"
+version = "0.1"
+description = "Core functionality for a generic digital twin"
+authors = [{name = "The Alan Turing Institute Research Engineering Group"}]
+requires-python = ">=3.8,<3.11"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+keywords = ["digital twin"]
+dependencies = [
+    "coloredlogs==15.0.1",
+    "sqlalchemy==1.4.39",
+    "SQLAlchemy-Utils==0.38.2",
+
+    "flask-sqlalchemy==3.0.3",
+    "flask==2.2.3",
+    "flask_login==0.6.2",
+    "flask-cors == 3.0.10",
+    "flask_migrate==3.1.0",
+
+    "Jinja2==3.0.3",
+    "jinjasql==0.1.8",
+    "psycopg2-binary==2.9.3",
+    "pandas==1.5.3",
+
+    "scipy==1.8.0",
+    "numpy==1.22.3",
+    "matplotlib==3.5.1",
+    "scikit-learn==1.0.2",
+
+    "bcrypt==3.2.2",
+
+    "azure-functions==1.11.2",
+    "flask_wtf==1.0.1",
+
+    "azure-storage-blob==12.13.0",
+
+    "WTForms==2.3.3",
+    "werkzeug==2.2.3",
+    "requests==2.28.1",
+    "python-dateutil==2.8.2",
+
+    "PyYAML==6.0",
+    "requests_mock==1.9.3",
+
+    "statsmodels==0.13.5",
+    "pydmd==0.4.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "black==22.3.0",
+    "pylint==2.13.5",
+    "pytest==7.1.1",
+    "pytest-cov==4.0.0",
+]
+infrastructure = [
+    "pulumi==3.56.0",
+    "pulumi-azure-native==1.96.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/alan-turing-institute/DTBase"
+"Bug tracker" = "https://github.com/alan-turing-institute/DTBase/issues"
+
+[project.scripts]
+dtbase_start_postgres_docker = "dtbase.core.db_docker:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+dtbase = ["models/arima/arima/config_arima.ini", "models/utils/dataprocessor/data_config.ini"]
+
+[tool.setuptools]
+packages = ["dtbase"]
+license-files = ["LICENSE"]
