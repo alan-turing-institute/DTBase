@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     existingIdentifierSelect.addEventListener('change', function () {
         const selectedId = this.value;
-    
+
         if (selectedId) {
             const identifier = existing_identifiers.find(identifier => identifier.id === parseInt(selectedId));
             const selectedIdentifier = {...identifier, is_existing: true}; // Create a new object
@@ -41,5 +41,5 @@ document.addEventListener('DOMContentLoaded', function () {
             this.value = '';
         }
     });
-    
+
 });

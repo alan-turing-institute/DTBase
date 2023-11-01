@@ -40,7 +40,7 @@ The schema name will be a concatenation of the identifier names.
                     ],
       "values": [<val1>, ...]
     }
-    ``` 
+    ```
     (where the values should be in the same order as the identifiers) and "datatype" must be one of "string", "integer", "float", "boolean".
     - returns status code 201, along with json:
     ```
@@ -57,7 +57,7 @@ The schema name will be a concatenation of the identifier names.
     - Payload should have the form
     ```
     {
-      "schema_name": <schema_name:str>, 
+      "schema_name": <schema_name:str>,
       <identifier_name>: <value:float|int|str|bool>,
       ...
     }
@@ -71,10 +71,10 @@ The schema name will be a concatenation of the identifier names.
     - optionally filter by coordinates, if given identifiers in the payload,
       which should be of the form
     ```
-    {  
+    {
        "schema_name" : <schema_name:str>,
        "<identifier_name>": <value:float|int|str|bool>,
-        ... 
+        ...
     }
     ```
     - returns `[{"id": <id:int> , <identifier_name:str>: <value>, ...}, ...]`
@@ -121,11 +121,11 @@ The schema name will be a concatenation of the identifier names.
 ### `/location/delete-location`
 * A DELETE request will remove the location with the specified schema name and values specified in the payload:
 
-    - payload: 
+    - payload:
     ```
     {
        "schema_name" : <schema_name:str>,
-        <identifier_name:str>: <value:float|int|str|bool>, 
+        <identifier_name:str>: <value:float|int|str|bool>,
 	...
     }
     ```
@@ -507,7 +507,7 @@ API endpoints for the models is as follows.
     ```
     {
         run_id: <run_id:int> (id of the model run),
-        
+
     }
     ```
 

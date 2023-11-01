@@ -2,7 +2,7 @@ function updateForm() {
     const schemaId = document.getElementById("schema").value;
     const identifiersDiv = document.getElementById("identifiers");
     identifiersDiv.innerHTML = "";
-    
+
     // find the selected schema
     const selectedSchema = window.schemas.find(schema => schema.name == schemaId);
 

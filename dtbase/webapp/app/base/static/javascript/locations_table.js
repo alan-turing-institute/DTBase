@@ -14,7 +14,7 @@ function updateTable() {
 
         var locations = window.locations_for_each_schema[selectedSchema];
         var tableContent = '';
-        
+
         // Construct the table headers
         tableContent += "<thead><tr><th class='num-column' scope='col'>#</th>"; // Adding '#' column
         for (var key in locations[0]) {
@@ -23,7 +23,7 @@ function updateTable() {
             }
         }
         tableContent += "</tr></thead>";
-        
+
         // Construct the table body
         tableContent += "<tbody>";
         for (var i = 0; i < locations.length; i++) {
@@ -44,11 +44,11 @@ function updateTable() {
         // Get the number of columns
         var numOfColumns = Object.keys(locations[0]).length;
 
-        // Calculate table width based on number of columns. 
-        var tableWidth = 120 * numOfColumns; 
+        // Calculate table width based on number of columns.
+        var tableWidth = 120 * numOfColumns;
 
         // Set a maximum table width if required
-        tableWidth = Math.min(tableWidth, 1000); 
+        tableWidth = Math.min(tableWidth, 1000);
 
         var tableElement = document.querySelector('.location-table');
         tableElement.style.width = tableWidth + "px";

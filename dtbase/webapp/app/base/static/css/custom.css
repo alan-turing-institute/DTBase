@@ -19,7 +19,7 @@ body {
 .form-group {
   width: 40%; /* adjust as needed */
    /* centers the form if you want */
-   margin-bottom: 10px; 
+   margin-bottom: 10px;
 }
 
 .add-identifier-wrapper .existing-identifier-select,
@@ -49,11 +49,11 @@ body {
 }
 
 .custom-input {
-    width: 50%; 
+    width: 50%;
 }
 
 .location-table{
-  max-width: 50%;  
+  max-width: 50%;
   table-layout: fixed;
   overflow: hidden;  /* Hide content that is wider than the max-width */
   text-overflow: ellipsis;  /* Add ... at the end of the content if it is too wide */
@@ -61,7 +61,7 @@ body {
 }
 
 .num-column {
-  width: 70px;  
+  width: 70px;
   /* bold the text */
   font-weight: bold;
 }
