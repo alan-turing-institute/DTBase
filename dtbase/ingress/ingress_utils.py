@@ -2,10 +2,9 @@
 Utility functions for e.g. uploading ingressed data to the db.
 """
 import logging
+
 import requests
-from dtbase.core.constants import (
-    CONST_BACKEND_URL,
-)
+from dtbase.core.constants import CONST_BACKEND_URL
 
 
 def backend_call(request_type, end_point_path, payload):
@@ -59,8 +58,7 @@ def add_sensors(sensors):
            ]
     """
     for sensor_info in sensors:
-        sensor_type = sensor_info["type_name"]
         logging.info(f"Inserting sensor {sensor_info['unique_identifier']}")
         payload = sensor_info
-        response = backend_call("post", f"/sensor/insert-sensor", payload)
+        response = backend_call("post", "/sensor/insert-sensor", payload)
         log_rest_response(response)

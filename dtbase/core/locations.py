@@ -1,15 +1,13 @@
 """Functions for accessing the locations tables. """
 import sqlalchemy as sqla
-
 from dtbase.backend.utils import add_default_session
-from dtbase.core import queries
+from dtbase.core import queries, utils
 from dtbase.core.structure import (
     Location,
     LocationIdentifier,
     LocationSchema,
     LocationSchemaIdentifierRelation,
 )
-from dtbase.core import utils
 
 
 @add_default_session
@@ -283,7 +281,6 @@ def delete_location_schema(schema_name, session=None):
     Returns:
         None
     """
-    schema_id = schema_id_from_name(schema_name, session=session)
     result = session.execute(
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
     )

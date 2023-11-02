@@ -1,35 +1,33 @@
 """
 Utilities (miscellaneous routines) module
 """
-from datetime import datetime, timedelta
 import io
 import json
 import logging
 import uuid
+from datetime import datetime, timedelta
 
-from flask import send_file
 import pandas as pd
-from sqlalchemy import exc
-
-from dtbase.core.db import connect_db, session_open, session_close
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
-from dtbase.core.structure import User
+from dtbase.core.db import connect_db, session_close, session_open
 from dtbase.core.structure import SQLA as db
-
 from dtbase.core.structure import (
-    ModelBooleanValue,
-    ModelFloatValue,
-    ModelIntegerValue,
-    ModelStringValue,
     LocationBooleanValue,
     LocationFloatValue,
     LocationIntegerValue,
     LocationStringValue,
+    ModelBooleanValue,
+    ModelFloatValue,
+    ModelIntegerValue,
+    ModelStringValue,
     SensorBooleanReading,
     SensorFloatReading,
     SensorIntegerReading,
     SensorStringReading,
+    User,
 )
+from flask import send_file
+from sqlalchemy import exc
 
 
 def get_db_session(return_engine=False):
@@ -288,7 +286,7 @@ def insert_to_db_from_df(engine, df, DbClass):
             try:
                 session.add(DbClass(**record))
                 session.commit()
-            except exc.SQLAlchemyError as e:
+            except exc.SQLAlchemyError:
                 session.rollback()
     session_close(session)
     print(f"Inserted {len(df.index)} rows to table {DbClass.__tablename__}")

@@ -2,8 +2,8 @@
 import datetime as dt
 
 import sqlalchemy as sqla
-
 from dtbase.backend.utils import add_default_session
+from dtbase.core import utils
 from dtbase.core.structure import (
     Model,
     ModelMeasure,
@@ -13,7 +13,6 @@ from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
 )
-from dtbase.core import utils
 
 
 @add_default_session
@@ -71,7 +70,7 @@ def measure_name_from_id(measure_id, session=None):
     query = sqla.select(ModelMeasure.name).where(ModelMeasure.id == measure_id)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model measure '{name}'.")
+        raise ValueError(f"No model measure '{measure_id}'.")
     return result[0][0]
 
 

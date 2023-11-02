@@ -1,15 +1,15 @@
-from datetime import timedelta
-import numpy as np
-from copy import deepcopy
-import pandas as pd
 import logging
-from typing import Tuple, Union
-from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 import os
+from copy import deepcopy
+from datetime import timedelta
+from typing import Tuple, Union
 
+import numpy as np
+import pandas as pd
 from dtbase.models.utils.config import config
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
+from sklearn.model_selection import TimeSeriesSplit
+from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -173,34 +173,34 @@ def cross_validate_arima(
     metrics = dict.fromkeys(["RMSE", "MAPE"])
     rmse = []  # this will hold the RMSE at each fold
     mape = []  # this will hold the MAPE score at each fold
+
+    def update_result(model_fit, cv_test, test_index):
+        # compute the forecast for the test sample of the current fold
+        forecast = model_fit.forecast(steps=len(test_index))
+        # compute the RMSE for the current fold
+        rmse.append(mean_squared_error(cv_test.values, forecast.values, squared=False))
+        # compute the MAPE for the current fold
+        mape.append(mean_absolute_percentage_error(cv_test.values, forecast.values))
+
+    data_split = iter(tscv.split(data))
+    # only force model fitting in the first fold
+    train_index, test_index = next(data_split)
+    cv_train, cv_test = data.iloc[train_index], data.iloc[test_index]
+    model_fit = fit_arima(cv_train)
+    update_result(model_fit, cv_test, test_index)
+
     # loop through all folds
-    for fold, (train_index, test_index) in enumerate(tscv.split(data)):
-        cv_train, cv_test = (
-            data.iloc[train_index],
-            data.iloc[test_index],
-        )  # train/test split for the current fold
-        # only force model fitting in the first fold
-        if fold == 0:
-            model_fit = fit_arima(cv_train)
+    for _, test_index in data_split:
         # in all other folds, the model is refitted only if requested by the user
         # here we append to the current train set the test set of the previous fold
-        else:
-            if refit:
-                model_fit = model_fit.append(cv_test_old, refit=True)
-            else:
-                model_fit = model_fit.extend(
-                    cv_test_old
-                )  # extend is faster than append with refit=False
-        forecast = model_fit.forecast(
-            steps=len(test_index)
-        )  # compute the forecast for the test sample of the current fold
-        rmse.append(
-            mean_squared_error(cv_test.values, forecast.values, squared=False)
-        )  # compute the RMSE for the current fold
-        mape.append(
-            mean_absolute_percentage_error(cv_test.values, forecast.values)
-        )  # compute the MAPE for the current fold
         cv_test_old = deepcopy(cv_test)
+        cv_test = data.iloc[test_index]
+        if refit:
+            model_fit = model_fit.append(cv_test_old, refit=True)
+        else:
+            # extend is faster than append with refit=False
+            model_fit = model_fit.extend(cv_test_old)
+        update_result(model_fit, cv_test, test_index)
 
     metrics["RMSE"] = np.mean(
         rmse

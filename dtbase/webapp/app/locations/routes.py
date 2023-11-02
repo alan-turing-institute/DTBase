@@ -1,9 +1,8 @@
-from flask import render_template, request, redirect, url_for, flash
+from dtbase.webapp import utils
+from dtbase.webapp.app.locations import blueprint
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
-
-from dtbase.webapp.app.locations import blueprint
-from dtbase.webapp import utils
 
 
 @login_required
@@ -124,8 +123,6 @@ def submit_location():
     schema_name = request.form.get("schema")
     print(f"============={schema_name}================")
     # Retrieve the identifiers and values based on the schema
-    identifiers = []
-    values = []
     payload = {"schema_name": schema_name}
     response = utils.backend_call("get", "/location/get-schema-details", payload)
     schema = response.json()

@@ -2,19 +2,19 @@
 Python module to import data using the Openweathermap API
 """
 import logging
-import requests
 from datetime import datetime, timedelta
-import pandas as pd
 
+import pandas as pd
+import requests
 from dtbase.core.constants import (
-    CONST_OPENWEATHERMAP_HISTORICAL_URL,
     CONST_OPENWEATHERMAP_FORECAST_URL,
+    CONST_OPENWEATHERMAP_HISTORICAL_URL,
 )
 from dtbase.ingress.ingress_utils import (
-    backend_call,
-    log_rest_response,
     add_sensor_types,
     add_sensors,
+    backend_call,
+    log_rest_response,
 )
 
 # Mapping of Openweathermap metrics to sensor measures in the database.
@@ -187,8 +187,6 @@ def import_openweathermap_data(dt_to, sensor_uniq_id, create_sensors=False):
     Returns:
         success, error
     """
-    metrics = METRICS_TO_MEASURES.keys()
-
     success, error, df = query_openweathermap_api(dt_to)
     if not success:
         logging.error(error)

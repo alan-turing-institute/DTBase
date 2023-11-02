@@ -244,7 +244,7 @@ def test_add_sensor_type_submit_ok(frontend_client):
                 json=[],
                 status_code=201,
             )
-            response = frontend_client.post(
+            frontend_client.post(
                 "/sensors/add-sensor-type",
                 data={
                     "name": "testname",
@@ -285,7 +285,7 @@ def test_add_sensor_ok(frontend_client):
                 json=[{"name": "testtype"}],
             )
             m.post("http://localhost:5000/sensor/insert-sensor", status_code=201)
-            response = frontend_client.post(
+            frontend_client.post(
                 "/sensors/add-sensor",
                 data={
                     "name": "testsensor",

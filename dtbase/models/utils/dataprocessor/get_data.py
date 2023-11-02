@@ -2,15 +2,13 @@
 Data access module for ARIMA model and potentially others
 """
 
-import logging
 import datetime
+import logging
 
 import pandas as pd
-
 from dtbase.core.sensors import get_sensor_readings
-
-from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 from dtbase.models.utils.config import config
+from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +83,6 @@ def get_training_data(
         # this will be a list of tuples (measure_name, units)
     for measure in measures_list:
         for sensor in sensors_list:
-            columns = [measure[0], "sensor_unique_id", "timestamp"]
             readings = get_sensor_readings(
                 measure_name=measure[0],
                 sensor_uniq_id=sensor,

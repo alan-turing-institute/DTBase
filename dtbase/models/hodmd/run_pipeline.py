@@ -3,15 +3,16 @@ import logging
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
+import logging
 import sys
-import logging, coloredlogs
 
+import coloredlogs
 from dtbase.core.models import (
-    list_model_measures,
-    insert_model_run,
-    insert_model_measure,
-    insert_model_scenario,
     insert_model,
+    insert_model_measure,
+    insert_model_run,
+    insert_model_scenario,
+    list_model_measures,
     model_id_from_name,
     scenario_id_from_description,
 )
@@ -19,14 +20,12 @@ from dtbase.core.sensors import (
     measure_id_from_name_and_units,
     sensor_id_from_unique_identifier,
 )
-from dtbase.models.utils.db_utils import (
-    get_sqlalchemy_session,
-)
-from dtbase.models.utils.dataprocessor.get_data import get_training_data
-from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
-from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
-from dtbase.models.utils.config import config
 from dtbase.models.hodmd.hodmd_model import hodmd_pipeline
+from dtbase.models.utils.config import config
+from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+from dtbase.models.utils.db_utils import get_sqlalchemy_session
 
 logger = logging.getLogger(__name__)
 
@@ -58,26 +57,23 @@ def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> Non
 
     if not session:
         session = get_sqlalchemy_session()
+
     # ensure we have the Model in the db, or insert if not
-    model_id = None
     try:
-        model_id = model_id_from_name("HODMD", session=session)
+        model_id_from_name("HODMD", session=session)
     except (ValueError):
         # insert the model
-        m = insert_model("HODMD", session=session)
-        model_id = m.id
+        insert_model("HODMD", session=session)
 
     # ensure we have the model scenario in the db, or insert if not
-    scenario_id = None
     try:
-        scenario_id = scenario_id_from_description(
+        scenario_id_from_description(
             model_name="HODMD", description="BusinessAsUsual", session=session
         )
     except (ValueError):
-        ms = insert_model_scenario(
+        insert_model_scenario(
             model_name="HODMD", description="BusinessAsUsual", session=session
         )
-        scenario_id = ms.id
 
     # ensure that we have all measures in the database, or insert if not
     measures_list = config(section="sensors")["include_measures"]
@@ -143,7 +139,7 @@ def hodmd_single_measure(
                 },
             ]
             try:
-                run_id = insert_model_run(
+                insert_model_run(
                     model_name="HODMD",
                     scenario_description="BusinessAsUsual",
                     measures_and_values=measure_values,
