@@ -8,25 +8,15 @@ function plot(
   y_label,
   show_legend
 ) {
-
-  const values_top = top_json.map((e) =>
-    parseFloat(e["value"])
-  );
+  const values_top = top_json.map((e) => parseFloat(e["value"]));
   const times_top = top_json.map((e) => new Date(e["timestamp"]));
-  const values_mid = mid_json.map((e) =>
-    parseFloat(e["value"])
-  );
+  const values_mid = mid_json.map((e) => parseFloat(e["value"]));
   const times_mid = mid_json.map((e) => new Date(e["timestamp"]));
-  const values_bot = bot_json.map((e) =>
-    parseFloat(e["value"])
-  );
+  const values_bot = bot_json.map((e) => parseFloat(e["value"]));
   const times_bot = bot_json.map((e) => new Date(e["timestamp"]));
 
-  const values_sensor = sensor_json.map((e) =>
-    parseFloat(e["value"])
-  );
+  const values_sensor = sensor_json.map((e) => parseFloat(e["value"]));
   const times_sensor = sensor_json.map((e) => new Date(e["timestamp"]));
-
 
   const mid_scatter = dictionary_scatter(times_mid, values_mid);
   const top_scatter = dictionary_scatter(times_top, values_top);

@@ -1207,7 +1207,6 @@ function init_validator() {
 /* DATA TABLES */
 
 function init_DataTables() {
-
   if (typeof $.fn.DataTable === "undefined") {
     return;
   }
