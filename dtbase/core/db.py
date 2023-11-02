@@ -5,6 +5,7 @@ drop database, and check its structure.
 
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import RelationshipProperty, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
 
@@ -32,20 +33,22 @@ def create_database(conn_string, db_name):
     if not database_exists(db_conn_string):
         # try:
         # On postgres, the postgres database is normally present by default.
-        # Connecting as a superuser (eg, postgres), allows to connect and create a new db.
+        # Connecting as a superuser (eg, postgres), allows to connect and create a new
+        # db.
         def_engine = create_engine(
             "{}/{}".format(conn_string, SQL_DEFAULT_DBNAME),
             pool_size=20,
             max_overflow=-1,
         )
 
-        # You cannot use engine.execute() directly, because postgres does not allow to create
-        # databases inside transactions, inside which sqlalchemy always tries to run queries.
-        # To get around this, get the underlying connection from the engine:
+        # You cannot use engine.execute() directly, because postgres does not allow to
+        # create databases inside transactions, inside which sqlalchemy always tries to
+        # run queries. To get around this, get the underlying connection from the
+        # engine:
         conn = def_engine.connect()
 
-        # But the connection will still be inside a transaction, so you have to end the open
-        # transaction with a commit:
+        # But the connection will still be inside a transaction, so you have to end the
+        # open transaction with a commit:
         conn.execute("commit")
 
         # Then proceed to create the database using the PostgreSQL command.
@@ -78,7 +81,7 @@ def connect_db(conn_string, db_name):
     if database_exists(db_conn_string):
         try:
             engine = create_engine(db_conn_string, pool_size=20, max_overflow=-1)
-        except:
+        except SQLAlchemyError:
             return False, "Cannot connect to db: %s" % db_name, None
     else:
         return False, "Cannot find db: %s" % db_name, None
@@ -128,7 +131,7 @@ def drop_db(conn_string, db_name):
             # Drops db
             drop_database(db_conn_string)
 
-        except:
+        except SQLAlchemyError:
             return False, "cannot drop db %s" % db_name
     return True, None
 
@@ -178,7 +181,7 @@ def check_database_structure(engine):
                         pass
                     else:
                         # assume normal flat column
-                        if not obj.key in columns:
+                        if obj.key not in columns:
                             return (
                                 False,
                                 "Model %s declares column %s which\

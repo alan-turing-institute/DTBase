@@ -37,7 +37,8 @@ def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:
     """
     if arima_config["hours_forecast"] <= 0:
         logger.error(
-            "The 'hours_forecast' parameter in config_arima.ini must be greater than zero."
+            "The 'hours_forecast' parameter in config_arima.ini must be greater than "
+            "zero."
         )
         raise Exception
     end_of_sample_timestamp = data.index[-1]
@@ -137,7 +138,8 @@ def construct_cross_validator(
     )  # number of test observations employed in each fold
     if test_size < 1:
         logger.error(
-            "A valid cross-validator cannot be built. The size of the test set is less than 1."
+            "A valid cross-validator cannot be built. The size of the test set is less "
+            "than 1."
         )
         raise Exception
     tscv = TimeSeriesSplit(
@@ -239,20 +241,24 @@ def arima_pipeline(
     """
     if not isinstance(data.index, pd.DatetimeIndex):
         logger.error(
-            "The time series on which to train the ARIMA model must be indexed by timestamp."
+            "The time series on which to train the ARIMA model must be indexed by "
+            "timestamp."
         )
         raise ValueError
     if arima_config["arima_order"] != (4, 1, 2):
         logger.warning(
-            "The 'arima_order' setting in config_arima.ini has been set to something different than (4, 1, 2)."
+            "The 'arima_order' setting in config_arima.ini has been set to something "
+            "different than (4, 1, 2)."
         )
     if arima_config["seasonal_order"] != (1, 1, 0, 24):
         logger.warning(
-            "The 'seasonal_order' setting in config_arima.ini has been set to something different than (1, 1, 0, 24)."
+            "The 'seasonal_order' setting in config_arima.ini has been set to "
+            "something different than (1, 1, 0, 24)."
         )
     if arima_config["hours_forecast"] != 48:
         logger.warning(
-            "The 'hours_forecast' setting in config_arima.ini has been set to something different than 48."
+            "The 'hours_forecast' setting in config_arima.ini has been set to "
+            "something different than 48."
         )
     # perform time series cross-validation if requested by the user
     cross_validation = arima_config["perform_cv"]
@@ -268,20 +274,28 @@ def arima_pipeline(
             tscv = construct_cross_validator(data)
             try:
                 metrics = cross_validate_arima(data, tscv, refit=refit)
-            except:
+            # TODO This except clause should be more specific. What are the possible
+            # errors we might expect from cross_validate_arima?
+            except Exception:
                 logger.warning(
-                    "Could not perform cross-validation. Continuing without ARIMA model testing."
+                    "Could not perform cross-validation. "
+                    "Continuing without ARIMA model testing."
                 )
                 metrics = None
             else:
                 logger.info(
-                    "Done running cross-validation. The CV root-mean-squared-error is: {0:.2f}. The CV mean-absolute-percentage-error is: {1:.3f}".format(
-                        metrics["RMSE"], metrics["MAPE"]
-                    )
+                    (
+                        "Done running cross-validation. "
+                        "The CV root-mean-squared-error is: {0:.2f}. "
+                        "The CV mean-absolute-percentage-error is: {1:.3f}"
+                    ).format(metrics["RMSE"], metrics["MAPE"])
                 )
-        except:
+        # TODO This except clause should be more specific. What are the possible
+        # errors we might expect from construct_cross_validator?
+        except Exception:
             logger.warning(
-                "Could not build a valid cross-validator. Continuing without ARIMA model testing."
+                "Could not build a valid cross-validator. "
+                "Continuing without ARIMA model testing."
             )
             metrics = None
     else:

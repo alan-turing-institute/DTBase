@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 import logging
-
-logging.getLogger("matplotlib").setLevel(logging.WARNING)
-
-import logging
 import sys
 
 import coloredlogs
@@ -27,6 +23,7 @@ from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.models.utils.db_utils import get_sqlalchemy_session
 
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
@@ -81,7 +78,7 @@ def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> Non
     db_measures = list_model_measures(session=session)
     db_measure_names = [m["name"] for m in db_measures]
     for measure in measures_list:
-        if not measure[0] in db_measure_names:
+        if measure[0] not in db_measure_names:
             insert_model_measure(measure[0], measure[1], "float", session=session)
 
     session.commit()
@@ -148,7 +145,8 @@ def hodmd_single_measure(
                     session=session,
                 )
                 session.commit()
-            except:
+            except Exception:
+                # TODO We should log a warning here.
                 session.rollback()
                 session.close()
         session.close()

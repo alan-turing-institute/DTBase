@@ -266,7 +266,8 @@ def delete_location_schema():
             jsonify(
                 {
                     "status": "error",
-                    "message": f"Location schema '{schema_name}' not found or could not be deleted.",
+                    "message": f"Location schema '{schema_name}'"
+                    " not found or could not be deleted.",
                 }
             ),
             404,

@@ -40,12 +40,12 @@ def submit_location_schema():
 
     identifiers = [
         {
-            "name": identifier_name,
-            "units": identifier_unit,
-            "datatype": identifier_datatype,
-            "is_existing": identifier_is_existing == "1",
+            "name": name,
+            "units": unit,
+            "datatype": datatype,
+            "is_existing": is_existing == "1",
         }
-        for identifier_name, identifier_unit, identifier_datatype, identifier_is_existing in zip(
+        for name, unit, datatype, is_existing in zip(
             identifier_names,
             identifier_units,
             identifier_datatypes,

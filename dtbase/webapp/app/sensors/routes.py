@@ -5,15 +5,13 @@ import datetime as dt
 import json
 import re
 
-from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_required
 import pandas as pd
-from requests.exceptions import ConnectionError
-
 from dtbase.core.constants import CONST_MAX_RECORDS
-
-from dtbase.webapp.app.sensors import blueprint
 from dtbase.webapp import utils
+from dtbase.webapp.app.sensors import blueprint
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import login_required
+from requests.exceptions import ConnectionError
 
 
 def fetch_all_sensor_types():
@@ -21,11 +19,13 @@ def fetch_all_sensor_types():
     Args:
         None
     Returns:
-        List of dictionaries, one for each sensor type, including a dict of measures for each
+        List of dictionaries, one for each sensor type, including a dict of measures for
+            each
     """
     try:
         response = utils.backend_call("get", "/sensor/list-sensor-types")
-    except:
+    # TODO Can we catch a more specific exception here?
+    except Exception:
         raise RuntimeError("No response from backend")
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -56,7 +56,8 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
     Args:
         dt_from: Datetime from
         dt_to: Datetime to
-        measures: List of dicts, each with keys "name", "datatype", "units" for a measure.
+        measures: List of dicts, each with keys "name", "datatype", "units" for a
+            measure.
         sensor_ids: List of strings, Unique IDs of sensors to get data for
     Returns:
         Dictionary with keys being sensor IDs and values being pandas DataFrames of
@@ -208,7 +209,7 @@ def sensor_readings():
         if (
             "startDate" in request.form
             and "endDate" in request.form
-            and not "sensor_type" in request.form
+            and "sensor_type" not in request.form
         ):
             dt_from = request.form["startDate"]
             dt_to = request.form["endDate"]
@@ -235,7 +236,7 @@ def sensor_readings():
                 s["measures"] for s in sensor_types if s["name"] == sensor_type
             )
             measure_names = [m["name"] for m in measures]
-            if not "sensor" in request.form or request.form["sensor"] not in sensor_ids:
+            if "sensor" not in request.form or request.form["sensor"] not in sensor_ids:
                 # populate the dropdown of sensor choices.
                 return render_template(
                     "readings.html",

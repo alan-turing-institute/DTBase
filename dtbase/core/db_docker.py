@@ -5,13 +5,8 @@ import re
 import subprocess
 import time
 
-from dtbase.core.db import (
-    connect_db,
-    create_database,
-    create_tables,
-)
-
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
+from dtbase.core.db import connect_db, create_database, create_tables
 
 
 def check_for_docker():
@@ -30,7 +25,7 @@ def check_for_docker():
     if p.returncode != 0:
         return False
     output = p.stdout.decode("utf-8")
-    m = re.search("([0-9a-f]+)[\s]+postgres", output)
+    m = re.search(r"([0-9a-f]+)[\s]+postgres", output)
     if not m:
         return True  # Docker is running, but no postgres container
     else:
@@ -102,7 +97,8 @@ def main():
     if isinstance(docker_check, bool):
         if not docker_check:
             raise RuntimeError(
-                "Looks like Docker isn't running - won't be able to start postgres server"
+                "Looks like Docker isn't running - won't be able to start postgres "
+                "server"
             )
         else:
             container_id = start_docker_postgres()

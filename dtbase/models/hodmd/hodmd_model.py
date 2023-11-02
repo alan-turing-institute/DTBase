@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-import numpy as np
-from sklearn.preprocessing import StandardScaler
-from pydmd import HODMD
-from pydmd.plotter import plot_eigs
-from pydmd import ModesTuner
-
 import matplotlib.pyplot as plt
+import numpy as np
+from pydmd import HODMD, ModesTuner
+from pydmd.plotter import plot_eigs
+from sklearn.preprocessing import StandardScaler
 
 
 def plot_data(
@@ -18,8 +16,8 @@ def plot_data(
     save_suffix="",
 ):
     if isinstance(plot_label, list):
-        plot_label_train = [l + "_train" for l in plot_label]
-        plot_label_forecast = [l + "_forecast" for l in plot_label]
+        plot_label_train = [label + "_train" for label in plot_label]
+        plot_label_forecast = [label + "_forecast" for label in plot_label]
     else:  # it's a string
         plot_label_train = plot_label + "_train"
         plot_label_forecast = plot_label + "_forecast"

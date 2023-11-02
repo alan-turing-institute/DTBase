@@ -41,8 +41,10 @@ def get_training_data(
     the data_config.ini file.
 
     Args:
-        measures_list (list of str): if given, override the 'include_measures' from the config.
-        sensors_list (list of str): if given, override the 'include_sensors' from the config.
+        measures_list (list of str): if given, override the 'include_measures' from the
+            config.
+        sensors_list (list of str): if given, override the 'include_sensors' from the
+            config.
         delta_days (int): Number of days in the past from which to retrieve data.
             Defaults to None.
         num_rows (int, optional): Number of rows to limit the data to. Defaults to None.
@@ -97,7 +99,8 @@ def get_training_data(
             df = pd.DataFrame(entries)
             data_tables.append(df)
 
-    # useful filter when multiple sensors and measures are specified in the configuration.
+    # useful filter when multiple sensors and measures are specified in the
+    # configuration.
     data_tables = [table for table in data_tables if len(table) > 0]
 
     session_close(session)

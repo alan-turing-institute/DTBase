@@ -1,14 +1,10 @@
 from dtbase.core.sensors import (
-    insert_sensor_measure,
-    insert_sensor_type,
     insert_sensor,
+    insert_sensor_measure,
     insert_sensor_readings,
+    insert_sensor_type,
 )
-
-
-from dtbase.tests.generate_synthetic_data import (
-    generate_trh_readings,
-)
+from dtbase.tests.generate_synthetic_data import generate_trh_readings
 
 
 def insert_trh_sensor(sensor_unique_id, session):
@@ -22,13 +18,13 @@ def insert_trh_sensor(sensor_unique_id, session):
             datatype="float",
             session=session,
         )
-    except:
+    except Exception:
         session.rollback()
     try:
         insert_sensor_measure(
             name="Humidity", units="Percent", datatype="float", session=session
         )
-    except:
+    except Exception:
         session.rollback()
     try:
         insert_sensor_type(
@@ -40,7 +36,7 @@ def insert_trh_sensor(sensor_unique_id, session):
             ],
             session=session,
         )
-    except:
+    except Exception:
         session.rollback()
     try:
         insert_sensor(
@@ -48,7 +44,7 @@ def insert_trh_sensor(sensor_unique_id, session):
             unique_identifier=sensor_unique_id,
             session=session,
         )
-    except:
+    except Exception:
         session.rollback()
 
 
@@ -60,7 +56,7 @@ def insert_trh_readings(session, sensor_unique_id="TRH1", insert_sensor=True):
     if insert_sensor:
         try:
             insert_trh_sensor(sensor_unique_id, session)
-        except:
+        except Exception:
             print("Sensor already inserted")
             session.rollback()
     # generate the Temperature and Humidity readings
@@ -87,6 +83,6 @@ def insert_trh_readings(session, sensor_unique_id="TRH1", insert_sensor=True):
     )
     try:
         session.commit()
-    except:
+    except Exception:
         session.rollback()
     print(f"Inserted {len(temps)} temperature values")

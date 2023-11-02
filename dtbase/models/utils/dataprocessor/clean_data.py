@@ -1,8 +1,9 @@
-from dtbase.models.utils.config import config
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,8 @@ def get_time_vector(start, end, frequency="1H", offset=1):
     """
     if offset != 1:
         logger.warning(
-            "!!! The date offset added to the starting timestamp has been set to something different than 1 (hour) !!!"
+            "!!! The date offset added to the starting timestamp has been set to "
+            "something different than 1 (hour) !!!"
         )
     # create a Pandas fixed frequency DatetimeIndex
     time_vector = pd.date_range(
@@ -197,7 +199,8 @@ def clean_sensor_data(sensor_data: pd.DataFrame, measures: list[str]):
     frequency = int(frequency.total_seconds())
     if frequency != constants["secs_per_min"] * constants["mins_per_hr"]:
         logger.warning(
-            "The 'time_delta' setting in data_config.ini has been set to something different than one hour."
+            "The 'time_delta' setting in data_config.ini has been set to something "
+            "different than one hour."
         )
     # now create the time vector
     time_vector = get_time_vector(
@@ -229,19 +232,21 @@ def clean_data(sensor_readings):
             sensors. The corresponding values for the dict keys are pandas dataframes
             containing processed temperature and humidity data for each sensor
             (the observations are averaged based on the proximity of the timestamp
-            to the full hour - use the "mins_from_the_hour" parameter in "data_config.ini"
-            to specify what timestamps to average together). The processed data is
-            time-ordered. The dataframes are indexed by timestamp. Specify the
-            timedelta between successive timestamps using the "time_delta" parameter
-            in "data_config.ini".
+            to the full hour - use the "mins_from_the_hour" parameter in
+            "data_config.ini" to specify what timestamps to average together). The
+            processed data is time-ordered. The dataframes are indexed by timestamp.
+            Specify the timedelta between successive timestamps using the "time_delta"
+            parameter in "data_config.ini".
     """
     if processing_params["mins_from_the_hour"] != 15:
         logger.warning(
-            "The 'mins_from_the_hour' setting in data_config.ini has been set to something different than 15."
+            "The 'mins_from_the_hour' setting in data_config.ini has been set to "
+            "something different than 15."
         )
     if processing_params["window"] != 3:
         logger.warning(
-            "The 'window' setting in data_config.ini has been set to something different than 3."
+            "The 'window' setting in data_config.ini has been set to something "
+            "different than 3."
         )
     column_names = list(sensor_readings.columns)
     column_names.remove("sensor_unique_id")
@@ -260,12 +265,12 @@ def clean_data(sensor_readings):
 
 def clean_data_list(sensor_readings_list):
     """
-    Meta Parent function of this module: for each sensor readings in the list (argument), `clean_data`
-    is called to clean the readings.
+    Meta Parent function of this module: for each sensor readings in the list
+    (argument), `clean_data` is called to clean the readings.
 
     Parameters:
-        sensor_readings: list of pandas dataframe containing e.g. temperature or humidity data
-            returned by get_data.get_training_data.
+        sensor_readings: list of pandas dataframe containing e.g. temperature or
+            humidity data returned by get_data.get_training_data.
 
     Returns:
         cleaned_data: a dictionary with keys named after the user-requested sensors.
@@ -273,11 +278,11 @@ def clean_data_list(sensor_readings_list):
             sensors. The corresponding values for the dict keys are pandas dataframes
             containing processed temperature and humidity data for each sensor
             (the observations are averaged based on the proximity of the timestamp
-            to the full hour - use the "mins_from_the_hour" parameter in "data_config.ini"
-            to specify what timestamps to average together). The processed data is
-            time-ordered. The dataframes are indexed by timestamp. Specify the
-            timedelta between successive timestamps using the "time_delta" parameter
-            in "data_config.ini".
+            to the full hour - use the "mins_from_the_hour" parameter in
+             "data_config.ini" to specify what timestamps to average together). The
+            processed data is time-ordered. The dataframes are indexed by timestamp.
+            Specify the timedelta between successive timestamps using the "time_delta"
+            parameter in "data_config.ini".
     """
     cleaned_data = [clean_data(data_) for data_ in sensor_readings_list]
     keys = set([key for data_ in cleaned_data for key in data_.keys()])

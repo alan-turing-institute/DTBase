@@ -257,7 +257,7 @@ def insert_model_run(
                     same length.
         sensor_id:int (optional) - database ID of sensor against which results should be
                      compared.
-        sensor_measure_id: int (optional) - what measure (e.g. "temperature") to compare to.
+        sensor_measure_id: int (optional) - measure (e.g. "temperature") to compare to.
         time_created: Time when this run was run. Optional, `now` by default.
         create_scenario: Whether to create the scenario if it doesn't already exist.
             Optional, False by default.
@@ -317,7 +317,8 @@ def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session
 
     Returns:
         List of model runs, each being a dict with keys:
-         "id","model_id", "model_name", "scenario_id", "scenario_description", "time_created"
+         "id","model_id", "model_name", "scenario_id", "scenario_description",
+         "time_created"
     """
     query = (
         sqla.select(
@@ -393,7 +394,8 @@ def get_model_run_results_for_measure(run_id, measure_name=None, session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        A list of tuples (values, timestamp) that are the results of the model run for that measure
+        A list of tuples (values, timestamp) that are the results of the model run for
+        that measure
     """
 
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)

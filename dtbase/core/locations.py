@@ -164,7 +164,8 @@ def insert_location_identifier(name, units, datatype, session=None):
         .first()
     )
 
-    # Only add a new identifier if one with the same name and units does not already exist
+    # Only add a new identifier if one with the same name and units does not already
+    # exist
     if not existing_identifier:
         new_identifier = LocationIdentifier(name=name, units=units, datatype=datatype)
         session.add(new_identifier)
@@ -403,8 +404,9 @@ def get_schema_details(schema_name, session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        Dictionary with keys 'id', 'name', 'description', and 'identifiers'. 'identifiers'
-        is a list of identifiers (dictionaries with keys 'id', 'name', 'unit', 'datatype').
+        Dictionary with keys 'id', 'name', 'description', and 'identifiers'.
+        'identifiers' is a list of identifiers
+        (dictionaries with keys 'id', 'name', 'unit', 'datatype').
     """
     schema = (
         session.query(

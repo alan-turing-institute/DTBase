@@ -232,10 +232,13 @@ def list_model_runs():
     GET request should have json data (mimetype "application/json") containing
     {
         "model_name": <Name of the model to get runs for>,
-        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>.  Optional, defaults to datetime.now minus one week.
-        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>. Optional, defaults to datetime.now.
-        "scenario": <The string description of the scenario to include runs for. Optional,
-            by default all scenarios>,
+        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601
+            format: '%Y-%m-%dT%H:%M:%S'>.  Optional, defaults to datetime.now minus one
+            week.
+        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601
+            format: '%Y-%m-%dT%H:%M:%S'>. Optional, defaults to datetime.now.
+        "scenario": <The string description of the scenario to include runs for.
+            Optional, by default all scenarios>,
     }
 
     Returns:
@@ -254,7 +257,8 @@ def list_model_runs():
     dt_from = payload.get("dt_from")
     dt_error = jsonify(
         {
-            "error": "Invalid datetime format for dt_to/from. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+            "error": "Invalid datetime format for dt_to/from. "
+            "Use ISO format: '%Y-%m-%dT%H:%M:%S'"
         }
     )
     if dt_to:
