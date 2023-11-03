@@ -1,19 +1,18 @@
-from flask import Flask
-from flask_login import LoginManager
-from flask_cors import CORS
-
 from importlib import import_module
-from logging import basicConfig, DEBUG, getLogger, StreamHandler
+from logging import DEBUG, StreamHandler, basicConfig, getLogger
+
+from flask import Flask
+from flask_cors import CORS
+from flask_login import LoginManager
 
 from dtbase.core.constants import (
-    DEFAULT_USER_USERNAME,
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
+    DEFAULT_USER_USERNAME,
 )
 from dtbase.core.structure import SQLA as db
 from dtbase.core.structure import User
 from dtbase.core.utils import change_user_password, create_user, delete_user
-
 
 login_manager = LoginManager()
 

@@ -4,6 +4,7 @@ from typing import Tuple
 
 import pandas as pd
 import pytz
+
 from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)

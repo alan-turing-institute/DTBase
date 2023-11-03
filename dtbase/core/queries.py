@@ -6,6 +6,7 @@ or executing them is the responsibility of the caller.
 import sqlalchemy as sqla
 from sqlalchemy.orm import aliased
 
+from dtbase.core import utils
 from dtbase.core.structure import (
     Location,
     LocationIdentifier,
@@ -15,7 +16,6 @@ from dtbase.core.structure import (
     SensorType,
     SensorTypeMeasureRelation,
 )
-from dtbase.core import utils
 
 
 def location_identifiers_by_schema():

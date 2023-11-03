@@ -1,7 +1,8 @@
-from dtbase.webapp.app import login_manager
-from dtbase.webapp.app.base import blueprint
 from flask import current_app, redirect, render_template, url_for
 from flask_login import login_required
+
+from dtbase.webapp.app import login_manager
+from dtbase.webapp.app.base import blueprint
 
 
 @blueprint.route("/")

@@ -6,12 +6,13 @@ import json
 import re
 
 import pandas as pd
-from dtbase.core.constants import CONST_MAX_RECORDS
-from dtbase.webapp import utils
-from dtbase.webapp.app.sensors import blueprint
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
+
+from dtbase.core.constants import CONST_MAX_RECORDS
+from dtbase.webapp import utils
+from dtbase.webapp.app.sensors import blueprint
 
 
 def fetch_all_sensor_types():

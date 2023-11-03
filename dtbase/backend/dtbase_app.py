@@ -2,8 +2,9 @@ from os import environ
 from sys import exit
 
 from flask_migrate import Migrate
-from dtbase.backend.config import config_dict
+
 from dtbase.backend.api import create_app, db
+from dtbase.backend.config import config_dict
 
 get_config_mode = environ.get("DTBASE_CONFIG_MODE", "Production")
 print(f"get_config_mode is {get_config_mode}")

@@ -1,5 +1,6 @@
 """Functions for accessing the sensor tables. """
 import sqlalchemy as sqla
+
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries, utils
 from dtbase.core.structure import (

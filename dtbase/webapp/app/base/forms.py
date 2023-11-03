@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField
+from wtforms import PasswordField, TextField
 
 ## login and registration
 

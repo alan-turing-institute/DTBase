@@ -3,6 +3,7 @@ import logging
 import sys
 
 import coloredlogs
+
 from dtbase.core.models import (
     insert_model,
     insert_model_measure,

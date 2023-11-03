@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 import requests
+
 from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,

@@ -2,8 +2,9 @@
 Test the functions for accessing the locations tables.
 """
 import pytest
-from dtbase.core import locations
 from sqlalchemy.exc import IntegrityError
+
+from dtbase.core import locations
 
 # Some constants we will use in the tests repeatedly.
 LATITUDE1 = -2.0

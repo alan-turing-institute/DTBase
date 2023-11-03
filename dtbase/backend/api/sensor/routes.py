@@ -4,11 +4,12 @@ Module (routes.py) to handle API endpoints related to sensors
 from datetime import datetime
 
 import sqlalchemy as sqla
+from flask import jsonify, request
+
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import sensor_locations, sensors
 from dtbase.core.structure import SQLA as db
-from flask import jsonify, request
 
 
 @blueprint.route("/insert-sensor-type", methods=["POST"])

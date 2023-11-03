@@ -92,10 +92,10 @@ target-version = "py310"
 select = [
   "F",
   "E",
+  "I",
 #  "W",
 #  "N",
 #  "C",
-#  "I",
 #  "D",
 #  "YTT",
 #  "ANN",

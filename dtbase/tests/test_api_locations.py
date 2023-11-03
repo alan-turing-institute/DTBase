@@ -2,6 +2,7 @@
 Test API endpoints for locations
 """
 import pytest
+
 from dtbase.tests.conftest import check_for_docker
 
 DOCKER_RUNNING = check_for_docker()

@@ -4,12 +4,14 @@ Useful database-related functions for predictive models
 
 import logging
 
-
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 
 # The below import is for exporting, other modules will import it from there
-from dtbase.core.db import session_close  # noqa: F401
-from dtbase.core.db import connect_db, session_open
+from dtbase.core.db import (
+    connect_db,
+    session_close,  # noqa: F401
+    session_open,
+)
 
 logger = logging.getLogger(__name__)
 

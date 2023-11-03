@@ -4,10 +4,11 @@ A module for the main dashboard actions
 import json
 from datetime import datetime
 
-from dtbase.webapp import utils
-from dtbase.webapp.app.models import blueprint
 from flask import redirect, render_template, request
 from requests.exceptions import ConnectionError
+
+from dtbase.webapp import utils
+from dtbase.webapp.app.models import blueprint
 
 
 def fetch_all_models():

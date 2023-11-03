@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
+
 from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)

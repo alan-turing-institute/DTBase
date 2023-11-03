@@ -6,10 +6,11 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from dtbase.models.utils.config import config
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
+
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 

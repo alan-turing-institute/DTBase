@@ -5,6 +5,7 @@ import sys
 from collections import defaultdict
 
 import coloredlogs
+
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
 from dtbase.models.utils.config import config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data
