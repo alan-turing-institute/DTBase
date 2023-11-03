@@ -38,6 +38,13 @@ def favicon():
 
 ## Login & Registration
 
+
+# This is placeholder, see below.
+@blueprint.route("/login", methods=["GET", "POST"])
+def login():
+    return redirect(url_for("home_blueprint.index"))
+
+
 # TODO The below function are copypasta from CROP, and don't work as they are.
 # We need to implement this user management stuff.
 # The imports should also be moved to the top once commented in.
