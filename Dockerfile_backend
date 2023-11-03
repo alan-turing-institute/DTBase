@@ -20,8 +20,7 @@ RUN apt install -y nodejs
 RUN mkdir DTBase
 WORKDIR DTBase
 ADD dtbase dtbase
-ADD setup.py setup.py
-ADD requirements.txt requirements.txt
+ADD pyproject.toml pyproject.toml
 RUN python3 -m pip install .
 
 # launch the webapp
