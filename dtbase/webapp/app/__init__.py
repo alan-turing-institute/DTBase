@@ -1,11 +1,10 @@
-from flask import Flask, url_for
-from flask_login import LoginManager, login_required, UserMixin
-from flask_cors import CORS
-
 from importlib import import_module
-from logging import basicConfig, DEBUG, getLogger, StreamHandler
+from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from os import path
 
+from flask import Flask, url_for
+from flask_cors import CORS
+from flask_login import LoginManager, UserMixin
 
 login_manager = LoginManager()
 

@@ -1,17 +1,15 @@
 """
 Module (routes.py) to handle API endpoints related to sensors
 """
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
+
 import sqlalchemy as sqla
-from flask import request, jsonify
-from flask_login import login_required
+from flask import jsonify, request
 
 from dtbase.backend.api.sensor import blueprint
-from dtbase.core import sensors, sensor_locations
-from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
 from dtbase.backend.utils import check_keys
+from dtbase.core import sensor_locations, sensors
+from dtbase.core.structure import SQLA as db
 
 
 @blueprint.route("/insert-sensor-type", methods=["POST"])
@@ -108,7 +106,8 @@ def insert_sensor_location():
     where the coordinates dict is keyed by location identifiers.
     and optionally also
     {
-      "installation_datetime": <date from which the sensor has been at this location:str>
+      "installation_datetime": <date from which the sensor has been at this
+        location:str>
     }
     If no installation date is given, it's assumed to be now.
     """
@@ -232,7 +231,7 @@ def list_sensors():
             type_name=payload.get("type_name"), session=db.session
         )
     else:
-        sensors.list_sensors(session=db.session)
+        result = sensors.list_sensors(session=db.session)
     return jsonify(result), 200
 
 
@@ -266,7 +265,12 @@ def list_sensor_measures():
     List sensor measures in the database.
     Returns results in the form:
     [
-    {"datatype": <datatype:str>, "id": <id:int>, "name": <name:str>, "units": <units:str>},
+        {
+            "datatype": <datatype:str>,
+            "id": <id:int>,
+            "name": <name:str>,
+            "units": <units:str>
+        },
     ...
     ]
     """
@@ -283,8 +287,10 @@ def get_sensor_readings():
     GET request should have JSON data (mimetype "application/json") containing:
         measure_name: Name of the sensor measure to get readings for.
         unique_identifier: Unique identifier for the sensor to get readings for.
-        dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
-        dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
+        dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601
+            format: '%Y-%m-%dT%H:%M:%S'.
+        dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format:
+            '%Y-%m-%dT%H:%M:%S'.
     """
 
     payload = request.get_json()
@@ -307,7 +313,8 @@ def get_sensor_readings():
         return (
             jsonify(
                 {
-                    "error": "Invalid datetime format. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+                    "error": "Invalid datetime format. Use ISO format: "
+                    "'%Y-%m-%dT%H:%M:%S'"
                 }
             ),
             400,

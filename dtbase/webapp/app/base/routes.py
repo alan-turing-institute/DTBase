@@ -1,14 +1,8 @@
-from bcrypt import checkpw
-
-from os import environ
-
-from flask import current_app, jsonify, render_template, redirect, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import current_app, redirect, render_template, url_for
+from flask_login import login_required
 
 from dtbase.webapp.app import login_manager
-
 from dtbase.webapp.app.base import blueprint
-from dtbase.webapp.app.base.forms import LoginForm, CreateAccountForm
 
 
 @blueprint.route("/")
@@ -46,50 +40,69 @@ def favicon():
 ## Login & Registration
 
 
+# This is placeholder, see below.
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
-    login_form = LoginForm(request.form)
-    create_account_form = CreateAccountForm(request.form)
-    if "login" in request.form:
-        username = request.form["username"]
-        password = request.form["password"]
-        user = UserClass.query.filter_by(username=username).first()
-        if user and checkpw(password.encode("utf8"), user.password):
-            login_user(user)
-            return redirect(url_for("base_blueprint.route_default"))
-        return render_template("errors/page_403.html")
-
-    if not current_user.is_authenticated:
-        return render_template(
-            "login/login.html",
-            login_form=login_form,
-            create_account_form=create_account_form,
-            disable_register=(environ.get("DTBASE_DISABLE_REGISTER", "True") == "True"),
-        )
     return redirect(url_for("home_blueprint.index"))
 
 
-@blueprint.route("/create_user", methods=["POST"])
-@login_required
-def create_user():
-    success, result = utils.create_user(**request.form)
-    return jsonify({"success": success, "output": result})
+# TODO The below function are copypasta from CROP, and don't work as they are.
+# We need to implement this user management stuff.
+# The imports should also be moved to the top once commented in.
 
+# from os import environ
+#
+# from bcrypt import checkpw
+# from dtbase.webapp.app.base.forms import CreateAccountForm, LoginForm
+# from flask import jsonify, request
+# from flask_login import current_user, login_user, logout_user
 
-@blueprint.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for("base_blueprint.login"))
-
-
-@blueprint.route("/shutdown")
-def shutdown():
-    func = request.environ.get("werkzeug.server.shutdown")
-    if func is None:
-        raise RuntimeError("Not running with the Werkzeug Server")
-    func()
-    return "Server shutting down..."
+# @blueprint.route("/login", methods=["GET", "POST"])
+# def login():
+#     login_form = LoginForm(request.form)
+#     create_account_form = CreateAccountForm(request.form)
+#     if "login" in request.form:
+#         username = request.form["username"]
+#         password = request.form["password"]
+#         user = UserClass.query.filter_by(username=username).first()
+#         if user and checkpw(password.encode("utf8"), user.password):
+#             login_user(user)
+#             return redirect(url_for("base_blueprint.route_default"))
+#         return render_template("errors/page_403.html")
+#
+#     if not current_user.is_authenticated:
+#         return render_template(
+#             "login/login.html",
+#             login_form=login_form,
+#             create_account_form=create_account_form,
+#             disable_register=(environ.get(
+#                "DTBASE_DISABLE_REGISTER", "True"
+#             ) == "True"),
+#         )
+#     return redirect(url_for("home_blueprint.index"))
+#
+#
+# @blueprint.route("/create_user", methods=["POST"])
+# @login_required
+# def create_user():
+#     success, result = utils.create_user(**request.form)
+#     return jsonify({"success": success, "output": result})
+#
+#
+# @blueprint.route("/logout")
+# @login_required
+# def logout():
+#     logout_user()
+#     return redirect(url_for("base_blueprint.login"))
+#
+#
+# @blueprint.route("/shutdown")
+# def shutdown():
+#     func = request.environ.get("werkzeug.server.shutdown")
+#     if func is None:
+#         raise RuntimeError("Not running with the Werkzeug Server")
+#     func()
+#     return "Server shutting down..."
 
 
 # Errors

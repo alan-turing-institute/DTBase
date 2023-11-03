@@ -1,8 +1,6 @@
 """
 Test that the DTBase locations pages load
 """
-from flask import url_for, request
-import pytest
 import requests_mock
 
 

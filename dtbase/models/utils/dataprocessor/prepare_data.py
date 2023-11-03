@@ -1,9 +1,11 @@
-from dtbase.models.utils.config import config
 import datetime
-import pytz
-import pandas as pd
 import logging
 from typing import Tuple
+
+import pandas as pd
+import pytz
+
+from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,8 @@ def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
     farm_cycle_start = datetime.datetime.strptime(farm_cycle_start, "%Hh%Mm%Ss")
     if farm_cycle_start.time() != datetime.time(hour=16, minute=0, second=0):
         logger.warning(
-            "The `farm_cycle_start` parameter in data_config.ini has been set to something different than 4 PM."
+            "The `farm_cycle_start` parameter in data_config.ini has been set to "
+            "something different than 4 PM."
         )
     farm_cycle_start = datetime.datetime.combine(
         timestamp.date(), farm_cycle_start.time()
@@ -147,8 +150,8 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
         if days_interval < 30:
             logger.error(
                 """
-                If the 'weekly_seasonality' parameter in data_config.ini is set to `True`,
-                the 'days_interval' parameter must be >= 30.
+                If the 'weekly_seasonality' parameter in data_config.ini is set to
+                `True`, the 'days_interval' parameter must be >= 30.
                 """
             )
             raise ValueError
@@ -192,8 +195,8 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
     the model (e.g. ARIMA, HODMD, ...) pipeline. Parameters relevant to this function in
-    data_config.ini are `farm_cycle_start`, `days_interval` and `weekly_seasonality`. The
-    last two are employed to replace missing observations.
+    data_config.ini are `farm_cycle_start`, `days_interval` and `weekly_seasonality`.
+    The last two are employed to replace missing observations.
 
     Parameters:
         sensor_data: this is the output of `clean_data.clean_data`.
@@ -214,11 +217,13 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     logger.info("Preparing the data to feed to the model...")
     if other_config["days_interval"] != 30:
         logger.warning(
-            "The `days_interval` parameter in data_config.ini has been set to something different than 30."
+            "The `days_interval` parameter in data_config.ini has been set to "
+            "something different than 30."
         )
     if not other_config["weekly_seasonality"]:
         logger.warning(
-            "The `weekly_seasonality` parameter in data_config.ini has been set to False."
+            "The `weekly_seasonality` parameter in data_config.ini has been set "
+            "to False."
         )
     # obtain the standardized timestamp.
     keys_sensor_data = list(sensor_data.keys())

@@ -3,13 +3,14 @@ Python module to read the parameters specified in the configuration file,
 including parameters required to connect to the PostgreSQL database server
 """
 
-from configparser import ConfigParser
-import os
 import ast
+import os
+from configparser import ConfigParser
 
 
 def config(
-    # gets config.ini file from the parent directory, no matter where the script is run from
+    # gets config.ini file from the parent directory, no matter where the script is run
+    # from
     filename=os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "dataprocessor/data_config.ini"
     ),
@@ -42,7 +43,8 @@ def config(
 
     # If the same variable is defined also as an environment variable, have that
     # override the value in the file.
-    # Note that the environment variable must follow this structure: DT_ARIMA_VARIABLENAME
+    # Note that the environment variable must follow this structure:
+    # DT_ARIMA_VARIABLENAME
     for key in conf_dict.keys():
         env_var = "DT_ARIMA_{}".format(key).upper()
         if env_var in os.environ:

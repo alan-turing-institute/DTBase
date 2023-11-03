@@ -217,10 +217,7 @@ def main():
     create_pg_database(resource_group, sql_server)
     app_service_plan = create_app_service_plan(resource_group)
     app_insights = create_app_insights(resource_group)
-    storage_account = create_storage_account(resource_group)
-    sa_connection_string = get_connection_string(
-        storage_account.name, resource_group.name
-    )
+    create_storage_account(resource_group)
     backend = create_backend_webapp(
         "backend", resource_group, app_service_plan, sql_server, app_insights
     )

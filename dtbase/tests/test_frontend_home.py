@@ -2,8 +2,6 @@
 Test that the DTBase homepage loads
 """
 
-import pytest
-
 
 def test_home(frontend_client):
     response = frontend_client.get("/home/index")

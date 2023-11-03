@@ -1,19 +1,15 @@
 #!/usr/bin/env python
-import os
+import logging
 import sys
-from collections import defaultdict
-import pandas as pd
-import logging, coloredlogs
 
+import coloredlogs
 
 from dtbase.core.models import (
-    list_model_measures,
-    list_model_scenarios,
-    insert_model_run,
-    insert_model_product,
-    insert_model_measure,
-    insert_model_scenario,
     insert_model,
+    insert_model_measure,
+    insert_model_run,
+    insert_model_scenario,
+    list_model_measures,
     model_id_from_name,
     scenario_id_from_description,
 )
@@ -21,14 +17,12 @@ from dtbase.core.sensors import (
     measure_id_from_name_and_units,
     sensor_id_from_unique_identifier,
 )
-from dtbase.models.utils.db_utils import (
-    get_sqlalchemy_session,
-)
-from dtbase.models.utils.dataprocessor.get_data import get_training_data
-from dtbase.models.utils.dataprocessor.clean_data import clean_data, clean_data_list
-from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
-from dtbase.models.utils.config import config
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
+from dtbase.models.utils.config import config
+from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+from dtbase.models.utils.db_utils import get_sqlalchemy_session
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +83,7 @@ def run_pipeline(session=None) -> None:
     for base_measure in base_measures_list:
         for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
             measure = m + base_measure[0]
-            if not measure in db_measure_names:
+            if measure not in db_measure_names:
                 insert_model_measure(measure, "", "float", session=session)
                 logging.info(f"Inserting measure {measure} to db")
     session.commit()

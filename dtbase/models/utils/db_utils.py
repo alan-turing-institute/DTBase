@@ -3,16 +3,15 @@ Useful database-related functions for predictive models
 """
 
 import logging
-import sys
-import datetime
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-
-from dtbase.core.db import connect_db, session_open, session_close
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
+
+# The below import is for exporting, other modules will import it from there
+from dtbase.core.db import (
+    connect_db,
+    session_close,  # noqa: F401
+    session_open,
+)
 
 logger = logging.getLogger(__name__)
 

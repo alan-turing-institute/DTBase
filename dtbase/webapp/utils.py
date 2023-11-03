@@ -1,9 +1,8 @@
 """Utilities for the front end."""
 import datetime as dt
-import os
-import json
-import requests
 import urllib
+
+import requests
 
 from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
@@ -42,8 +41,8 @@ def backend_call(request_type, end_point_path, payload=None):
 
 def convert_form_values(variables, form, prefix="identifier"):
     """
-    Prepared the form and converts values to their respective datatypes as defined in the schema.
-    Returns a dictionary of converted values.
+    Prepared the form and converts values to their respective datatypes as defined in
+    the schema. Returns a dictionary of converted values.
     """
 
     # Define a dictionary mapping type names to conversion functions
@@ -73,7 +72,8 @@ def convert_form_values(variables, form, prefix="identifier"):
             converted_value = conversion_function(value)
         except ValueError:
             raise ValueError(
-                f"Invalid value '{value}' for variable '{variable['name']}' (expected {datatype})"
+                f"Invalid value '{value}' for variable '{variable['name']}' "
+                f"(expected {datatype})"
             )
 
         converted_values[variable["name"]] = converted_value

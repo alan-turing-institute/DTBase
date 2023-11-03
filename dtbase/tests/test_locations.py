@@ -1,11 +1,10 @@
 """
 Test the functions for accessing the locations tables.
 """
-import sqlalchemy as sqla
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.core import locations
-
 
 # Some constants we will use in the tests repeatedly.
 LATITUDE1 = -2.0
@@ -103,7 +102,7 @@ def test_insert_location_schema_duplicate(session):
     error_msg = (
         'duplicate key value violates unique constraint "location_schema_name_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         locations.insert_location_schema(
             name="latlong",
             description="Latimer and Longchamp",
@@ -226,11 +225,11 @@ def test_delete_location_identifier_schema_exists(session):
     """Try to delete a location identifier for which a location schema exists."""
     insert_schemas(session)
     error_msg = (
-        'update or delete on table "location_identifier" violates foreign key constraint '
-        '"location_schema_identifier_relation_identifier_id_fkey" on table '
+        'update or delete on table "location_identifier" violates foreign key '
+        'constraint "location_schema_identifier_relation_identifier_id_fkey" on table '
         '"location_schema_identifier_relation"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         locations.delete_location_identifier("latitude", session=session)
 
 
@@ -254,7 +253,7 @@ def test_delete_location_schema_location_exists(session):
         'update or delete on table "location_schema" violates foreign key '
         'constraint "location_schema_id_fkey" on table "location"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         locations.delete_location_schema("latlong", session=session)
 
 

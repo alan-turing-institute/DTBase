@@ -1,11 +1,12 @@
-import pytest
 import pandas as pd
-from dtbase.tests.upload_synthetic_data import insert_trh_readings
-from dtbase.models.utils.dataprocessor.get_data import get_training_data
-from dtbase.models.utils.dataprocessor.clean_data import clean_data
-from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
+import pytest
+
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
+from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.get_data import get_training_data
+from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.tests.conftest import check_for_docker
+from dtbase.tests.upload_synthetic_data import insert_trh_readings
 
 DOCKER_RUNNING = check_for_docker()
 

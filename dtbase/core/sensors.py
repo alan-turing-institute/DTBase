@@ -2,14 +2,13 @@
 import sqlalchemy as sqla
 
 from dtbase.backend.utils import add_default_session
-from dtbase.core import queries
+from dtbase.core import queries, utils
 from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
     SensorType,
     SensorTypeMeasureRelation,
 )
-from dtbase.core import utils
 
 
 @add_default_session
@@ -36,7 +35,8 @@ def measure_id_from_name_and_units(measure_name, measure_units, session=None):
         )
     if len(result) > 1:
         raise ValueError(
-            f"Multiple sensor measures named '{measure_name}' with units '{measure_units}'"
+            f"Multiple sensor measures named '{measure_name}' with units "
+            f"'{measure_units}'"
         )
     return result[0][0]
 

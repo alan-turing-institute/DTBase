@@ -3,8 +3,8 @@ Test the functions for accessing the model tables.
 """
 import datetime as dt
 
-import sqlalchemy as sqla
 import pytest
+import sqlalchemy as sqla
 
 from dtbase.core import models
 

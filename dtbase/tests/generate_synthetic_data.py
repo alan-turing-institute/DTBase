@@ -5,10 +5,11 @@ For sensor readings:
    with Gaussian noise.
 """
 
-from datetime import datetime, timedelta
 import random
-import pandas as pd
+from datetime import datetime, timedelta
+
 import numpy as np
+import pandas as pd
 
 
 def generate_timepoints(start_time, end_time, interval):
@@ -48,8 +49,6 @@ def initial_dataframe(start_time, end_time, interval, colnames=["values"]):
     df: pandas DataFrame with one row per timestamp, timestamps in Unix format
     """
     timestamps = generate_timepoints(start_time, end_time, interval)
-
-    init_values = np.zeros(len(timestamps))
     df = pd.DataFrame(
         {"timestamp": timestamps, **{k: np.zeros(len(timestamps)) for k in colnames}}
     )
@@ -86,7 +85,6 @@ def add_sinusoid(df, colname, amplitude, period, offset=0):
     =======
     df: pandas.DataFrame, same format as input
     """
-    start_time = df.timestamp.values[0]
     offsets = df.timestamp.values - df.timestamp.values[0]
     values = amplitude * np.sin(2 * np.pi * (offsets + offset) / period)
     df[colname] += values

@@ -1,18 +1,14 @@
 """
 Module (routes.py) to handle endpoints related to models
 """
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 
-from flask import request, jsonify
-from flask_login import login_required
+from flask import jsonify, request
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import models
 from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
-from dtbase.backend.utils import check_keys
 
 
 @blueprint.route("/insert-model", methods=["POST"])
@@ -237,10 +233,13 @@ def list_model_runs():
     GET request should have json data (mimetype "application/json") containing
     {
         "model_name": <Name of the model to get runs for>,
-        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>.  Optional, defaults to datetime.now minus one week.
-        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601 format: '%Y-%m-%dT%H:%M:%S'>. Optional, defaults to datetime.now.
-        "scenario": <The string description of the scenario to include runs for. Optional,
-            by default all scenarios>,
+        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601
+            format: '%Y-%m-%dT%H:%M:%S'>.  Optional, defaults to datetime.now minus one
+            week.
+        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601
+            format: '%Y-%m-%dT%H:%M:%S'>. Optional, defaults to datetime.now.
+        "scenario": <The string description of the scenario to include runs for.
+            Optional, by default all scenarios>,
     }
 
     Returns:
@@ -259,7 +258,8 @@ def list_model_runs():
     dt_from = payload.get("dt_from")
     dt_error = jsonify(
         {
-            "error": "Invalid datetime format for dt_to/from. Use ISO format: '%Y-%m-%dT%H:%M:%S'"
+            "error": "Invalid datetime format for dt_to/from. "
+            "Use ISO format: '%Y-%m-%dT%H:%M:%S'"
         }
     )
     if dt_to:

@@ -1,19 +1,14 @@
 """
 A module for the main dashboard actions
 """
-import datetime as dt
 import json
-import re
-
-from flask import render_template, request, redirect
-from flask_login import login_required
-import pandas as pd
-
 from datetime import datetime
+
+from flask import redirect, render_template, request
 from requests.exceptions import ConnectionError
 
-from dtbase.webapp.app.models import blueprint
 from dtbase.webapp import utils
+from dtbase.webapp.app.models import blueprint
 
 
 def fetch_all_models():
@@ -67,7 +62,8 @@ def get_run_pred_data(run_id):
     Args:
         run_id:int, database ID of the ModelRun
     Returns:
-        dict, keyed by ModelMeasure, containing list of dicts {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
+        dict, keyed by ModelMeasure, containing list of dicts
+        {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
     """
     # now get the output of the model for that run
     try:
@@ -90,7 +86,8 @@ def get_run_sensor_data(run_id, earliest_timestamp):
        earliest_timestamp: str, ISO format timestamp of the earliest prediction point
 
     Returns:
-       dict, with keys "sensor_uniq_id", "measure_name", "readings", where "readings" is a list of (value, timestamp) tuples.
+       dict, with keys "sensor_uniq_id", "measure_name", "readings", where "readings" is
+       a list of (value, timestamp) tuples.
     """
     try:
         response = utils.backend_call(
@@ -164,7 +161,7 @@ def index():
 
     else:  # POST request
         print(f"POST REQUEST {request.form}")
-        if "model_name" in request.form and not "run_id" in request.form:
+        if "model_name" in request.form and "run_id" not in request.form:
             model_name = request.form["model_name"]
             run_ids = get_run_ids(model_name)
             print(f"Got run_ids {run_ids}")
@@ -179,11 +176,12 @@ def index():
             model_name = request.form["model_name"]
             run_id = request.form["run_id"]
             model_data = fetch_run_data(run_id)
-        return render_template(
-            "models.html",
-            models=model_list,
-            run_ids=run_ids,
-            selected_model_name=model_name,
-            run_id=run_id,
-            model_data=json.dumps(model_data),
-        )
+            return render_template(
+                "models.html",
+                models=model_list,
+                run_ids=run_ids,
+                selected_model_name=model_name,
+                run_id=run_id,
+                model_data=json.dumps(model_data),
+            )
+        # TODO What to do if neither of the above is true?

@@ -2,19 +2,14 @@
 Data access module for ARIMA model and potentially others
 """
 
-import logging
-import sys
 import datetime
-from pathlib import Path
+import logging
 
-import numpy as np
 import pandas as pd
-from sqlalchemy import desc, asc, exc, func
 
 from dtbase.core.sensors import get_sensor_readings
-
-from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 from dtbase.models.utils.config import config
+from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +42,10 @@ def get_training_data(
     the data_config.ini file.
 
     Args:
-        measures_list (list of str): if given, override the 'include_measures' from the config.
-        sensors_list (list of str): if given, override the 'include_sensors' from the config.
+        measures_list (list of str): if given, override the 'include_measures' from the
+            config.
+        sensors_list (list of str): if given, override the 'include_sensors' from the
+            config.
         delta_days (int): Number of days in the past from which to retrieve data.
             Defaults to None.
         num_rows (int, optional): Number of rows to limit the data to. Defaults to None.
@@ -89,7 +86,6 @@ def get_training_data(
         # this will be a list of tuples (measure_name, units)
     for measure in measures_list:
         for sensor in sensors_list:
-            columns = [measure[0], "sensor_unique_id", "timestamp"]
             readings = get_sensor_readings(
                 measure_name=measure[0],
                 sensor_uniq_id=sensor,
@@ -104,7 +100,8 @@ def get_training_data(
             df = pd.DataFrame(entries)
             data_tables.append(df)
 
-    # useful filter when multiple sensors and measures are specified in the configuration.
+    # useful filter when multiple sensors and measures are specified in the
+    # configuration.
     data_tables = [table for table in data_tables if len(table) > 0]
 
     session_close(session)

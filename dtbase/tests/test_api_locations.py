@@ -1,12 +1,9 @@
 """
 Test API endpoints for locations
 """
-import json
 import pytest
-from unittest import mock
 
 from dtbase.tests.conftest import check_for_docker
-from dtbase.backend.api.location import routes
 
 DOCKER_RUNNING = check_for_docker()
 
@@ -55,9 +52,7 @@ def test_insert_location_nonexisting_schema(client):
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
             location = {"a": 123.4, "b": 432.1, "schema_name": "fakey"}
-            response = client.post(
-                "/location/insert-location-for-schema", json=location
-            )
+            client.post("/location/insert-location-for-schema", json=location)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

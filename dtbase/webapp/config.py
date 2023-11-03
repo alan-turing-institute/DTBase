@@ -1,6 +1,3 @@
-from os import environ
-
-
 class Config(object):
     SECRET_KEY = "V96fj5eJf9ukM4U+xG3IapXqETjNFjV/kNy4PqpZUCE0bxy7Cyr8LKWMrKIO2Sw"
     # THEME SUPPORT

@@ -1,4 +1,5 @@
 from flask import jsonify
+
 from dtbase.core.structure import SQLA as db
 
 

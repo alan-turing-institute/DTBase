@@ -1,8 +1,6 @@
 """
 Test that the DTBase models pages load
 """
-from flask import url_for, request
-import pytest
 import requests_mock
 
 MOCK_PREDICTION_DATA = {

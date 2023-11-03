@@ -2,9 +2,8 @@
 import sqlalchemy as sqla
 
 from dtbase.backend.utils import add_default_session
-from dtbase.core import queries, sensors
+from dtbase.core import queries, sensors, utils
 from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocation
-from dtbase.core import utils
 
 
 @add_default_session

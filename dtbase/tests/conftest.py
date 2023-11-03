@@ -1,4 +1,3 @@
-import os
 import time
 
 import pytest
@@ -6,24 +5,27 @@ import pytest
 from dtbase.backend.api import create_app as create_backend_app
 from dtbase.backend.config import config_dict as backend_config
 from dtbase.core.constants import SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME
+
+# The below import is for exporting, other modules will import it from there
 from dtbase.core.db import (
     connect_db,
     create_database,
     create_tables,
     drop_db,
     drop_tables,
-    session_close,
+    session_close,  # noqa: F401
     session_open,
 )
+
+# The below import is for exporting, other modules will import it from there
 from dtbase.core.db_docker import (
-    check_for_docker,
+    check_for_docker,  # noqa: F401
     start_docker_postgres,
     stop_docker_postgres,
 )
 from dtbase.core.utils import create_user
 from dtbase.webapp.app import create_app as create_frontend_app
 from dtbase.webapp.config import config_dict as frontend_config
-
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None

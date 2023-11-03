@@ -26,3 +26,10 @@ export DT_BACKEND_URL=http://localhost:5000
 ```
 * Execute the command `./run.sh`
 * You should now be able to view the webapp on your browser at `http://localhost:8000`.
+
+## Contributing code
+
+We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/).
+It is installed as a dev dependency when you run `pip install .[dev]`.
+We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass.
+If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.

@@ -4,7 +4,7 @@ import datetime as dt
 import sqlalchemy as sqla
 
 from dtbase.backend.utils import add_default_session
-from dtbase.core import queries
+from dtbase.core import utils
 from dtbase.core.structure import (
     Model,
     ModelMeasure,
@@ -14,7 +14,6 @@ from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
 )
-from dtbase.core import utils
 
 
 @add_default_session
@@ -72,7 +71,7 @@ def measure_name_from_id(measure_id, session=None):
     query = sqla.select(ModelMeasure.name).where(ModelMeasure.id == measure_id)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model measure '{name}'.")
+        raise ValueError(f"No model measure '{measure_id}'.")
     return result[0][0]
 
 
@@ -259,7 +258,7 @@ def insert_model_run(
                     same length.
         sensor_id:int (optional) - database ID of sensor against which results should be
                      compared.
-        sensor_measure_id: int (optional) - what measure (e.g. "temperature") to compare to.
+        sensor_measure_id: int (optional) - measure (e.g. "temperature") to compare to.
         time_created: Time when this run was run. Optional, `now` by default.
         create_scenario: Whether to create the scenario if it doesn't already exist.
             Optional, False by default.
@@ -319,7 +318,8 @@ def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session
 
     Returns:
         List of model runs, each being a dict with keys:
-         "id","model_id", "model_name", "scenario_id", "scenario_description", "time_created"
+         "id","model_id", "model_name", "scenario_id", "scenario_description",
+         "time_created"
     """
     query = (
         sqla.select(
@@ -395,7 +395,8 @@ def get_model_run_results_for_measure(run_id, measure_name=None, session=None):
         session: SQLAlchemy session. Optional.
 
     Returns:
-        A list of tuples (values, timestamp) that are the results of the model run for that measure
+        A list of tuples (values, timestamp) that are the results of the model run for
+        that measure
     """
 
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)

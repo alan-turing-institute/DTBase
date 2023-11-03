@@ -1,19 +1,15 @@
 """
 Module (routes.py) to handle API endpoints related to Locations
 """
-from datetime import datetime, timedelta
-import json
-
-from flask import request, jsonify, make_response
-from flask_login import login_required
-
-from dtbase.backend.api.location import blueprint
-from dtbase.core import locations
-from dtbase.core.structure import SQLA as db
-from dtbase.core.utils import jsonify_query_result
-from dtbase.backend.utils import check_keys
 
 import logging
+
+from flask import jsonify, make_response, request
+
+from dtbase.backend.api.location import blueprint
+from dtbase.backend.utils import check_keys
+from dtbase.core import locations
+from dtbase.core.structure import SQLA as db
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +48,6 @@ def insert_location_schema():
             idnames.append(identifier["name"])
         # sort the idnames list, and use it to create/find a schema
         idnames.sort()
-        schema_name = "-".join(idnames)
         locations.insert_location_schema(
             name=payload["name"],
             description=payload["description"],
@@ -272,7 +267,8 @@ def delete_location_schema():
             jsonify(
                 {
                     "status": "error",
-                    "message": f"Location schema '{schema_name}' not found or could not be deleted.",
+                    "message": f"Location schema '{schema_name}'"
+                    " not found or could not be deleted.",
                 }
             ),
             404,
@@ -293,7 +289,6 @@ def delete_location():
     error_response = check_keys(payload, required_keys, "/delete-location")
     if error_response:
         return error_response
-    schema_name = payload["schema_name"]
     try:
         locations.delete_location_by_coordinates(session=db.session, **payload)
         db.session.commit()
