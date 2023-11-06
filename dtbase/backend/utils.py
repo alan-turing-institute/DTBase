@@ -2,11 +2,15 @@ from flask import jsonify
 
 from dtbase.core.structure import SQLA as db
 
+# typing
+from typing import Dict, List, Union
+from sqlalchemy.orm import Session
+from flask import Response
 
 def add_default_session(func):
     """Decorator for adding a default value of db.session for the `session` argument."""
 
-    def new_func(*args, session=None, **kwargs):
+    def new_func(*args, session: Session=None, **kwargs):
         if session is None:
             session = db.session
         return func(*args, session=session, **kwargs)
@@ -14,7 +18,7 @@ def add_default_session(func):
     return new_func
 
 
-def check_keys(payload, keys, api_endpoint):
+def check_keys(payload: Dict[str, str], keys: List[str], api_endpoint: str) -> Union[Tuple[Response, int], None]:
     """Check if `keys` are in `payload` and return a json response if not.
 
     Args:
