@@ -12,7 +12,8 @@ pip install .[dev]
 
 A version of DTBase can be run locally via Docker.
 
-1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_localdb.sh`and populate this file with values for the various environment variables (ask an existing developer for these).
+1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_localdb.sh` and populate this file with values for the various environment variables (ask an existing developer for these).
+2. Run `source .secrets/dtenv_localdb.sh`
 2. Install Docker.
 3. Run a postgresql server in a docker container:
 
