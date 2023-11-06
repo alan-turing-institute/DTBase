@@ -8,44 +8,92 @@
 pip install .[dev]
 ```
 
-## Running DTBase Locally
+## Running an Instance of DTBase
 
-A version of DTBase can be run locally via Docker.
+DTBase has three main components:
 
-1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_localdb.sh` and populate this file with values for the various environment variables (ask an existing developer for these).
-2. Run `source .secrets/dtenv_localdb.sh`
-2. Install Docker.
-3. Run a postgresql server in a docker container:
+- Postgresql Database
+- Backend API
+- Frontend API
 
-`docker run --name test_dtbase_db -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
+All these components can be run either locally or deployed via Azure. The following sections contain instructions for running an instance of dtbase either locally or via Azure.
 
-4. Tests can now be run by locally by navigating into dtbase: `cd dtbase` and running the tests: `pytest tests`
+### Local Deployment
 
-5. To run the backend locally, we can execute `./run_localdb.sh` . . .
+#### Running a Local Database
 
+The postgresql database can be run via a locally deployed container with Docker.
 
-## Running DTBase via the cloud
+1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_localdb.sh`
+2. Populate this file with following variables:
 
-* Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` and populate this file with values for the various environment variables (ask an existing developer for these).
+```
+#!/bin/bash
 
+# Test database
+export DT_SQL_TESTUSER="postgres"
+export DT_SQL_TESTPASS="password"
+export DT_SQL_TESTHOST="localhost"
+export DT_SQL_TESTPORT="5432"
+export DT_SQL_TESTDBNAME="dt_dev"
 
-### Running the backend API
+# Dev database
+export DT_SQL_USER="postgres"
+export DT_SQL_PASS="password"
+export DT_SQL_HOST="localhost"
+export DT_SQL_PORT="5432"
+export DT_SQL_DBNAME="dt_dev"
+```
+3. Run `source .secrets/dtenv_localdb.sh`
+4. Install Docker
+5. Run a postgresql server in a docker container:
+
+`docker run --name dt_dev -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
+
+6. To run the backend, we first need to create an empty database:
+
+`createdb --host localhost --username postgres dt_dev`
+
+#### Running the tests
+
+1. Tests can now be run by locally by navigating into dtbase: `cd dtbase` and running the tests: `pytest tests`
+
+#### Running the backend API
 
 The backend API is a flask app that provides REST API endpoints to facilitate reading and writing to the database.
-* Navigate to the directory `dtbase/backend`.
-* Run the command `./run.sh`
-* You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
+1. Navigate to the directory `dtbase/backend` and run the command `./run_localdb.sh`. You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
 
-### Running the frontend
+#### Running the frontend API
 
-The DTBase frontend is currently an extremely lightweight Flask webapp.   To run this:
-* Navigate to the directory `dtbase/webapp`.
-* Set the environment variable `DT_BACKEND_URL` to point to the backend, i.e. if following the instructions above, do
+The DTBase frontend is currently an extremely lightweight Flask webapp:
+1. Install npm
+2. Navigate to the directory `dtbase/backend` and run the command `./run.sh`.
+3. You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
+
+
+### Running a Azure Deployed Instance of DTBase
+
+1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` and populate this file with values for the various environment variables (ask an existing developer for these).
+
+#### Running the backend API
+
+The backend API is a flask app that provides REST API endpoints to facilitate reading and writing to the database.
+
+1. Navigate to the directory `dtbase/backend` and Run the command `./run.sh`.
+
+You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
+
+#### Running the frontend
+
+The DTBase frontend is currently an extremely lightweight Flask webapp:
+1.  Navigate to the directory `dtbase/webapp`.
+2. Set the environment variable `DT_BACKEND_URL` to point to the backend:
 ```
 export DT_BACKEND_URL=http://localhost:5000
 ```
-* Execute the command `./run.sh`
-* You should now be able to view the webapp on your browser at `http://localhost:8000`.
+3. Execute the command `./run.sh`
+
+You should now be able to view the webapp on your browser at `http://localhost:8000`.
 
 ## Contributing code
 
