@@ -1,9 +1,11 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
 
-from flask import Flask
+from flask import Flask, Request
+from flask_login import LoginManager, UserMixin
 from flask_cors import CORS
-from flask_login import LoginManager
+
+from typing import Union
 
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
@@ -13,11 +15,6 @@ from dtbase.core.constants import (
 from dtbase.core.structure import SQLA as db
 from dtbase.core.structure import User
 from dtbase.core.utils import change_user_password, create_user, delete_user
-
-# typing
-from flask import Request, Flask
-from flask_login import UserMixin
-from typing import Union
 
 login_manager = LoginManager()
 

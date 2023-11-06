@@ -7,9 +7,8 @@ import requests
 
 from dtbase.core.constants import CONST_BACKEND_URL
 
-# typing
-from typing import List, Any, Dict
 from flask import Response
+from typing import List, Any, Dict
 
 def backend_call(request_type: str, end_point_path: str, payload: Dict[str, Any]) -> Response:
     request_func = getattr(requests, request_type)

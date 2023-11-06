@@ -4,15 +4,13 @@ Module (routes.py) to handle API endpoints related to Locations
 
 import logging
 
-from flask import jsonify, make_response, request
+from flask import jsonify, make_response, request, Response
 
 from dtbase.backend.api.location import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import locations
 from dtbase.core.structure import SQLA as db
 
-# typing
-from flask import Response
 from typing import Tuple
 
 logger = logging.getLogger(__name__)

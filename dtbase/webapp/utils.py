@@ -6,12 +6,10 @@ import requests
 
 from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
-# typing
-from datetime import datetime
-from typing import Optional, List, Dict
 from flask import Response
+from typing import Optional, List, Dict
 
-def parse_rfc1123_datetime(string: str) -> datetime:
+def parse_rfc1123_datetime(string: str) -> dt.datetime:
     """Parse an RFC 1123 formatted datetime string into a datetime object.
 
     The backend returns this format, it's a web standard.

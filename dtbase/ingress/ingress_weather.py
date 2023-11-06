@@ -18,10 +18,7 @@ from dtbase.ingress.ingress_utils import (
     log_rest_response,
 )
 
-# typing
 from typing import Tuple
-from pandas import DataFrame
-from datetime import datetime
 
 # Mapping of Openweathermap metrics to sensor measures in the database.
 METRICS_TO_MEASURES = {
@@ -108,7 +105,7 @@ SENSORS = [
 ]
 
 
-def query_openweathermap_api(dt_to: datetime) -> Tuple[bool, str, DataFrame]:
+def query_openweathermap_api(dt_to: datetime) -> Tuple[bool, str, pd.DataFrame]:
     """
     Retrieve weather data from the openweathermap API.
     If dt_to is in the past, return historical data, or if it is in the
