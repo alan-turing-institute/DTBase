@@ -79,7 +79,8 @@ The DTBase frontend is currently an extremely lightweight Flask webapp:
 
 The backend API is a flask app that provides REST API endpoints to facilitate reading and writing to the database.
 
-1. Navigate to the directory `dtbase/backend` and Run the command `./run.sh`.
+1. Your IP Address must be whitelisted on Azure. Ask one of the developers to help with this.
+2. Navigate to the directory `dtbase/backend` and Run the command `./run.sh`.
 
 You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
 
