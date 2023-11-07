@@ -1,11 +1,10 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
+from typing import Union
 
 from flask import Flask, Request
-from flask_login import LoginManager, UserMixin
 from flask_cors import CORS
-
-from typing import Union
+from flask_login import LoginManager, UserMixin
 
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,

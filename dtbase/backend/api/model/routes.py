@@ -2,15 +2,15 @@
 Module (routes.py) to handle endpoints related to models
 """
 from datetime import datetime
+from typing import Tuple
 
-from flask import jsonify, request, Response
+from flask import Response, jsonify, request
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import models
 from dtbase.core.structure import SQLA as db
 
-from typing import Tuple
 
 @blueprint.route("/insert-model", methods=["POST"])
 # @login_required
