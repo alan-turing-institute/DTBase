@@ -12,8 +12,8 @@ classifiers = [
 keywords = ["digital twin"]
 dependencies = [
     "coloredlogs==15.0.1",
-    "sqlalchemy==1.4.39",
-    "SQLAlchemy-Utils==0.38.2",
+    "sqlalchemy ~= 2.0",
+    "SQLAlchemy-Utils ~= 0.41",
 
     "flask-sqlalchemy==3.0.3",
     "flask==2.2.3",
