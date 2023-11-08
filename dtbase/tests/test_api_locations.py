@@ -8,9 +8,9 @@ from dtbase.tests.conftest import check_for_docker
 DOCKER_RUNNING = check_for_docker()
 
 
-# use the testuser fixture to add a user to the database
+# use the test_user fixture to add a user to the database
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_user(testuser):
+def test_user(test_user):
     assert True
 
 

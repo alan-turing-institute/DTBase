@@ -23,12 +23,14 @@ from dtbase.core.db_docker import (
     start_docker_postgres,
     stop_docker_postgres,
 )
-from dtbase.core.utils import create_user
+from dtbase.core.users import insert_user
 from dtbase.webapp.app import create_app as create_frontend_app
 from dtbase.webapp.config import config_dict as frontend_config
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
+TEST_USER_EMAIL = "test@test.com"
+TEST_USER_PASSWORD = "test"
 
 
 def reset_tables():
@@ -78,10 +80,11 @@ def client(app):
 
 
 @pytest.fixture()
-def testuser(app):
+def test_user(app, session):
     # create a dummy test user
     with app.app_context():
-        create_user(username="testuser", email="test@test.com", password="test")
+        insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
+        session.commit()
 
 
 @pytest.fixture()

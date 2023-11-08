@@ -8,8 +8,7 @@ database.
     mapper() is generated.
 """
 
-from bcrypt import gensalt, hashpw
-from flask_login import UserMixin
+from bcrypt import checkpw, gensalt, hashpw
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
     Boolean,
@@ -657,15 +656,14 @@ class ModelBooleanValue(BASE):
 # Other
 
 
-class User(BASE, UserMixin):
+class User(BASE):
     """
-    Class for storing user credentials.
+    Class for user credentials.
     """
 
     __tablename__ = "User"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(LargeBinary, nullable=False)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
@@ -689,7 +687,10 @@ class User(BASE, UserMixin):
 
     def __repr__(self):
         """
-        Computes a string reputation of the object.
+        Computes a string representation of the object.
         """
+        return str(self.email)
 
-        return str(self.username)
+    def check_password(self, password):
+        """Return a boolean for whether this is the right password for this user."""
+        return checkpw(password.encode("utf8"), self.password)

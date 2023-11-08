@@ -99,8 +99,7 @@ CONST_MAX_RECORDS = 50000
 
 CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-DEFAULT_USER_USERNAME = "default_user"
-DEFAULT_USER_EMAIL = "N/A"
+DEFAULT_USER_EMAIL = "default_user"
 DEFAULT_USER_PASS = (
     os.environ["DT_DEFAULT_USER_PASS"] if "DT_DEFAULT_USER_PASS" in os.environ else None
 )
@@ -130,3 +129,7 @@ CONST_OPENWEATHERMAP_FORECAST_URL = (
     f"https://api.openweathermap.org/data/3.0/onecall?"
     f"lat={CONST_LAT}&lon={CONST_LON}&units=metric&appid={CONST_OPENWEATHERMAP_APIKEY}"
 )
+
+if "DT_JWT_SECRET_KEY" not in os.environ:
+    raise RuntimeError("The environment variable 'DT_JWT_SECRET_KEY' must be set.")
+JWT_SECRET_KEY = os.environ["DT_JWT_SECRET_KEY"]
