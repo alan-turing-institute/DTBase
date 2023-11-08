@@ -19,7 +19,7 @@ login_manager = LoginManager()
 
 
 @login_manager.user_loader
-def user_loader(id: str) -> Union[UserMixin, None]:
+def user_loader(id: int) -> Union[UserMixin, None]:
     return User.query.filter_by(id=id).first()
 
 

@@ -1,4 +1,7 @@
+from typing import Any
+
 from flask import current_app, redirect, render_template, url_for
+from flask.wrappers import Response
 from flask_login import login_required
 
 from dtbase.webapp.app import login_manager
@@ -6,34 +9,34 @@ from dtbase.webapp.app.base import blueprint
 
 
 @blueprint.route("/")
-def route_default():
+def route_default() -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.route("/<template>")
 @login_required
-def route_template(template):
+def route_template(template: str) -> Response:
     return render_template(template + ".html")
 
 
 @blueprint.route("/fixed_<template>")
 @login_required
-def route_fixed_template(template):
+def route_fixed_template(template: str) -> Response:
     return render_template("fixed/fixed_{}.html".format(template))
 
 
 @blueprint.route("/page_<error>")
-def route_errors(error):
+def route_errors(error: Any) -> Response:
     return render_template("errors/page_{}.html".format(error))
 
 
 @blueprint.route("/backend_not_found_error")
-def route_backend_not_found():
+def route_backend_not_found() -> Response:
     return render_template("errors/backend_not_found.html")
 
 
 @blueprint.route("/favicon.ico")
-def favicon():
+def favicon() -> Response:
     return current_app.send_static_file("favicon.ico")
 
 
@@ -42,7 +45,7 @@ def favicon():
 
 # This is placeholder, see below.
 @blueprint.route("/login", methods=["GET", "POST"])
-def login():
+def login() -> Response:
     return redirect(url_for("home_blueprint.index"))
 
 
@@ -109,20 +112,20 @@ def login():
 
 
 @login_manager.unauthorized_handler
-def unauthorized_callback():
+def unauthorized_callback() -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.errorhandler(403)
-def access_forbidden(error):
+def access_forbidden(error: Any) -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.errorhandler(404)
-def not_found_error(error):
+def not_found_error(error: Any) -> Response:
     return render_template("errors/page_404.html"), 404
 
 
 @blueprint.errorhandler(500)
-def internal_error(error):
+def internal_error(error: Any) -> Response:
     return render_template("errors/page_500.html"), 500

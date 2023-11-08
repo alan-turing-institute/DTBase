@@ -4,9 +4,10 @@ A module for the main dashboard actions
 import datetime as dt
 import json
 import re
+from typing import Dict, List
 
 import pandas as pd
-from flask import flash, redirect, render_template, request, url_for
+from flask import Response, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
 
@@ -15,7 +16,7 @@ from dtbase.webapp import utils
 from dtbase.webapp.app.sensors import blueprint
 
 
-def fetch_all_sensor_types():
+def fetch_all_sensor_types() -> List[dict]:
     """Get all sensor types from the database.
     Args:
         None
@@ -34,7 +35,7 @@ def fetch_all_sensor_types():
     return sensor_types
 
 
-def fetch_all_sensors(sensor_type):
+def fetch_all_sensors(sensor_type: str) -> List[dict]:
     """Get all sensors of a given sensor type from the database.
     Args:
         sensor_type: The name of the sensor type.
@@ -52,7 +53,12 @@ def fetch_all_sensors(sensor_type):
     return sensors
 
 
-def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
+def fetch_sensor_data(
+    dt_from: dt.datetime,
+    dt_to: dt.datetime,
+    measures: List[dict],
+    sensor_ids: List[str],
+) -> Dict[int, pd.Dataframe]:
     """Get the data from a given sensor and measure, in a given time period.
     Args:
         dt_from: Datetime from
@@ -97,7 +103,7 @@ def fetch_sensor_data(dt_from, dt_to, measures, sensor_ids):
 
 @blueprint.route("/time-series-plots", methods=["GET", "POST"])
 # @login_required
-def time_series_plots():
+def time_series_plots() -> Response:
     """Time-series plots of sensor data"""
     # Parse the various parameters we may have been passed, and load some generally
     # necessary data like list of all sensors and sensor types.
@@ -185,7 +191,7 @@ def time_series_plots():
 # Plot sensor readings in responsive datatables
 @blueprint.route("/readings", methods=["GET", "POST"])
 # @login_required
-def sensor_readings():
+def sensor_readings() -> Response:
     """
     Render tables of readings for a selected sensor type.
 
@@ -290,7 +296,7 @@ def sensor_readings():
 
 @blueprint.route("/add-sensor-type", methods=["GET"])
 # @login_required
-def new_sensor_type(form_data=None):
+def new_sensor_type(form_data: str = None) -> Response:
     """
     Form to add a new SensorType, with associated measures.
     """
@@ -308,7 +314,7 @@ def new_sensor_type(form_data=None):
 
 @blueprint.route("/add-sensor-type", methods=["POST"])
 # @login_required
-def submit_sensor_type():
+def submit_sensor_type() -> Response:
     """
     Send a POST request to add a new sensor type to the database.
     """
@@ -377,7 +383,7 @@ def submit_sensor_type():
 
 @login_required
 @blueprint.route("/add-sensor", methods=["GET"])
-def new_sensor():
+def new_sensor() -> Response:
     try:
         response = utils.backend_call("get", "/sensor/list-sensor-types")
     except ConnectionError:
@@ -389,7 +395,7 @@ def new_sensor():
 
 @login_required
 @blueprint.route("/add-sensor", methods=["POST"])
-def submit_sensor():
+def submit_sensor() -> Response:
     form_data = request.form
     print(f"============={form_data}================")
     payload = {}
@@ -415,7 +421,7 @@ def submit_sensor():
 
 @login_required
 @blueprint.route("/sensor-list", methods=["GET"])
-def sensor_list_table():
+def sensor_list_table() -> Response:
     try:
         sensor_type_response = utils.backend_call("get", "/sensor/list-sensor-types")
     except ConnectionError:

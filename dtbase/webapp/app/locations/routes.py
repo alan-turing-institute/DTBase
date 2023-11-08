@@ -1,4 +1,4 @@
-from flask import flash, redirect, render_template, request, url_for
+from flask import Response, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
 
@@ -8,7 +8,7 @@ from dtbase.webapp.app.locations import blueprint
 
 @login_required
 @blueprint.route("/new-location-schema", methods=["GET"])
-def new_location_schema(form_data=None):
+def new_location_schema(form_data: str = None) -> Response:
     try:
         existing_identifiers_response = utils.backend_call(
             "get", "/location/list-location-identifiers"
@@ -25,7 +25,7 @@ def new_location_schema(form_data=None):
 
 @login_required
 @blueprint.route("/new-location-schema", methods=["POST"])
-def submit_location_schema():
+def submit_location_schema() -> Response:
     name = request.form.get("name")
     description = request.form.get("description")
     identifier_names = request.form.getlist("identifier_name[]")
@@ -107,7 +107,7 @@ def submit_location_schema():
 
 @login_required
 @blueprint.route("/new-location", methods=["GET"])
-def new_location():
+def new_location() -> Response:
     try:
         response = utils.backend_call("get", "/location/list-location-schemas")
     except ConnectionError:
@@ -119,7 +119,7 @@ def new_location():
 
 @login_required
 @blueprint.route("/new-location", methods=["POST"])
-def submit_location():
+def submit_location() -> Response:
     # Retrieve the name of the schema
     schema_name = request.form.get("schema")
     print(f"============={schema_name}================")
@@ -157,7 +157,7 @@ def submit_location():
 
 @login_required
 @blueprint.route("/locations-table", methods=["GET"])
-def locations_table():
+def locations_table() -> Response:
     try:
         schemas_response = utils.backend_call("get", "/location/list-location-schemas")
     except ConnectionError:

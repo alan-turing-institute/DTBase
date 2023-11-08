@@ -1,4 +1,6 @@
-from typing import Dict, List, Tuple, Union
+import typing as ty
+from collections.abc import Container, Mapping
+from typing import Tuple, Union
 
 from flask import Response, jsonify
 from sqlalchemy.orm import Session
@@ -17,8 +19,11 @@ def add_default_session(func):
     return new_func
 
 
+T = ty.TypeVar("T")
+
+
 def check_keys(
-    payload: Dict[str, str], keys: List[str], api_endpoint: str
+    payload: Mapping[T, str], keys: Container[T], api_endpoint: str
 ) -> Union[Tuple[Response, int], None]:
     """Check if `keys` are in `payload` and return a json response if not.
 
