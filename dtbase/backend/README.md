@@ -4,6 +4,38 @@ The DTBase backend is a Flask application providing an API for interacting with 
 The endpoints in this document should be appended to a base url, which will depend on where you deploy the app.   If you are developing/running locally, it will be `http://localhost:5000`.   If you deploy to e.g. Azure, it will be somthing like `https://<your-azure-app-name>.azurewebsites.net`.
 
 
+## Authentication
+
+To be able to access any of the API end points you need an authentication token. You can get it from the following endpoint:
+
+### `/auth/new-token`
+* A POST request will return an authentication token
+    - Payload should have the form
+    ```
+    {
+      "email": <email:str>,
+      "password": <password:str>
+    }
+    ```
+    - returns a payload of the form
+    ```
+    {
+        "access_token": <token_value:str>
+    }
+    ```
+    with status code 200.
+
+Once you've obtained a token, you need to add it to header of any other API calls you make as a bearer token.
+So if `/auth/new-token` returned
+```
+{
+    "access_token": "abcdefg"
+}
+```
+then you would call the other end points with the following in the header of the request:
+```
+Authorization: Bearer abcdefg
+```
 
 ## Locations
 
