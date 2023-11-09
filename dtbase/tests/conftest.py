@@ -59,7 +59,7 @@ def frontend_runner(frontend_app: Flask) -> FlaskClient:
 
 
 @pytest.fixture()
-def session() -> Generator[Flask]:
+def session() -> Generator[Flask, None, None]:
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     session = session_open(engine)
     yield session
@@ -68,7 +68,7 @@ def session() -> Generator[Flask]:
 
 
 @pytest.fixture()
-def app() -> Generator[Flask]:
+def app() -> Generator[Flask, None, None]:
     config = backend_config["Test"]
     app = create_backend_app(config)
     yield app
