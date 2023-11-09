@@ -6,6 +6,7 @@ import datetime as dt
 import pytest
 
 from dtbase.tests.conftest import check_for_docker
+from dtbase.tests.utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
 
@@ -290,3 +291,25 @@ def test_get_model_run(auth_client):
 
         responses = client.get("/model/get-model-run", json=run)
         assert responses.status_code == 200
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_unauthorized(client):
+    """Check that we aren't able to access any of the end points if we don't have an
+    authorization token.
+
+    Note that this one, unlike all the others, uses the `client` rather than the
+    `auth_client` fixture.
+    """
+    with client:
+        assert_unauthorized(client, "post", "/model/insert-model")
+        assert_unauthorized(client, "post", "/model/insert-model-scenario")
+        assert_unauthorized(client, "post", "/model/insert-model-measure")
+        assert_unauthorized(client, "post", "/model/insert-model-run")
+        assert_unauthorized(client, "get", "/model/list-models")
+        assert_unauthorized(client, "get", "/model/list-model-scenarios")
+        assert_unauthorized(client, "get", "/model/list-model-measures")
+        assert_unauthorized(client, "get", "/model/list-model-runs")
+        assert_unauthorized(client, "delete", "/model/delete-model")
+        assert_unauthorized(client, "delete", "/model/delete-model-measure")
+        assert_unauthorized(client, "delete", "/model/delete-model-scenario")

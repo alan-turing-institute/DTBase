@@ -4,6 +4,7 @@ Test API endpoints for locations
 import pytest
 
 from dtbase.tests.conftest import check_for_docker
+from dtbase.tests.utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
 
@@ -212,3 +213,22 @@ def test_delete_location(auth_client):
         response = client.get("/location/list-locations", json=location)
         assert response.status_code == 200
         assert len(response.json) == 0
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_unauthorized(client):
+    """Check that we aren't able to access any of the end points if we don't have an
+    authorization token.
+
+    Note that this one, unlike all the others, uses the `client` rather than the
+    `auth_client` fixture.
+    """
+    with client:
+        assert_unauthorized(client, "post", "/location/insert-location-schema")
+        assert_unauthorized(client, "post", "/location/insert-location")
+        assert_unauthorized(client, "post", "/location/insert-location-for-schema")
+        assert_unauthorized(client, "get", "/location/list-locations")
+        assert_unauthorized(client, "get", "/location/list-location-identifiers")
+        assert_unauthorized(client, "get", "/location/list-location-schemas")
+        assert_unauthorized(client, "delete", "/location/delete-location")
+        assert_unauthorized(client, "delete", "/location/delete-location-schema")
