@@ -17,7 +17,7 @@ def parse_rfc1123_datetime(string: str) -> dt.datetime:
     return dt.datetime.strptime(string, "%a, %d %b %Y %H:%M:%S GMT")
 
 
-def parse_url_parameter(request: Request, parameter: str) -> Optional[str, None]:
+def parse_url_parameter(request: Request, parameter: str) -> Optional[str]:
     """Parse a URL parameter, doing any unquoting as necessary. Return None if the
     parameter doesn't exist.
     """
