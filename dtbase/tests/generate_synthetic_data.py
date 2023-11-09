@@ -16,7 +16,7 @@ import pandas as pd
 
 def generate_timepoints(
     start_time: dt.datetime, end_time: dt.datetime, interval: int
-) -> np.Array:
+) -> np.ndarray:
     """
     generate a numpy array of unix timestamps, with specified start_time,
     end_time and interval
