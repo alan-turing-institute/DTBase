@@ -4,6 +4,7 @@ Module (routes.py) to handle endpoints related to models
 from datetime import datetime
 
 from flask import jsonify, request
+from flask_jwt_extended import jwt_required
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
@@ -12,7 +13,7 @@ from dtbase.core.structure import SQLA as db
 
 
 @blueprint.route("/insert-model", methods=["POST"])
-# @login_required
+@jwt_required()
 def insert_model():
     """
     Add a model to the database.
@@ -34,7 +35,7 @@ def insert_model():
 
 
 @blueprint.route("/list-models", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_models():
     """
     List all models in the database.
@@ -45,7 +46,7 @@ def list_models():
 
 
 @blueprint.route("/delete-model", methods=["DELETE"])
-# @login_required
+@jwt_required()
 def delete_model():
     """
     Delete a model from the database
@@ -66,6 +67,7 @@ def delete_model():
 
 
 @blueprint.route("/insert-model-scenario", methods=["POST"])
+@jwt_required()
 def insert_model_scenario():
     """
     Insert a model scenario into the database.
@@ -95,6 +97,7 @@ def insert_model_scenario():
 
 
 @blueprint.route("/list-model-scenarios", methods=["GET"])
+@jwt_required()
 def list_model_scenarios():
     """
     List all model scenarios in the database.
@@ -104,6 +107,7 @@ def list_model_scenarios():
 
 
 @blueprint.route("/delete-model-scenario", methods=["DELETE"])
+@jwt_required()
 def delete_model_scenario():
     """
     Delete a model scenario from the database
@@ -126,6 +130,7 @@ def delete_model_scenario():
 
 
 @blueprint.route("/insert-model-measure", methods=["POST"])
+@jwt_required()
 # @login_required
 def insert_model_measure():
     """
@@ -160,7 +165,7 @@ def insert_model_measure():
 
 
 @blueprint.route("/list-model-measures", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_models_measures():
     """
     List all model measures in the database.
@@ -170,7 +175,7 @@ def list_models_measures():
 
 
 @blueprint.route("/delete-model-measure", methods=["DELETE"])
-# @login_required
+@jwt_required()
 def delete_model_measure():
     """Delete a model measure from the database.
 
@@ -190,7 +195,7 @@ def delete_model_measure():
 
 
 @blueprint.route("/insert-model-run", methods=["POST"])
-# @login_required
+@jwt_required()
 def insert_model_run():
     """
     Add a model run to the database.
@@ -225,7 +230,7 @@ def insert_model_run():
 
 
 @blueprint.route("/list-model-runs", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_model_runs():
     """
     List all model runs in the database.
@@ -281,7 +286,7 @@ def list_model_runs():
 
 
 @blueprint.route("/get-model-run", methods=["GET"])
-# @login_required
+@jwt_required()
 def get_model_run():
     """
     Get the output of a model run.
@@ -311,7 +316,7 @@ def get_model_run():
 
 
 @blueprint.route("/get-model-run-sensor-measure", methods=["GET"])
-# @login_required
+@jwt_required()
 def get_model_run_sensor_measure():
     """
     Get the sensor and sensor measure that the output of a model run should

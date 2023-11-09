@@ -1,6 +1,8 @@
 import time
 
 import pytest
+from flask.testing import FlaskClient
+from werkzeug.test import Client, TestResponse
 
 from dtbase.backend.api import create_app as create_backend_app
 from dtbase.backend.config import config_dict as backend_config
@@ -31,6 +33,46 @@ from dtbase.webapp.config import config_dict as frontend_config
 DOCKER_CONTAINER_ID = None
 TEST_USER_EMAIL = "test@test.com"
 TEST_USER_PASSWORD = "test"
+
+
+def get_token(client: Client) -> TestResponse:
+    """Get an authentication token for the test user."""
+    type_data = {
+        "email": TEST_USER_EMAIL,
+        "password": TEST_USER_PASSWORD,
+    }
+    response = client.post("/auth/new-token", json=type_data)
+    return response
+
+
+class AuthenticatedClient(FlaskClient):
+    """Like a FlaskClient, but adds an authentication header to all requests."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialise a client that behaves exactly like a normal FlaskClient."""
+        super().__init__(*args, **kwargs)
+        self._headers = {}
+
+    def authenticate(self):
+        """Authenticate with the /auth/new-token endpoint.
+
+        After this method has been called all requests sent by this client will include
+        an authentication header with the token.
+        """
+        response = get_token(self)
+        if response.status_code != 200 or response.json is None:
+            raise RuntimeError("Failed to authenticate test client.")
+        token = response.json["access_token"]
+        self._headers = {"Authorization": f"Bearer {token}"}
+
+    def open(self, *args, **kwargs):
+        """For any request, append the authentication headers, and call the usual
+        request function.
+
+        Note that methods like self.post and self.get all call self.open.
+        """
+        kwargs["headers"] = kwargs.get("headers", {}) | self._headers
+        return super().open(*args, **kwargs)
 
 
 def reset_tables():
@@ -70,6 +112,7 @@ def session():
 def app():
     config = backend_config["Test"]
     app = create_backend_app(config)
+    app.test_client_class = AuthenticatedClient
     yield app
     reset_tables()
 
@@ -85,6 +128,12 @@ def test_user(app, session):
     with app.app_context():
         insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
         session.commit()
+
+
+@pytest.fixture()
+def auth_client(client, test_user):
+    client.authenticate()
+    return client
 
 
 @pytest.fixture()

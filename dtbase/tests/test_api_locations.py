@@ -15,8 +15,8 @@ def test_user(test_user):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_schema(client):
-    with client:
+def test_insert_location_schema(auth_client, test_user):
+    with auth_client as client:
         schema = {
             "name": "building-floor-room",
             "description": "Find something within a building",
@@ -31,8 +31,8 @@ def test_insert_location_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_no_schema(client):
-    with client:
+def test_insert_location_no_schema(auth_client):
+    with auth_client as client:
         location = {
             "identifiers": [
                 {"name": "x_distance", "units": "m", "datatype": "float"},
@@ -47,8 +47,8 @@ def test_insert_location_no_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_nonexisting_schema(client):
-    with client:
+def test_insert_location_nonexisting_schema(auth_client):
+    with auth_client as client:
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
             location = {"a": 123.4, "b": 432.1, "schema_name": "fakey"}
@@ -56,8 +56,8 @@ def test_insert_location_nonexisting_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_existing_schema(client):
-    with client:
+def test_insert_location_existing_schema(auth_client):
+    with auth_client as client:
         schema = {
             "name": "xy",
             "description": "x-y coordinates in mm",
@@ -76,16 +76,16 @@ def test_insert_location_existing_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_locations_no_coords(client):
-    with client:
+def test_list_locations_no_coords(auth_client):
+    with auth_client as client:
         response = client.get("/location/list-locations", json={"schema_name": "xy"})
         assert response.status_code == 200
         assert isinstance(response.json, list)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_identifiers(client):
-    with client:
+def test_list_location_identifiers(auth_client):
+    with auth_client as client:
         # Insert location schemas with unique identifiers
         schema1 = {
             "name": "test-schema1",
@@ -120,8 +120,8 @@ def test_list_location_identifiers(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_schemas(client):
-    with client:
+def test_list_location_schemas(auth_client):
+    with auth_client as client:
         # Insert location schemas
         schema1 = {
             "name": "test-schema1",
@@ -153,8 +153,8 @@ def test_list_location_schemas(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location_schema(client):
-    with client:
+def test_delete_location_schema(auth_client):
+    with auth_client as client:
         # First, insert a location schema to delete later
         schema = {
             "name": "test-schema",
@@ -185,8 +185,8 @@ def test_delete_location_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location(client):
-    with client:
+def test_delete_location(auth_client):
+    with auth_client as client:
         # Insert a location schema and a location
         schema = {
             "name": "test-schema",

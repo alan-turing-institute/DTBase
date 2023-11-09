@@ -124,16 +124,16 @@ def insert_model_runs(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model(client):
-    with client:
+def test_insert_model(auth_client):
+    with auth_client as client:
         model = {"name": MODEL_NAME1}
         response = client.post("/model/insert-model", json=model)
         assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_models(client):
-    with client:
+def test_list_models(auth_client):
+    with auth_client as client:
         # add two models
         insert_model(client, MODEL_NAME1)
         insert_model(client, MODEL_NAME2)
@@ -146,8 +146,8 @@ def test_list_models(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model(client):
-    with client:
+def test_delete_model(auth_client):
+    with auth_client as client:
         # add a model
         insert_model(client, MODEL_NAME1)
 
@@ -163,8 +163,8 @@ def test_delete_model(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_scenario(client):
-    with client:
+def test_insert_model_scenario(auth_client):
+    with auth_client as client:
         # add a model scenario
         responses = insert_model_scenarios(client)
         for response in responses:
@@ -172,8 +172,8 @@ def test_insert_model_scenario(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_scenarios(client):
-    with client:
+def test_list_model_scenarios(auth_client):
+    with auth_client as client:
         # add a model scenario
         insert_model_scenarios(client)
         # list model scenarios
@@ -184,8 +184,8 @@ def test_list_model_scenarios(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model_scenario(client):
-    with client:
+def test_delete_model_scenario(auth_client):
+    with auth_client as client:
         # add a model scenario
         insert_model_scenarios(client)
         # delete model scenario
@@ -203,16 +203,16 @@ def test_delete_model_scenario(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_measures(client):
-    with client:
+def test_insert_model_measures(auth_client):
+    with auth_client as client:
         responses = insert_model_measures(client)
         for response in responses:
             assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_measures(client):
-    with client:
+def test_list_model_measures(auth_client):
+    with auth_client as client:
         insert_model_measures(client)
         response = client.get("/model/list-model-measures")
         assert response.status_code == 200
@@ -228,8 +228,8 @@ def test_list_model_measures(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model_measures(client):
-    with client:
+def test_delete_model_measures(auth_client):
+    with auth_client as client:
         insert_model_measures(client)
         response = client.delete(
             "/model/delete-model-measure",
@@ -242,16 +242,16 @@ def test_delete_model_measures(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_runs(client):
-    with client:
+def test_insert_model_runs(auth_client):
+    with auth_client as client:
         responses = insert_model_runs(client)
         for response in responses:
             assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_runs(client):
-    with client:
+def test_list_model_runs(auth_client):
+    with auth_client as client:
         responses = insert_model_runs(client)
 
         runs = {
@@ -269,8 +269,8 @@ def test_list_model_runs(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_model_run(client):
-    with client:
+def test_get_model_run(auth_client):
+    with auth_client as client:
         responses = insert_model_runs(client)
 
         runs = {

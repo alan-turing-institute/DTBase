@@ -2,29 +2,21 @@
 Test API endpoints for authentication
 """
 import pytest
+from flask.testing import FlaskClient
 
-from dtbase.tests.conftest import TEST_USER_EMAIL, TEST_USER_PASSWORD, check_for_docker
+from dtbase.tests.conftest import check_for_docker, get_token
 
 DOCKER_RUNNING = check_for_docker()
 
 
-def get_token(client):
-    """Get an authentication token for the test user."""
-    type_data = {
-        "email": TEST_USER_EMAIL,
-        "password": TEST_USER_PASSWORD,
-    }
-    response = client.post("/auth/new-token", json=type_data)
-    return response
-
-
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_token(client, test_user):
+def test_get_token(client: FlaskClient, test_user):
     """Test getting an authetication token for the test user."""
     with client:
         response = get_token(client)
         assert response.status_code == 200
         body = response.json
+        assert body is not None
         assert set(body.keys()) == {"access_token"}
 
 

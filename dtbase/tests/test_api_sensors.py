@@ -27,8 +27,8 @@ def insert_weather_type(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_type(client):
-    with client:
+def test_insert_sensor_type(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
 
@@ -46,8 +46,8 @@ def insert_weather_sensor(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor(client):
-    with client:
+def test_insert_sensor(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         # Use that type to insert a sensor
@@ -69,8 +69,8 @@ def insert_temperature_sensor(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_two_sensor_types_sharing_measure(client):
-    with client:
+def test_insert_two_sensor_types_sharing_measure(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         response = insert_temperature_sensor(client)
@@ -87,8 +87,8 @@ def test_insert_two_sensor_types_sharing_measure(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensors_of_a_type(client):
-    with client:
+def test_list_sensors_of_a_type(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         response = client.get("/sensor/list-sensors", json={"type_name": "weather"})
@@ -123,15 +123,15 @@ def insert_sensor_location(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_locations(client):
-    with client:
+def test_insert_sensor_locations(auth_client):
+    with auth_client as client:
         response = insert_sensor_location(client)
         assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_sensor_locations(client):
-    with client:
+def test_get_sensor_locations(auth_client):
+    with auth_client as client:
         response = insert_sensor_location(client)
         # Check that the sensor location has been set
         response = client.get(
@@ -144,8 +144,8 @@ def test_get_sensor_locations(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_readings(client):
-    with client:
+def test_insert_sensor_readings(auth_client):
+    with auth_client as client:
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -168,8 +168,8 @@ def test_insert_sensor_readings(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_sensor_readings(client):
-    with client:
+def test_get_sensor_readings(auth_client):
+    with auth_client as client:
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -206,8 +206,8 @@ def test_get_sensor_readings(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensor_measures(client):
-    with client:
+def test_list_sensor_measures(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
 
@@ -217,8 +217,8 @@ def test_list_sensor_measures(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensor_types(client):
-    with client:
+def test_list_sensor_types(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
 
@@ -228,8 +228,8 @@ def test_list_sensor_types(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_sensor(client):
-    with client:
+def test_delete_sensor(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         # Use that type to insert a sensor
@@ -243,8 +243,8 @@ def test_delete_sensor(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_sensor_type(client):
-    with client:
+def test_delete_sensor_type(auth_client):
+    with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
         response = client.delete(
