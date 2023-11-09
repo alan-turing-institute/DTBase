@@ -3,8 +3,8 @@ Module for the main functions to create a new database with SQLAlchemy and Postg
 drop database, and check its structure.
 """
 
+import sqlalchemy as sqla
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import RelationshipProperty, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
@@ -35,7 +35,7 @@ def create_database(conn_string, db_name):
         # On postgres, the postgres database is normally present by default.
         # Connecting as a superuser (eg, postgres), allows to connect and create a new
         # db.
-        def_engine = create_engine(
+        def_engine = sqla.create_engine(
             "{}/{}".format(conn_string, SQL_DEFAULT_DBNAME),
             pool_size=20,
             max_overflow=-1,
@@ -49,10 +49,10 @@ def create_database(conn_string, db_name):
 
         # But the connection will still be inside a transaction, so you have to end the
         # open transaction with a commit:
-        conn.execute("commit")
+        conn.execute(sqla.text("commit"))
 
         # Then proceed to create the database using the PostgreSQL command.
-        conn.execute("create database " + db_name)
+        conn.execute(sqla.text("create database " + db_name))
 
         # Connects to the engine using the new database url
         _, _, engine = connect_db(conn_string, db_name)
@@ -80,7 +80,7 @@ def connect_db(conn_string, db_name):
     # Connect to an engine
     if database_exists(db_conn_string):
         try:
-            engine = create_engine(db_conn_string, pool_size=20, max_overflow=-1)
+            engine = sqla.create_engine(db_conn_string, pool_size=20, max_overflow=-1)
         except SQLAlchemyError:
             return False, "Cannot connect to db: %s" % db_name, None
     else:
@@ -150,7 +150,7 @@ def check_database_structure(engine):
     """
 
     # Accesses sql db
-    iengine = inspect(engine)
+    iengine = sqla.inspect(engine)
 
     # gets table names from sql server in python list
     sql_tables = iengine.get_table_names()
@@ -172,7 +172,7 @@ def check_database_structure(engine):
 
                 # gets objects in each class in the form of:
                 # Readings_Advanticsys.sensor_relationship
-                mapper = inspect(sql_class)
+                mapper = sqla.inspect(sql_class)
 
                 for obj in mapper.attrs:
                     # checks if the object is a relationship
