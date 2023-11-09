@@ -59,7 +59,7 @@ def fetch_sensor_data(
     dt_to: dt.datetime,
     measures: List[dict],
     sensor_ids: List[str],
-) -> Dict[int, pd.Dataframe]:
+) -> Dict[int, pd.DataFrame]:
     """Get the data from a given sensor and measure, in a given time period.
     Args:
         dt_from: Datetime from
