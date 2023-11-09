@@ -42,7 +42,7 @@ def reset_tables() -> None:
 
 
 @pytest.fixture()
-def frontend_app() -> Flask:
+def frontend_app() -> Generator[Flask, None, None]:
     config = frontend_config["Test"]
     app = create_frontend_app(config)
     yield app
