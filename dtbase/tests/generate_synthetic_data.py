@@ -64,7 +64,7 @@ def initial_dataframe(
     return df
 
 
-def add_const_offset(df: pd.DataFrame, colname: str, value: float) -> dt.DataFrame:
+def add_const_offset(df: pd.DataFrame, colname: str, value: float) -> pd.DataFrame:
     """
     Add a constant offset to all of the values in the dataframe
 
