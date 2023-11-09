@@ -5,6 +5,7 @@ import datetime as dt
 
 import pytest
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.core import sensors
 
@@ -31,7 +32,7 @@ TIMESTAMPS = list(
 )
 
 
-def insert_measures(dbsession):
+def insert_measures(dbsession: Session) -> None:
     """Insert some sensor measures into the database."""
     sensors.insert_sensor_measure(
         name="temperature", units="Kelvin", datatype="float", session=dbsession
@@ -41,7 +42,7 @@ def insert_measures(dbsession):
     )
 
 
-def insert_types(dbsession):
+def insert_types(dbsession: Session) -> None:
     """Insert a sensor type into the database."""
     insert_measures(dbsession)
     sensors.insert_sensor_type(
@@ -61,7 +62,7 @@ def insert_types(dbsession):
     )
 
 
-def insert_sensors(dbsession):
+def insert_sensors(dbsession: Session) -> None:
     """Insert some sensors into the database."""
     insert_types(dbsession)
     sensors.insert_sensor(
@@ -75,7 +76,7 @@ def insert_sensors(dbsession):
     sensors.insert_sensor("temperature", SENSOR_ID3, session=dbsession)
 
 
-def insert_readings(dbsession):
+def insert_readings(dbsession: Session) -> None:
     """Insert some sensor readings into the database."""
     insert_sensors(dbsession)
     sensors.insert_sensor_readings(
@@ -91,12 +92,12 @@ def insert_readings(dbsession):
 # Tests for sensor measures
 
 
-def test_insert_sensor_measure(session):
+def test_insert_sensor_measure(session: Session) -> None:
     """Test inserting sensor measures."""
     insert_measures(session)
 
 
-def test_insert_sensor_measure_duplicate(session):
+def test_insert_sensor_measure_duplicate(session: Session) -> None:
     """Try to insert a sensor measure that conflicts with one that exists."""
     sensors.insert_sensor_measure(
         name="temperature", units="Kelvin", datatype="float", session=session
@@ -123,12 +124,12 @@ def test_insert_sensor_measure_duplicate(session):
 # Tests for sensor types
 
 
-def test_insert_sensor_types(session):
+def test_insert_sensor_types(session: Session) -> None:
     """Test inserting a sensor type."""
     insert_types(session)
 
 
-def test_insert_sensor_types_duplicate(session):
+def test_insert_sensor_types_duplicate(session: Session) -> None:
     """Try to insert a sensor type that conflicts with one that exists."""
     insert_types(session)
 
@@ -142,7 +143,7 @@ def test_insert_sensor_types_duplicate(session):
         )
 
 
-def test_insert_sensor_types_no_measure(session):
+def test_insert_sensor_types_no_measure(session: Session) -> None:
     """Try to insert a sensor type that uses measures that don't exist."""
     insert_types(session)
     error_msg = "No sensor measure named 'is raining misspelled'"
@@ -162,12 +163,12 @@ def test_insert_sensor_types_no_measure(session):
 # Tests for sensors
 
 
-def test_insert_sensor(session):
+def test_insert_sensor(session: Session) -> None:
     """Test inserting sensors."""
     insert_sensors(session)
 
 
-def test_insert_sensor_duplicate(session):
+def test_insert_sensor_duplicate(session: Session) -> None:
     """Try to insert a sensor that already exists."""
     insert_sensors(session)
     error_msg = (
@@ -177,7 +178,7 @@ def test_insert_sensor_duplicate(session):
         sensors.insert_sensor("weather", SENSOR_ID1, session=session)
 
 
-def test_insert_sensor_no_type(session):
+def test_insert_sensor_no_type(session: Session) -> None:
     """Try to insert a sensor with a non-existing type."""
     insert_types(session)
     with pytest.raises(ValueError, match="No sensor type named 'electron microscope'"):
@@ -188,7 +189,7 @@ def test_insert_sensor_no_type(session):
 # Tests for sensor readings
 
 
-def test_insert_sensor_readings(session):
+def test_insert_sensor_readings(session: Session) -> None:
     """Test inserting sensor readings"""
     insert_readings(session)
     read_readings = sensors.get_sensor_readings(
@@ -201,7 +202,7 @@ def test_insert_sensor_readings(session):
     assert read_readings == list(zip(TEMPERATURES, TIMESTAMPS))
 
 
-def test_read_partial_sensor_readings(session):
+def test_read_partial_sensor_readings(session: Session) -> None:
     """Test inserting sensor readings"""
     insert_readings(session)
     # Read all except first reading.
@@ -215,7 +216,7 @@ def test_read_partial_sensor_readings(session):
     assert read_readings == list(zip(TEMPERATURES[1:], TIMESTAMPS[1:]))
 
 
-def test_insert_sensor_readings_wrong_measure(session):
+def test_insert_sensor_readings_wrong_measure(session: Session) -> None:
     """Try to insert sensor readings with the wrong measure."""
     insert_sensors(session)
     error_msg = (
@@ -232,7 +233,7 @@ def test_insert_sensor_readings_wrong_measure(session):
         )
 
 
-def test_insert_sensor_readings_wrong_number(session):
+def test_insert_sensor_readings_wrong_number(session: Session) -> None:
     """Try to insert too few or too many sensor readings."""
     insert_sensors(session)
     error_msg = (
@@ -259,7 +260,7 @@ def test_insert_sensor_readings_wrong_number(session):
         )
 
 
-def test_insert_sensor_readings_wrong_type(session):
+def test_insert_sensor_readings_wrong_type(session: Session) -> None:
     """Try to insert sensor readings of the wrong type."""
     insert_sensors(session)
     error_msg = (
@@ -288,7 +289,7 @@ def test_insert_sensor_readings_wrong_type(session):
         )
 
 
-def test_insert_sensor_readings_duplicate(session):
+def test_insert_sensor_readings_duplicate(session: Session) -> None:
     """Test that we can insert sensor readings that include some that have already been
     inserted.
     """
@@ -311,7 +312,7 @@ def test_insert_sensor_readings_duplicate(session):
     assert len(read_readings) == len(TIMESTAMPS) + 1
 
 
-def test_list_sensors(session):
+def test_list_sensors(session: Session) -> None:
     """Find the inserted sensors."""
     insert_sensors(session)
     all_sensors = sensors.list_sensors(session=session)
@@ -339,7 +340,7 @@ def test_list_sensors(session):
     assert weather_sensors[1]["sensor_type_name"] == "weather"
 
 
-def test_list_sensor_measures(session):
+def test_list_sensor_measures(session: Session) -> None:
     """Find the inserted sensor measures."""
     insert_measures(session)
     all_measures = sensors.list_sensor_measures(session=session)
@@ -350,7 +351,7 @@ def test_list_sensor_measures(session):
     assert all_measures[1]["name"] == "is raining"
 
 
-def test_list_sensor_types(session):
+def test_list_sensor_types(session: Session) -> None:
     """Find the inserted sensor types."""
     insert_types(session)
     all_types = sensors.list_sensor_types(session=session)
@@ -364,7 +365,7 @@ def test_list_sensor_types(session):
     assert all_types[1]["name"] == "temperature"
 
 
-def test_delete_sensor_measure(session):
+def test_delete_sensor_measure(session: Session) -> None:
     """Delete a sensor measure, and check that it is deleted and can't be redeleted."""
     insert_measures(session)
     sensors.delete_sensor_measure("temperature", session=session)
@@ -377,7 +378,7 @@ def test_delete_sensor_measure(session):
         sensors.delete_sensor_measure("temperature", session=session)
 
 
-def test_delete_sensor_measure_type_exists(session):
+def test_delete_sensor_measure_type_exists(session: Session) -> None:
     """Try to delete a sensor measure for which a sensor type exists."""
     insert_types(session)
     error_msg = (
@@ -389,7 +390,7 @@ def test_delete_sensor_measure_type_exists(session):
         sensors.delete_sensor_measure("temperature", session=session)
 
 
-def test_delete_sensor_type(session):
+def test_delete_sensor_type(session: Session) -> None:
     """Delete a sensor type, and check that it is deleted and can't be redeleted."""
     insert_types(session)
     sensors.delete_sensor_type("weather", session=session)
@@ -402,7 +403,7 @@ def test_delete_sensor_type(session):
         sensors.delete_sensor_type("weather", session=session)
 
 
-def test_delete_sensor_type_sensor_exists(session):
+def test_delete_sensor_type_sensor_exists(session: Session) -> None:
     """Try to delete a sensor type for which a sensor exists."""
     insert_sensors(session)
     error_msg = (
@@ -413,7 +414,7 @@ def test_delete_sensor_type_sensor_exists(session):
         sensors.delete_sensor_type("weather", session=session)
 
 
-def test_delete_sensor(session):
+def test_delete_sensor(session: Session) -> None:
     """Delete a sensor, and check that it is deleted and can't be redeleted."""
     insert_sensors(session)
     sensors.delete_sensor(SENSOR_ID1, session=session)
@@ -426,7 +427,7 @@ def test_delete_sensor(session):
         sensors.delete_sensor(SENSOR_ID1, session=session)
 
 
-def test_delete_sensor_nonexistent(session):
+def test_delete_sensor_nonexistent(session: Session) -> None:
     """Try to delete a non-existent sensor."""
     insert_sensors(session)
     error_msg = "No sensor 'BLAHBLAH'"

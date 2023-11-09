@@ -1,3 +1,5 @@
+from sqlalchemy.orm import Session
+
 from dtbase.core.sensors import (
     insert_sensor,
     insert_sensor_measure,
@@ -7,7 +9,7 @@ from dtbase.core.sensors import (
 from dtbase.tests.generate_synthetic_data import generate_trh_readings
 
 
-def insert_trh_sensor(sensor_unique_id, session):
+def insert_trh_sensor(sensor_unique_id: str, session: Session) -> None:
     """
     Insert a temperature / relative humidity sensor.
     """
@@ -48,7 +50,9 @@ def insert_trh_sensor(sensor_unique_id, session):
         session.rollback()
 
 
-def insert_trh_readings(session, sensor_unique_id="TRH1", insert_sensor=True):
+def insert_trh_readings(
+    session: Session, sensor_unique_id: str = "TRH1", insert_sensor: bool = True
+) -> None:
     """
     Insert a set of temperature and humidity readings for a sensor
     with unique_identifier 'TRH1'

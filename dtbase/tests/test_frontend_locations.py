@@ -2,9 +2,10 @@
 Test that the DTBase locations pages load
 """
 import requests_mock
+from flask.testing import FlaskClient
 
 
-def test_new_location_schema_no_backend(frontend_client):
+def test_new_location_schema_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get(
             "/locations/new-location-schema", follow_redirects=True
@@ -14,7 +15,7 @@ def test_new_location_schema_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_new_location_schema_get(frontend_client):
+def test_new_location_schema_get(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
@@ -25,7 +26,7 @@ def test_new_location_schema_get(frontend_client):
             assert "New Location Schema" in html_content
 
 
-def test_new_location_schema_post(frontend_client):
+def test_new_location_schema_post(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
@@ -50,7 +51,7 @@ def test_new_location_schema_post(frontend_client):
             assert response.status_code == 302
 
 
-def test_new_location_no_backend(frontend_client):
+def test_new_location_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get("/locations/new-location", follow_redirects=True)
         assert response.status_code == 200
@@ -58,7 +59,7 @@ def test_new_location_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_new_location_get(frontend_client):
+def test_new_location_get(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
@@ -68,7 +69,7 @@ def test_new_location_get(frontend_client):
             assert "New Location" in html_content
 
 
-def test_new_location_post(frontend_client):
+def test_new_location_post(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -95,7 +96,7 @@ def test_new_location_post(frontend_client):
             assert response.status_code == 302
 
 
-def test_locations_table_no_backend(frontend_client):
+def test_locations_table_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get(
             "/locations/locations-table", follow_redirects=True
@@ -105,7 +106,7 @@ def test_locations_table_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_locations_table(frontend_client):
+def test_locations_table(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(

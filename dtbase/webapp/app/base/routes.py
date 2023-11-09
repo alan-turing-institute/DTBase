@@ -1,8 +1,8 @@
 from typing import Any
 
 from flask import current_app, redirect, render_template, url_for
-from flask.wrappers import Response
 from flask_login import login_required
+from werkzeug.wrappers import Response
 
 from dtbase.webapp.app import login_manager
 from dtbase.webapp.app.base import blueprint

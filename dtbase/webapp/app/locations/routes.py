@@ -1,6 +1,7 @@
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
+from werkzeug.wrappers import Response
 
 from dtbase.webapp import utils
 from dtbase.webapp.app.locations import blueprint

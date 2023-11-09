@@ -5,6 +5,7 @@ import datetime as dt
 
 import pytest
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.core import models
 
@@ -55,13 +56,13 @@ PRODUCT3 = {
 }
 
 
-def insert_models(session):
+def insert_models(session: Session) -> None:
     """Insert some models into the database."""
     models.insert_model(name=MODEL_NAME1, session=session)
     models.insert_model(name=MODEL_NAME2, session=session)
 
 
-def insert_scenarios(session):
+def insert_scenarios(session: Session) -> None:
     """Insert model scenarios into the database."""
     insert_models(session)
     models.insert_model_scenario(
@@ -81,7 +82,7 @@ def insert_scenarios(session):
     )
 
 
-def insert_measures(session):
+def insert_measures(session: Session) -> None:
     """Insert some model measures into the database."""
     models.insert_model_measure(
         name=MEASURE_NAME1, units=MEASURE_UNITS1, datatype="float", session=session
@@ -91,7 +92,7 @@ def insert_measures(session):
     )
 
 
-def insert_runs(session):
+def insert_runs(session: Session) -> None:
     """Insert some model runs into the database."""
     insert_scenarios(session)
     insert_measures(session)
@@ -122,12 +123,12 @@ def insert_runs(session):
 # Tests for models
 
 
-def test_insert_model(session):
+def test_insert_model(session: Session) -> None:
     """Test inserting models."""
     insert_models(session)
 
 
-def test_insert_model_duplicate(session):
+def test_insert_model_duplicate(session: Session) -> None:
     """Try to insert a model that already exists."""
     insert_models(session)
     error_msg = 'duplicate key value violates unique constraint "model_name_key"'
@@ -135,7 +136,7 @@ def test_insert_model_duplicate(session):
         models.insert_model(MODEL_NAME1, session=session)
 
 
-def test_list_models(session):
+def test_list_models(session: Session) -> None:
     """Find the inserted models."""
     insert_models(session)
     all_models = models.list_models(session=session)
@@ -146,7 +147,7 @@ def test_list_models(session):
     assert all_models[1]["name"] == MODEL_NAME2
 
 
-def test_delete_model(session):
+def test_delete_model(session: Session) -> None:
     """Delete a model, and check that it is deleted and can't be redeleted."""
     insert_models(session)
     models.delete_model(MODEL_NAME1, session=session)
@@ -159,7 +160,7 @@ def test_delete_model(session):
         models.delete_model(MODEL_NAME1, session=session)
 
 
-def test_delete_model_nonexistent(session):
+def test_delete_model_nonexistent(session: Session) -> None:
     """Try to delete a non-existent model."""
     insert_models(session)
     error_msg = "No model named 'BLAHBLAH'"
@@ -171,12 +172,12 @@ def test_delete_model_nonexistent(session):
 # Tests for model scenarios
 
 
-def test_insert_model_scenarios(session):
+def test_insert_model_scenarios(session: Session) -> None:
     """Test inserting a model scenario."""
     insert_scenarios(session)
 
 
-def test_insert_model_scenarios_duplicate(session):
+def test_insert_model_scenarios_duplicate(session: Session) -> None:
     """Try to insert a model scenario that conflicts with one that exists."""
     insert_scenarios(session)
     error_msg = (
@@ -189,7 +190,7 @@ def test_insert_model_scenarios_duplicate(session):
         )
 
 
-def test_insert_model_scenarios_no_model(session):
+def test_insert_model_scenarios_no_model(session: Session) -> None:
     """Try to insert a model scenario that uses measures that don't exist."""
     insert_scenarios(session)
     error_msg = "No model named 'Flip A Coin'"
@@ -199,7 +200,7 @@ def test_insert_model_scenarios_no_model(session):
         )
 
 
-def test_list_model_scenarios(session):
+def test_list_model_scenarios(session: Session) -> None:
     """Find the inserted model scenarios."""
     insert_scenarios(session)
     all_scenarios = models.list_model_scenarios(session=session)
@@ -210,7 +211,7 @@ def test_list_model_scenarios(session):
     assert all_scenarios[0]["description"] == SCENARIO1
 
 
-def test_delete_model_scenario(session):
+def test_delete_model_scenario(session: Session) -> None:
     """Delete a model scenario, and check that it is deleted and can't be redeleted."""
     insert_scenarios(session)
     models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
@@ -223,7 +224,7 @@ def test_delete_model_scenario(session):
         models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
 
 
-def test_delete_model_scenario_model_exists(session):
+def test_delete_model_scenario_model_exists(session: Session) -> None:
     """Try to delete a model scenario for which a model exists."""
     insert_models(session)
     error_msg = f"No model scenario '{SCENARIO1}' for model '{MODEL_NAME1}'"
@@ -235,12 +236,12 @@ def test_delete_model_scenario_model_exists(session):
 # Tests for model measures
 
 
-def test_insert_model_measure(session):
+def test_insert_model_measure(session: Session) -> None:
     """Test inserting model measures."""
     insert_measures(session)
 
 
-def test_insert_model_measure_duplicate(session):
+def test_insert_model_measure_duplicate(session: Session) -> None:
     """Try to insert a model measure that conflicts with one that exists."""
     insert_measures(session)
     # This is fine, because the units are different.
@@ -257,7 +258,7 @@ def test_insert_model_measure_duplicate(session):
         )
 
 
-def test_list_model_measures(session):
+def test_list_model_measures(session: Session) -> None:
     """Find the inserted model measures."""
     insert_measures(session)
     all_measures = models.list_model_measures(session=session)
@@ -269,7 +270,7 @@ def test_list_model_measures(session):
     assert all_measures[1]["name"] == MEASURE_NAME2
 
 
-def test_delete_model_measure(session):
+def test_delete_model_measure(session: Session) -> None:
     """Delete a model measure, and check that it is deleted and can't be redeleted."""
     insert_measures(session)
     models.delete_model_measure(MEASURE_NAME1, session=session)
@@ -282,7 +283,7 @@ def test_delete_model_measure(session):
         models.delete_model_measure(MEASURE_NAME1, session=session)
 
 
-def test_delete_model_run_exists(session):
+def test_delete_model_run_exists(session: Session) -> None:
     """Try to delete a model measure for which a model run exists."""
     insert_runs(session)
     error_msg = (
@@ -297,12 +298,12 @@ def test_delete_model_run_exists(session):
 # Tests for model runs
 
 
-def test_insert_model_runs(session):
+def test_insert_model_runs(session: Session) -> None:
     """Test inserting model runs"""
     insert_runs(session)
 
 
-def test_insert_model_runs_duplicate(session):
+def test_insert_model_runs_duplicate(session: Session) -> None:
     """Try to insert a model run that already exists."""
     insert_runs(session)
     error_msg = (
@@ -319,7 +320,7 @@ def test_insert_model_runs_duplicate(session):
         )
 
 
-def test_list_model_runs(session):
+def test_list_model_runs(session: Session) -> None:
     """Test listing model runs."""
     insert_runs(session)
     # Get all runs for MODEL_NAME1
@@ -351,7 +352,7 @@ def test_list_model_runs(session):
         assert set(run.keys()) == expected_keys
 
 
-def test_list_model_runs_by_scenario(session):
+def test_list_model_runs_by_scenario(session: Session) -> None:
     """Test listing model runs."""
     insert_runs(session)
     runs = models.list_model_runs(MODEL_NAME1, scenario=SCENARIO1, session=session)
@@ -368,7 +369,7 @@ def test_list_model_runs_by_scenario(session):
         assert set(run.keys()) == expected_keys
 
 
-def test_list_model_runs_by_time(session):
+def test_list_model_runs_by_time(session: Session) -> None:
     """Test listing model runs."""
     insert_runs(session)
     # Exclude one run using dt_from
@@ -404,7 +405,7 @@ def test_list_model_runs_by_time(session):
         assert set(run.keys()) == expected_keys
 
 
-def test_get_model_run(session):
+def test_get_model_run(session: Session) -> None:
     """Test getting the results of a model run."""
     insert_runs(session)
     # Find the ID of one of the runs
@@ -420,7 +421,7 @@ def test_get_model_run(session):
     assert values == list(zip(PRODUCT1["values"], PRODUCT1["timestamps"]))
 
 
-def test_insert_model_run_no_scenario(session):
+def test_insert_model_run_no_scenario(session: Session) -> None:
     """Try to insert model values with the wrong measure."""
     insert_scenarios(session)
     insert_measures(session)
@@ -449,7 +450,7 @@ def test_insert_model_run_no_scenario(session):
     assert any(s["description"] == scenario_description for s in scenarios)
 
 
-def test_insert_model_run_wrong_number(session):
+def test_insert_model_run_wrong_number(session: Session) -> None:
     """Try to insert too few or too many model values."""
     insert_scenarios(session)
     insert_measures(session)
@@ -475,7 +476,7 @@ def test_insert_model_run_wrong_number(session):
         )
 
 
-def test_insert_model_run_wrong_type(session):
+def test_insert_model_run_wrong_type(session: Session) -> None:
     """Try to insert model values of the wrong type."""
     insert_scenarios(session)
     insert_measures(session)

@@ -2,6 +2,7 @@
 Test that the DTBase models pages load
 """
 import requests_mock
+from flask.testing import FlaskClient
 
 MOCK_PREDICTION_DATA = {
     "temperatureMean": [
@@ -36,7 +37,7 @@ MOCK_RUN_SENSOR_MEASURE_DATA = {
 }
 
 
-def test_models_index_no_backend(frontend_client):
+def test_models_index_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get("/models/index", follow_redirects=True)
         assert response.status_code == 200
@@ -44,7 +45,7 @@ def test_models_index_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_models_index_no_models(frontend_client):
+def test_models_index_no_models(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/model/list-models", json=[])
@@ -54,7 +55,7 @@ def test_models_index_no_models(frontend_client):
             assert "Choose predictive model" in html_content
 
 
-def test_models_index_no_runs(frontend_client):
+def test_models_index_no_runs(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -77,7 +78,7 @@ def test_models_index_no_runs(frontend_client):
             assert "Select a model run" in html_content
 
 
-def test_models_index_with_data(frontend_client):
+def test_models_index_with_data(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(

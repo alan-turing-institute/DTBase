@@ -3,6 +3,8 @@ Test the basic structure of the database, creating rows and relations via
 the SQLAlchemy ORM.
 """
 
+from sqlalchemy.orm import Session
+
 from dtbase.core.structure import (
     Location,
     LocationBooleanValue,
@@ -15,7 +17,7 @@ from dtbase.core.structure import (
 )
 
 
-def test_add_zadf_location(session):
+def test_add_zadf_location(session: Session) -> None:
     si = LocationIdentifier(name="zone", datatype="string")
     ii = LocationIdentifier(name="aisle", datatype="integer")
     fi = LocationIdentifier(name="distance", units="m", datatype="float")
@@ -69,7 +71,7 @@ def test_add_zadf_location(session):
     session.close()
 
 
-def test_add_xyz_location(session):
+def test_add_xyz_location(session: Session) -> None:
     x = LocationIdentifier(name="x", units="m", datatype="float")
     y = LocationIdentifier(name="y", units="m", datatype="float")
     z = LocationIdentifier(name="z", units="m", datatype="float")

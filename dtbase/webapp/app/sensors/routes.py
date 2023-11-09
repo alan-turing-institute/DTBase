@@ -7,9 +7,10 @@ import re
 from typing import Dict, List
 
 import pandas as pd
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from requests.exceptions import ConnectionError
+from werkzeug.wrappers import Response
 
 from dtbase.core.constants import CONST_MAX_RECORDS
 from dtbase.webapp import utils

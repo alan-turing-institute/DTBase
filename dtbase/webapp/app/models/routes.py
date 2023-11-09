@@ -5,8 +5,9 @@ import json
 from datetime import datetime
 from typing import Any, Dict, List
 
-from flask import Response, redirect, render_template, request
+from flask import redirect, render_template, request
 from requests.exceptions import ConnectionError
+from werkzeug.wrappers import Response
 
 from dtbase.webapp import utils
 from dtbase.webapp.app.models import blueprint

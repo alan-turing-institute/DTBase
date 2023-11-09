@@ -3,6 +3,8 @@ Test the functions for accessing the sensor location table.
 """
 import datetime as dt
 
+from sqlalchemy.orm import Session
+
 from dtbase.core import sensor_locations
 from dtbase.tests import test_locations, test_sensors
 
@@ -15,13 +17,13 @@ DATE1 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=2)
 DATE2 = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
 
 
-def insert_sensors_and_locations(session):
+def insert_sensors_and_locations(session: Session) -> None:
     """Insert some sensors and locations."""
     test_sensors.insert_sensors(session)
     test_locations.insert_locations(session)
 
 
-def insert_sensor_locations(session):
+def insert_sensor_locations(session: Session) -> None:
     """Insert some sensor locations."""
     uniq_id = test_sensors.SENSOR_ID1
     sensor_locations.insert_sensor_location(
@@ -29,13 +31,13 @@ def insert_sensor_locations(session):
     )
 
 
-def test_insert_sensor_locations(session):
+def test_insert_sensor_locations(session: Session) -> None:
     """Test inserting sensor locations."""
     insert_sensors_and_locations(session)
     insert_sensor_locations(session)
 
 
-def test_get_sensor_locations(session):
+def test_get_sensor_locations(session: Session) -> None:
     """Test getting sensor locations."""
     insert_sensors_and_locations(session)
     uniq_id = test_sensors.SENSOR_ID1

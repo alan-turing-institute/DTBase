@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from sqlalchemy.orm import Session
 
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
 from dtbase.models.utils.dataprocessor.clean_data import clean_data
@@ -12,7 +13,7 @@ DOCKER_RUNNING = check_for_docker()
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_get_temperature(session):
+def test_arima_get_temperature(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(delta_days=20, session=session)
     assert isinstance(tables, tuple)
@@ -27,7 +28,7 @@ def test_arima_get_temperature(session):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_get_humidity(session):
+def test_arima_get_humidity(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(
         measures_list=[("Humidity", "Percent")], delta_days=20, session=session
@@ -42,7 +43,7 @@ def test_arima_get_humidity(session):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_get_temperature_humidity(session):
+def test_arima_get_temperature_humidity(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(
         measures_list=[("Temperature", "Degrees"), ("Humidity", "Percent")],
@@ -64,7 +65,7 @@ def test_arima_get_temperature_humidity(session):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_clean(session):
+def test_arima_clean(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(delta_days=20, session=session)
     cleaned_data = clean_data(tables[0])
@@ -76,7 +77,7 @@ def test_arima_clean(session):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_prepare(session):
+def test_arima_prepare(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(delta_days=20, session=session)
     cleaned_data = clean_data(tables[0])
@@ -89,7 +90,7 @@ def test_arima_prepare(session):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_pipeline(session):
+def test_arima_pipeline(session: Session) -> None:
     insert_trh_readings(session)
     tables = get_training_data(
         measures_list=[("Temperature", "Degrees")], delta_days=20, session=session
