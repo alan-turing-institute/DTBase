@@ -2,14 +2,16 @@
 import datetime as dt
 import unicodedata
 import urllib
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import requests
+from flask import Request, Response
 
 from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
 
-def parse_rfc1123_datetime(string):
+def parse_rfc1123_datetime(string: str) -> dt.datetime:
     """Parse an RFC 1123 formatted datetime string into a datetime object.
 
     The backend returns this format, it's a web standard.
@@ -17,7 +19,7 @@ def parse_rfc1123_datetime(string):
     return dt.datetime.strptime(string, "%a, %d %b %Y %H:%M:%S GMT")
 
 
-def parse_url_parameter(request, parameter):
+def parse_url_parameter(request: Request, parameter: str) -> Optional[str]:
     """Parse a URL parameter, doing any unquoting as necessary. Return None if the
     parameter doesn't exist.
     """
@@ -29,7 +31,12 @@ def parse_url_parameter(request, parameter):
     return parsed
 
 
-def backend_call(request_type, end_point_path, payload=None, headers=None):
+def backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+) -> Response:
     """Make an API call to the backend server."""
     headers = {} if headers is None else headers
     request_func = getattr(requests, request_type)
@@ -42,7 +49,9 @@ def backend_call(request_type, end_point_path, payload=None, headers=None):
     return response
 
 
-def convert_form_values(variables, form, prefix="identifier"):
+def convert_form_values(
+    variables: List[Dict[str, Any]], form: dict, prefix: str = "identifier"
+) -> Dict[str, Any]:
     """
     Prepared the form and converts values to their respective datatypes as defined in
     the schema. Returns a dictionary of converted values.

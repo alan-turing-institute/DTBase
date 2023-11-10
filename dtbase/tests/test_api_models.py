@@ -4,6 +4,7 @@ Test API endpoints for models
 import datetime as dt
 
 import pytest
+from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import check_for_docker
 from dtbase.tests.utils import assert_unauthorized
@@ -70,18 +71,18 @@ PRODUCT3 = {
 }
 
 
-def insert_model(client, name):
+def insert_model(client: FlaskClient, name: str) -> None:
     response = client.post("/model/insert-model", json={"name": name})
     assert response.status_code == 201
 
 
-def insert_model_measures(client):
+def insert_model_measures(client: FlaskClient) -> None:
     response1 = client.post("/model/insert-model-measure", json=MEASURE1)
     response2 = client.post("/model/insert-model-measure", json=MEASURE2)
     return response1, response2
 
 
-def insert_model_scenarios(client):
+def insert_model_scenarios(client: FlaskClient) -> None:
     insert_model(client, MODEL_NAME1)
     insert_model(client, MODEL_NAME2)
     responses = [
@@ -98,7 +99,7 @@ def insert_model_scenarios(client):
     return responses
 
 
-def insert_model_runs(client):
+def insert_model_runs(client: FlaskClient) -> None:
     insert_model_measures(client)
     insert_model_scenarios(client)
     run1 = {
@@ -125,7 +126,7 @@ def insert_model_runs(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model(auth_client):
+def test_insert_model(auth_client: FlaskClient) -> None:
     with auth_client as client:
         model = {"name": MODEL_NAME1}
         response = client.post("/model/insert-model", json=model)
@@ -133,7 +134,7 @@ def test_insert_model(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_models(auth_client):
+def test_list_models(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # add two models
         insert_model(client, MODEL_NAME1)
@@ -147,7 +148,7 @@ def test_list_models(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model(auth_client):
+def test_delete_model(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # add a model
         insert_model(client, MODEL_NAME1)
@@ -164,7 +165,7 @@ def test_delete_model(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_scenario(auth_client):
+def test_insert_model_scenario(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # add a model scenario
         responses = insert_model_scenarios(client)
@@ -173,7 +174,7 @@ def test_insert_model_scenario(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_scenarios(auth_client):
+def test_list_model_scenarios(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # add a model scenario
         insert_model_scenarios(client)
@@ -185,7 +186,7 @@ def test_list_model_scenarios(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model_scenario(auth_client):
+def test_delete_model_scenario(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # add a model scenario
         insert_model_scenarios(client)
@@ -204,7 +205,7 @@ def test_delete_model_scenario(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_measures(auth_client):
+def test_insert_model_measures(auth_client: FlaskClient) -> None:
     with auth_client as client:
         responses = insert_model_measures(client)
         for response in responses:
@@ -212,7 +213,7 @@ def test_insert_model_measures(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_measures(auth_client):
+def test_list_model_measures(auth_client: FlaskClient) -> None:
     with auth_client as client:
         insert_model_measures(client)
         response = client.get("/model/list-model-measures")
@@ -229,7 +230,7 @@ def test_list_model_measures(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_model_measures(auth_client):
+def test_delete_model_measures(auth_client: FlaskClient) -> None:
     with auth_client as client:
         insert_model_measures(client)
         response = client.delete(
@@ -243,7 +244,7 @@ def test_delete_model_measures(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_model_runs(auth_client):
+def test_insert_model_runs(auth_client: FlaskClient) -> None:
     with auth_client as client:
         responses = insert_model_runs(client)
         for response in responses:
@@ -251,7 +252,7 @@ def test_insert_model_runs(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_model_runs(auth_client):
+def test_list_model_runs(auth_client: FlaskClient) -> None:
     with auth_client as client:
         responses = insert_model_runs(client)
 
@@ -270,7 +271,7 @@ def test_list_model_runs(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_model_run(auth_client):
+def test_get_model_run(auth_client: FlaskClient) -> None:
     with auth_client as client:
         responses = insert_model_runs(client)
 

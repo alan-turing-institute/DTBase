@@ -3,6 +3,7 @@ Test the functions for accessing the locations tables.
 """
 import pytest
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from dtbase.core import locations
 
@@ -20,7 +21,7 @@ LATITUDE3 = 144.0
 # itself.
 
 
-def insert_identifiers(session):
+def insert_identifiers(session: Session) -> None:
     """Insert some location identifiers into the database."""
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
@@ -30,7 +31,7 @@ def insert_identifiers(session):
     )
 
 
-def insert_schemas(session):
+def insert_schemas(session: Session) -> None:
     """Insert a location schema into the database."""
     insert_identifiers(session)
     locations.insert_location_schema(
@@ -47,7 +48,7 @@ def insert_schemas(session):
     )
 
 
-def insert_locations(session):
+def insert_locations(session: Session) -> None:
     """Insert some locations into the database."""
     insert_schemas(session)
     locations.insert_location(
@@ -63,12 +64,12 @@ def insert_locations(session):
 # Tests for location identifiers
 
 
-def test_insert_location_identifier(session):
+def test_insert_location_identifier(session: Session) -> None:
     """Test inserting location identifiers."""
     insert_identifiers(session)
 
 
-def test_insert_location_identifier_duplicate(session):
+def test_insert_location_identifier_duplicate(session: Session) -> None:
     """Try to insert a location identifier that conflicts with one that exists."""
     locations.insert_location_identifier(
         name="latitude", units="", datatype="float", session=session
@@ -91,12 +92,12 @@ def test_insert_location_identifier_duplicate(session):
 # Tests for location schemas
 
 
-def test_insert_location_schema(session):
+def test_insert_location_schema(session: Session) -> None:
     """Test inserting a location schema."""
     insert_schemas(session)
 
 
-def test_insert_location_schema_duplicate(session):
+def test_insert_location_schema_duplicate(session: Session) -> None:
     """Try to insert a location schema that conflicts with one that exists."""
     insert_schemas(session)
     error_msg = (
@@ -111,7 +112,7 @@ def test_insert_location_schema_duplicate(session):
         )
 
 
-def test_insert_location_schema_no_identifierr(session):
+def test_insert_location_schema_no_identifierr(session: Session) -> None:
     """Try to insert a location schema that uses identifiers that don't exist."""
     insert_schemas(session)
     error_msg = "No location identifier 'longitude_misspelled'"
@@ -128,12 +129,12 @@ def test_insert_location_schema_no_identifierr(session):
 # Tests for locations
 
 
-def test_insert_location(session):
+def test_insert_location(session: Session) -> None:
     """Test inserting locations."""
     insert_locations(session)
 
 
-def test_insert_location_duplicate(session):
+def test_insert_location_duplicate(session: Session) -> None:
     """Try to insert a location that already exists."""
     insert_locations(session)
     error_msg = (
@@ -149,7 +150,7 @@ def test_insert_location_duplicate(session):
         )
 
 
-def test_insert_location_no_schema(session):
+def test_insert_location_no_schema(session: Session) -> None:
     """Try to insert a location with a non-existing schema."""
     insert_schemas(session)
     with pytest.raises(ValueError, match="No location schema 'heightitude'"):
@@ -158,7 +159,7 @@ def test_insert_location_no_schema(session):
         )
 
 
-def test_insert_location_wrong_identifier(session):
+def test_insert_location_wrong_identifier(session: Session) -> None:
     """Try to insert a location with the wrong identifier."""
     insert_schemas(session)
     # The (|) or clauses are needed because order isn't guaranteed.
@@ -173,7 +174,7 @@ def test_insert_location_wrong_identifier(session):
         )
 
 
-def test_insert_location_wrong_data_type(session):
+def test_insert_location_wrong_data_type(session: Session) -> None:
     """Try to insert a location with the wrong datatype."""
     insert_schemas(session)
     error_msg = (
@@ -189,7 +190,7 @@ def test_insert_location_wrong_data_type(session):
         )
 
 
-def test_list_locations(session):
+def test_list_locations(session: Session) -> None:
     """Find the inserted locations."""
     insert_locations(session)
     all_locations = locations.list_locations("latlong", session=session)
@@ -208,7 +209,7 @@ def test_list_locations(session):
     assert len(no_locations) == 0
 
 
-def test_delete_location_identifier(session):
+def test_delete_location_identifier(session: Session) -> None:
     """Delete a location identifier, check that it is deleted and can't be redeleted."""
     insert_identifiers(session)
     locations.delete_location_identifier("latitude", session=session)
@@ -221,7 +222,7 @@ def test_delete_location_identifier(session):
         locations.delete_location_identifier("latitude", session=session)
 
 
-def test_delete_location_identifier_schema_exists(session):
+def test_delete_location_identifier_schema_exists(session: Session) -> None:
     """Try to delete a location identifier for which a location schema exists."""
     insert_schemas(session)
     error_msg = (
@@ -233,7 +234,7 @@ def test_delete_location_identifier_schema_exists(session):
         locations.delete_location_identifier("latitude", session=session)
 
 
-def test_delete_location_schema(session):
+def test_delete_location_schema(session: Session) -> None:
     """Delete a location schema, and check that it is deleted and can't be redeleted."""
     insert_schemas(session)
     locations.delete_location_schema("latlong", session=session)
@@ -246,7 +247,7 @@ def test_delete_location_schema(session):
         locations.delete_location_schema("latlong", session=session)
 
 
-def test_delete_location_schema_location_exists(session):
+def test_delete_location_schema_location_exists(session: Session) -> None:
     """Try to delete a location schema for which a location exists."""
     insert_locations(session)
     error_msg = (
@@ -257,7 +258,7 @@ def test_delete_location_schema_location_exists(session):
         locations.delete_location_schema("latlong", session=session)
 
 
-def test_delete_location(session):
+def test_delete_location(session: Session) -> None:
     """Delete a location, and check that it is deleted and can't be redeleted."""
     insert_locations(session)
     locations.delete_location_by_coordinates(
@@ -286,7 +287,7 @@ def test_delete_location(session):
     assert len(all_locations) == 0
 
 
-def test_delete_location_nonexistent(session):
+def test_delete_location_nonexistent(session: Session) -> None:
     """Try to delete a non-existent location."""
     insert_locations(session)
     error_msg = "Location not found: latlong, {'latitude': 0.0, 'longitude': 0.0}"

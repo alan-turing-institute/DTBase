@@ -1,4 +1,5 @@
 from os import environ
+from typing import Any, Union
 
 from flask import (
     abort,
@@ -10,6 +11,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required, login_user, logout_user
+from werkzeug.wrappers import Response
 
 from dtbase.webapp.app import login_manager
 from dtbase.webapp.app.base import blueprint
@@ -20,34 +22,34 @@ from dtbase.webapp.utils import url_has_allowed_host_and_scheme
 
 
 @blueprint.route("/")
-def route_default():
+def route_default() -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.route("/<template>")
 @login_required
-def route_template(template):
+def route_template(template: str) -> Response:
     return render_template(template + ".html")
 
 
 @blueprint.route("/fixed_<template>")
 @login_required
-def route_fixed_template(template):
+def route_fixed_template(template: str) -> Response:
     return render_template("fixed/fixed_{}.html".format(template))
 
 
 @blueprint.route("/page_<error>")
-def route_errors(error):
+def route_errors(error: Any) -> Response:
     return render_template("errors/page_{}.html".format(error))
 
 
 @blueprint.route("/backend_not_found_error")
-def route_backend_not_found():
+def route_backend_not_found() -> Response:
     return render_template("errors/backend_not_found.html")
 
 
 @blueprint.route("/favicon.ico")
-def favicon():
+def favicon() -> Response:
     return current_app.send_static_file("favicon.ico")
 
 
@@ -55,7 +57,7 @@ def favicon():
 
 
 @blueprint.route("/login", methods=["GET", "POST"])
-def login():
+def login() -> Union[Response, str]:
     login_form = LoginForm(request.form)
     create_account_form = CreateAccountForm(request.form)
     if "login" in request.form:
@@ -71,7 +73,7 @@ def login():
         # url_has_allowed_host_and_scheme checks if the url is safe for redirects,
         # meaning it matches the request host.
         if next and not url_has_allowed_host_and_scheme(next, request.host):
-            return abort(400)
+            abort(400)
         return redirect(next or url_for("home_blueprint.index"))
 
     if not current_user.is_authenticated:
@@ -102,20 +104,20 @@ def logout():
 
 
 @login_manager.unauthorized_handler
-def unauthorized_callback():
+def unauthorized_callback() -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.errorhandler(403)
-def access_forbidden(error):
+def access_forbidden(error: Any) -> Response:
     return redirect(url_for("base_blueprint.login"))
 
 
 @blueprint.errorhandler(404)
-def not_found_error(error):
+def not_found_error(error: Any) -> Response:
     return render_template("errors/page_404.html"), 404
 
 
 @blueprint.errorhandler(500)
-def internal_error(error):
+def internal_error(error: Any) -> Response:
     return render_template("errors/page_500.html"), 500

@@ -2,6 +2,7 @@
 Test API endpoints for sensors
 """
 import pytest
+from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import check_for_docker
 from dtbase.tests.utils import assert_unauthorized
@@ -14,7 +15,7 @@ X_COORD = 0.23
 Y_COORD = 1.44
 
 
-def insert_weather_type(client):
+def insert_weather_type(client: FlaskClient):
     type_data = {
         "name": "weather",
         "description": "Weather sensors that report both temperature and rain",
@@ -28,13 +29,13 @@ def insert_weather_type(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_type(auth_client):
+def test_insert_sensor_type(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
 
 
-def insert_weather_sensor(client):
+def insert_weather_sensor(client: FlaskClient) -> None:
     # Use that type to insert a sensor
     sensor = {
         "unique_identifier": UNIQ_ID1,
@@ -47,7 +48,7 @@ def insert_weather_sensor(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor(auth_client):
+def test_insert_sensor(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -56,7 +57,7 @@ def test_insert_sensor(auth_client):
         assert response.status_code == 201
 
 
-def insert_temperature_sensor(client):
+def insert_temperature_sensor(client: FlaskClient) -> None:
     # insert a temperature sensor
     type_data = {
         "name": "simpletemp",
@@ -70,7 +71,7 @@ def insert_temperature_sensor(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_two_sensor_types_sharing_measure(auth_client):
+def test_insert_two_sensor_types_sharing_measure(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -88,7 +89,7 @@ def test_insert_two_sensor_types_sharing_measure(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensors_of_a_type(auth_client):
+def test_list_sensors_of_a_type(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -97,7 +98,7 @@ def test_list_sensors_of_a_type(auth_client):
         assert isinstance(response.json, list)
 
 
-def insert_sensor_location(client):
+def insert_sensor_location(client: FlaskClient) -> None:
     # Insert a sensor
     insert_weather_type(client)
     insert_weather_sensor(client)
@@ -124,14 +125,14 @@ def insert_sensor_location(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_locations(auth_client):
+def test_insert_sensor_locations(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_sensor_location(client)
         assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_sensor_locations(auth_client):
+def test_get_sensor_locations(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_sensor_location(client)
         # Check that the sensor location has been set
@@ -145,7 +146,7 @@ def test_get_sensor_locations(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_sensor_readings(auth_client):
+def test_insert_sensor_readings(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
@@ -169,7 +170,7 @@ def test_insert_sensor_readings(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_sensor_readings(auth_client):
+def test_get_sensor_readings(auth_client: FlaskClient) -> None:
     with auth_client as client:
         # Insert a sensor type and a sensor
         response = insert_weather_type(client)
@@ -207,7 +208,7 @@ def test_get_sensor_readings(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensor_measures(auth_client):
+def test_list_sensor_measures(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -218,7 +219,7 @@ def test_list_sensor_measures(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_sensor_types(auth_client):
+def test_list_sensor_types(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -229,7 +230,7 @@ def test_list_sensor_types(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_sensor(auth_client):
+def test_delete_sensor(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201
@@ -244,7 +245,7 @@ def test_delete_sensor(auth_client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_sensor_type(auth_client):
+def test_delete_sensor_type(auth_client: FlaskClient) -> None:
     with auth_client as client:
         response = insert_weather_type(client)
         assert response.status_code == 201

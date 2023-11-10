@@ -2,9 +2,10 @@
 Module (routes.py) to handle API endpoints related to sensors
 """
 from datetime import datetime
+from typing import Tuple
 
 import sqlalchemy as sqla
-from flask import jsonify, request
+from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from dtbase.backend.api.sensor import blueprint
@@ -15,7 +16,7 @@ from dtbase.core.structure import SQLA as db
 
 @blueprint.route("/insert-sensor-type", methods=["POST"])
 @jwt_required()
-def insert_sensor_type():
+def insert_sensor_type() -> Tuple[Response, int]:
     """
     Add a sensor type to the database.
     POST request should have json data (mimetype "application/json")
@@ -63,7 +64,7 @@ def insert_sensor_type():
 
 @blueprint.route("/insert-sensor", methods=["POST"])
 @jwt_required()
-def insert_sensor():
+def insert_sensor() -> Tuple[Response, int]:
     """
     Add a sensor to the database.
 
@@ -94,7 +95,7 @@ def insert_sensor():
 
 @blueprint.route("/insert-sensor-location", methods=["POST"])
 @jwt_required()
-def insert_sensor_location():
+def insert_sensor_location() -> Tuple[Response, int]:
     """
     Add a sensor location installation to the database.
 
@@ -132,7 +133,7 @@ def insert_sensor_location():
 
 @blueprint.route("/list-sensor-locations", methods=["GET"])
 @jwt_required()
-def list_sensor_locations():
+def list_sensor_locations() -> Tuple[Response, int]:
     """
     Get the location history of a sensor.
 
@@ -155,7 +156,7 @@ def list_sensor_locations():
 
 @blueprint.route("/insert-sensor-readings", methods=["POST"])
 @jwt_required()
-def insert_sensor_readings():
+def insert_sensor_readings() -> Tuple[Response, int]:
     """
     Add sensor readings to the database.
 
@@ -207,7 +208,7 @@ def insert_sensor_readings():
 
 @blueprint.route("/list-sensors", methods=["GET"])
 @jwt_required()
-def list_sensors():
+def list_sensors() -> Tuple[Response, int]:
     """
     List sensors of a particular type in the database.
     Optionally takes a payload of the form
@@ -238,7 +239,7 @@ def list_sensors():
 
 @blueprint.route("/list-sensor-types", methods=["GET"])
 @jwt_required()
-def list_sensor_types():
+def list_sensor_types() -> Tuple[Response, int]:
     """
     List sensor types in the database.
     Returns results in the form:
@@ -261,7 +262,7 @@ def list_sensor_types():
 
 @blueprint.route("/list-measures", methods=["GET"])
 @jwt_required()
-def list_sensor_measures():
+def list_sensor_measures() -> Tuple[Response, int]:
     """
     List sensor measures in the database.
     Returns results in the form:
@@ -281,7 +282,7 @@ def list_sensor_measures():
 
 @blueprint.route("/sensor-readings", methods=["GET"])
 @jwt_required()
-def get_sensor_readings():
+def get_sensor_readings() -> Tuple[Response, int]:
     """
     Get sensor readings for a specific measure and sensor between two dates.
 
@@ -336,7 +337,7 @@ def get_sensor_readings():
 
 @blueprint.route("/delete-sensor", methods=["DELETE"])
 @jwt_required()
-def delete_sensor():
+def delete_sensor() -> Tuple[Response, int]:
     """
     Delete a sensor from the database.
 
@@ -356,7 +357,7 @@ def delete_sensor():
 
 @blueprint.route("/delete-sensor-type", methods=["DELETE"])
 @jwt_required()
-def delete_sensor_type():
+def delete_sensor_type() -> Tuple[Response, int]:
     """
     Delete a sensor type from the database.
 

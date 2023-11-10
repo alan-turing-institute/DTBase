@@ -2,13 +2,17 @@
 Utility functions for e.g. uploading ingressed data to the db.
 """
 import logging
+from typing import Any, Dict, List
 
 import requests
+from flask import Response
 
 from dtbase.core.constants import CONST_BACKEND_URL
 
 
-def backend_call(request_type, end_point_path, payload):
+def backend_call(
+    request_type: str, end_point_path: str, payload: Dict[str, Any]
+) -> Response:
     request_func = getattr(requests, request_type)
     url = f"{CONST_BACKEND_URL}{end_point_path}"
     headers = {"content-type": "application/json"}
@@ -16,7 +20,7 @@ def backend_call(request_type, end_point_path, payload):
     return response
 
 
-def log_rest_response(response):
+def log_rest_response(response: Response) -> None:
     msg = f"Got response {response.status_code}: {response.text}"
     if 300 > response.status_code:
         logging.info(msg)
@@ -24,7 +28,7 @@ def log_rest_response(response):
         logging.warning(msg)
 
 
-def add_sensor_types(sensor_types):
+def add_sensor_types(sensor_types: List[dict]) -> None:
     """
     Add sensor types to the database
     Args:
@@ -47,7 +51,7 @@ def add_sensor_types(sensor_types):
         log_rest_response(response)
 
 
-def add_sensors(sensors):
+def add_sensors(sensors: List[dict]) -> None:
     """
     Add sensors to the database.
     Args:

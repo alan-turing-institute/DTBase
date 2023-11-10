@@ -1,5 +1,6 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
+from typing import Union
 
 import flask_jwt_extended as fjwt
 from flask import Flask
@@ -17,7 +18,7 @@ from dtbase.core.structure import SQLA as db
 from dtbase.core.users import change_password, delete_user, insert_user
 
 
-def register_extensions(app):
+def register_extensions(app: Flask) -> None:
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
@@ -25,7 +26,7 @@ def register_extensions(app):
     db.init_app(app)
 
 
-def register_blueprints(app):
+def register_blueprints(app: Flask) -> None:
     module_list = ("auth", "location", "sensor", "model")
 
     for module_name in module_list:
@@ -33,23 +34,23 @@ def register_blueprints(app):
         app.register_blueprint(module.blueprint)
 
 
-def configure_database(app):
+def configure_database(app: Flask) -> None:
     @app.before_first_request
-    def initialize_database():
+    def initialize_database() -> None:
         db.create_all()
 
     @app.teardown_request
-    def shutdown_session(exception=None):
+    def shutdown_session(exception=None) -> None:
         db.session.remove()
 
 
-def configure_logs(app):
+def configure_logs(app: Flask) -> None:
     basicConfig(filename="error.log", level=DEBUG)
     logger = getLogger()
     logger.addHandler(StreamHandler())
 
 
-def add_default_user(app):
+def add_default_user(app: Flask) -> None:
     """Ensure that there's a default user, with the right credentials."""
     with app.app_context():
         user_info = {
@@ -74,7 +75,7 @@ def add_default_user(app):
         session.commit()
 
 
-def create_app(config):
+def create_app(config: Union[object, str]) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config)
     register_extensions(app)

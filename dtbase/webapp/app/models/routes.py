@@ -3,15 +3,17 @@ A module for the main dashboard actions
 """
 import json
 from datetime import datetime
+from typing import Any, Dict, List
 
 from flask import redirect, render_template, request
 from requests.exceptions import ConnectionError
+from werkzeug.wrappers import Response
 
 from dtbase.webapp import utils
 from dtbase.webapp.app.models import blueprint
 
 
-def fetch_all_models():
+def fetch_all_models() -> List[dict]:
     """Get all models from the database.
 
     Args:
@@ -30,7 +32,7 @@ def fetch_all_models():
     return models
 
 
-def get_run_ids(model_name):
+def get_run_ids(model_name: str) -> List[int]:
     """
     Get the db id corresponding to all the run for the specified model.
 
@@ -55,7 +57,7 @@ def get_run_ids(model_name):
     return run_ids
 
 
-def get_run_pred_data(run_id):
+def get_run_pred_data(run_id: int) -> Dict[str, Any]:
     """
     Get the predicted outputs of the specified run.
 
@@ -77,7 +79,7 @@ def get_run_pred_data(run_id):
     return pred_data
 
 
-def get_run_sensor_data(run_id, earliest_timestamp):
+def get_run_sensor_data(run_id: int, earliest_timestamp: str) -> Dict[str, Any]:
     """
     Get the real data to which the prediction of a ModelRun should be compared
 
@@ -128,7 +130,7 @@ def get_run_sensor_data(run_id, earliest_timestamp):
     }
 
 
-def fetch_run_data(run_id):
+def fetch_run_data(run_id: int) -> Dict[str, Any]:
     """
     Fetch all the info for the latest prediction run for a given model.
 
@@ -146,7 +148,7 @@ def fetch_run_data(run_id):
 
 @blueprint.route("/index", methods=["GET", "POST"])
 # @login_required
-def index():
+def index() -> Response:
     """Index page."""
     model_list = []
     run_ids = []

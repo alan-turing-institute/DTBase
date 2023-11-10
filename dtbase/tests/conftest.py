@@ -1,7 +1,9 @@
 import time
+from typing import Generator
 
 import pytest
-from flask.testing import FlaskClient
+from flask import Flask
+from flask.testing import FlaskClient, FlaskCliRunner
 from werkzeug.test import Client, TestResponse
 
 from dtbase.backend.api import create_app as create_backend_app
@@ -75,7 +77,7 @@ class AuthenticatedClient(FlaskClient):
         return super().open(*args, **kwargs)
 
 
-def reset_tables():
+def reset_tables() -> None:
     """Reset the database by dropping all tables and recreating them."""
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     drop_tables(engine)
@@ -83,24 +85,24 @@ def reset_tables():
 
 
 @pytest.fixture()
-def frontend_app():
+def frontend_app() -> Flask:
     config = frontend_config["Test"]
     app = create_frontend_app(config)
     yield app
 
 
 @pytest.fixture()
-def frontend_client(frontend_app):
+def frontend_client(frontend_app: Flask) -> FlaskClient:
     return frontend_app.test_client()
 
 
 @pytest.fixture()
-def frontend_runner(frontend_app):
+def frontend_runner(frontend_app: Flask) -> FlaskClient:
     return frontend_app.test_cli_runner()
 
 
 @pytest.fixture()
-def session():
+def session() -> Generator[Flask, None, None]:
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     session = session_open(engine)
     yield session
@@ -109,7 +111,7 @@ def session():
 
 
 @pytest.fixture()
-def app():
+def app() -> Generator[Flask, None, None]:
     config = backend_config["Test"]
     app = create_backend_app(config)
     app.test_client_class = AuthenticatedClient
@@ -118,12 +120,12 @@ def app():
 
 
 @pytest.fixture()
-def client(app):
+def client(app: Flask) -> FlaskClient:
     return app.test_client()
 
 
 @pytest.fixture()
-def test_user(app, session):
+def testuser(app: Flask) -> None:
     # create a dummy test user
     with app.app_context():
         insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
@@ -137,11 +139,11 @@ def auth_client(client, test_user):
 
 
 @pytest.fixture()
-def backend_runner(app):
+def backend_runner(app: Flask) -> FlaskCliRunner:
     return app.test_cli_runner()
 
 
-def pytest_configure():
+def pytest_configure() -> None:
     """
     Allows plugins and conftest files to perform initial configuration.
     This hook is called for every plugin and initial conftest
@@ -163,7 +165,7 @@ def pytest_configure():
     print("pytest_configure: end")
 
 
-def pytest_unconfigure():
+def pytest_unconfigure() -> None:
     """
     called before test process is exited.
     """

@@ -3,6 +3,7 @@ Python module to import data using the Openweathermap API
 """
 import logging
 from datetime import datetime, timedelta
+from typing import Tuple
 
 import pandas as pd
 import requests
@@ -103,7 +104,7 @@ SENSORS = [
 ]
 
 
-def query_openweathermap_api(dt_to):
+def query_openweathermap_api(dt_to: datetime) -> Tuple[bool, str, pd.DataFrame]:
     """
     Retrieve weather data from the openweathermap API.
     If dt_to is in the past, return historical data, or if it is in the
@@ -173,7 +174,9 @@ def query_openweathermap_api(dt_to):
     return success, error, weather_df
 
 
-def import_openweathermap_data(dt_to, sensor_uniq_id, create_sensors=False):
+def import_openweathermap_data(
+    dt_to: datetime, sensor_uniq_id: str, create_sensors: bool = False
+) -> Tuple[bool, str]:
     """
     This is the main function for this module.
     Uploads data to the DTBase database, for various metrics, from the

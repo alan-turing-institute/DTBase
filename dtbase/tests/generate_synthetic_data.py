@@ -5,14 +5,18 @@ For sensor readings:
    with Gaussian noise.
 """
 
+import datetime as dt
 import random
 from datetime import datetime, timedelta
+from typing import List
 
 import numpy as np
 import pandas as pd
 
 
-def generate_timepoints(start_time, end_time, interval):
+def generate_timepoints(
+    start_time: dt.datetime, end_time: dt.datetime, interval: int
+) -> np.ndarray:
     """
     generate a numpy array of unix timestamps, with specified start_time,
     end_time and interval
@@ -33,7 +37,12 @@ def generate_timepoints(start_time, end_time, interval):
     return np.linspace(start_time, end_time, num_steps)
 
 
-def initial_dataframe(start_time, end_time, interval, colnames=["values"]):
+def initial_dataframe(
+    start_time: dt.datetime,
+    end_time: dt.datetime,
+    interval: int,
+    colnames: List[str] = ["values"],
+) -> pd.DataFrame:
     """
     generate a numpy array of unix timestamps, with specified start_time,
     end_time and interval
@@ -55,7 +64,7 @@ def initial_dataframe(start_time, end_time, interval, colnames=["values"]):
     return df
 
 
-def add_const_offset(df, colname, value):
+def add_const_offset(df: pd.DataFrame, colname: str, value: float) -> pd.DataFrame:
     """
     Add a constant offset to all of the values in the dataframe
 
@@ -69,7 +78,9 @@ def add_const_offset(df, colname, value):
     return df
 
 
-def add_sinusoid(df, colname, amplitude, period, offset=0):
+def add_sinusoid(
+    df: pd.DataFrame, colname: str, amplitude: float, period: float, offset: float = 0.0
+) -> pd.DataFrame:
     """
     Add a sinusoidal oscillation to a specified column
 
@@ -91,7 +102,9 @@ def add_sinusoid(df, colname, amplitude, period, offset=0):
     return df
 
 
-def add_gaussian_noise(df, colname, mean, std):
+def add_gaussian_noise(
+    df: pd.DataFrame, colname: str, mean: str, std: str
+) -> pd.DataFrame:
     """
     Add Gaussian offset to each value of a specified column in the dataframe
     """
@@ -100,7 +113,7 @@ def add_gaussian_noise(df, colname, mean, std):
     return df
 
 
-def convert_timestamp_column(df):
+def convert_timestamp_column(df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert from unix timestamp back to a datetime
     """
@@ -108,7 +121,9 @@ def convert_timestamp_column(df):
     return df
 
 
-def add_integer_column(df, colname, minval, maxval):
+def add_integer_column(
+    df: pd.DataFrame, colname: str, minval: float, maxval: float
+) -> pd.DataFrame:
     """
     Add a new integer column with values between minval and maxval
     """
@@ -117,7 +132,9 @@ def add_integer_column(df, colname, minval, maxval):
     return df
 
 
-def add_string_column(df, colname, options=[], basename=""):
+def add_string_column(
+    df: pd.DataFrame, colname: str, options: List[str] = [], basename: str = ""
+) -> None:
     """
     Add a new string column with either random integers appended to basename,
     or a random choice.
@@ -130,7 +147,7 @@ def add_string_column(df, colname, options=[], basename=""):
             values.append(basename + str(random.randint(1, 9)))
 
 
-def generate_trh_readings(sensor_ids=list(range(1, 9))):
+def generate_trh_readings(sensor_ids: List[int] = list(range(1, 9))) -> pd.DataFrame:
     """
     Generate a pandas dataframe for each sensor id, then
     concatenate them at the end.
@@ -163,7 +180,9 @@ def generate_trh_readings(sensor_ids=list(range(1, 9))):
     return df
 
 
-def generate_weather(start_time=None, end_time=None):
+def generate_weather(
+    start_time: dt.datetime = None, end_time: dt.datetime = None
+) -> pd.DataFrame:
     """
     Generate hourly weather history or forecasts going back/forward 10 days.
     For now, just include temperature and humidity.
@@ -202,7 +221,7 @@ def generate_weather(start_time=None, end_time=None):
     return df
 
 
-def generate_weather_forecast():
+def generate_weather_forecast() -> pd.DataFrame:
     """
     Generate hourly weather forecasts going forward 10 days.
     For now, just include temperature and humidity.
