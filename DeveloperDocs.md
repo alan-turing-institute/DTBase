@@ -46,7 +46,7 @@ export DT_SQL_DBNAME="dt_dev"
 ```
 3. Run `source .secrets/dtenv_localdb.sh`
 4. Install Docker
-5. Install postgresql. With brew, thats done like this: `brew install postgresql`
+5. Install postgresql
 6. Run a postgresql server in a docker container:
 
 `docker run --name dt_dev -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
@@ -72,9 +72,9 @@ The DTBase frontend is currently an extremely lightweight Flask webapp:
 3. You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
 
 
-### Running a Azure Deployed Instance of DTBase
+### Running an Azure Deployed Instance of DTBase
 
-1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` and populate this file with values for the various environment variables (ask an existing developer for these).
+1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` and populate this file with values for the various environment variables (ask an existing developer for these). These environment variables will point towards an already existing database hosted on Azure.
 
 #### Running the backend API
 
