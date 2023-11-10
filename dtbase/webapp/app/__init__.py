@@ -4,24 +4,16 @@ from os import path
 
 from flask import Flask, url_for
 from flask_cors import CORS
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager
+
+from dtbase.webapp.user import User
 
 login_manager = LoginManager()
 
-# TODO Currently this dummy user makes all login_required requests pass authentication.
-# Implement proper user management.
-DUMMY_USER = UserMixin()
-DUMMY_USER.id = "dummy user"
-
 
 @login_manager.user_loader
-def user_loader(id):
-    return DUMMY_USER
-
-
-@login_manager.request_loader
-def request_loader(request):
-    return DUMMY_USER
+def load_user(email):
+    return User.get(email)
 
 
 def register_extensions(app):

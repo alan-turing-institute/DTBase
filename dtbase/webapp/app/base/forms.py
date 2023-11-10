@@ -5,11 +5,10 @@ from wtforms import PasswordField, TextField
 
 
 class LoginForm(FlaskForm):
-    username = TextField("Username", id="username_login")
+    email = TextField("Email", id="email_login")
     password = PasswordField("Password", id="pwd_login")
 
 
 class CreateAccountForm(FlaskForm):
-    username = TextField("Username", id="username_create")
-    email = TextField("Email")
+    email = TextField("Email", id="email_create")
     password = PasswordField("Password", id="pwd_create")

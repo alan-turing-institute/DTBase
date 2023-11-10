@@ -13,6 +13,4 @@ from dtbase.webapp.app.home import blueprint
 def index():
     """Index page."""
 
-    return render_template(
-        "index.html",
-    )
+    return render_template("index.html")

@@ -1,5 +1,11 @@
+import os
+
+
 class Config(object):
-    SECRET_KEY = "V96fj5eJf9ukM4U+xG3IapXqETjNFjV/kNy4PqpZUCE0bxy7Cyr8LKWMrKIO2Sw"
+    try:
+        SECRET_KEY = os.environ["DT_FRONT_SECRET_KEY"]
+    except KeyError:
+        raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
     # THEME SUPPORT
     #  if set then url_for('static', filename='', theme='')
     #  will add the theme name to the static URL:
