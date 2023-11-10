@@ -41,7 +41,7 @@ def get_token(client: Client) -> TestResponse:
         "email": TEST_USER_EMAIL,
         "password": TEST_USER_PASSWORD,
     }
-    response = client.post("/auth/new-token", json=type_data)
+    response = client.post("/auth/login", json=type_data)
     return response
 
 
@@ -54,7 +54,7 @@ class AuthenticatedClient(FlaskClient):
         self._headers = {}
 
     def authenticate(self):
-        """Authenticate with the /auth/new-token endpoint.
+        """Authenticate with the /auth/login endpoint.
 
         After this method has been called all requests sent by this client will include
         an authentication header with the token.

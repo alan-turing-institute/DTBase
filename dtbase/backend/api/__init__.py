@@ -6,13 +6,21 @@ from flask import Flask
 from flask_cors import CORS
 from sqlalchemy.exc import SQLAlchemyError
 
-from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS, JWT_SECRET_KEY
+from dtbase.core.constants import (
+    DEFAULT_USER_EMAIL,
+    DEFAULT_USER_PASS,
+    JWT_ACCESS_TOKEN_EXPIRES,
+    JWT_REFRESH_TOKEN_EXPIRES,
+    JWT_SECRET_KEY,
+)
 from dtbase.core.structure import SQLA as db
 from dtbase.core.users import change_password, delete_user, insert_user
 
 
 def register_extensions(app):
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
     fjwt.JWTManager(app)
     db.init_app(app)
 

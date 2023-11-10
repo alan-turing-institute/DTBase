@@ -8,7 +8,7 @@ The endpoints in this document should be appended to a base url, which will depe
 
 To be able to access any of the API end points you need an authentication token. You can get it from the following endpoint:
 
-### `/auth/new-token`
+### `/auth/login`
 * A POST request will return an authentication token
     - Payload should have the form
     ```
@@ -21,21 +21,40 @@ To be able to access any of the API end points you need an authentication token.
     ```
     {
         "access_token": <token_value:str>
+        "refresh_token": <token_value:str>
     }
     ```
     with status code 200.
 
 Once you've obtained a token, you need to add it to header of any other API calls you make as a bearer token.
-So if `/auth/new-token` returned
+So if `/auth/login` returned
 ```
 {
-    "access_token": "abcdefg"
+    "access_token": "abc"
+    "refresh_token": "xyz"
 }
 ```
 then you would call the other end points with the following in the header of the request:
 ```
-Authorization: Bearer abcdefg
+Authorization: Bearer abc
 ```
+
+If your token expires, you can use the refresh token to get a new for some time still,
+by calling the below end point. This one requires setting you header like above, but
+using the refresh token (`xyz`) rather than the access token (`abc`).
+If your refresh token expires too you will have to log in again.
+
+### `/auth/refresh`
+* A POST request will return an authentication token
+    - No payload needed, just the authorization header.
+    - returns a payload of the form
+    ```
+    {
+        "access_token": <token_value:str>
+        "refresh_token": <token_value:str>
+    }
+    ```
+    with status code 200.
 
 ## Locations
 

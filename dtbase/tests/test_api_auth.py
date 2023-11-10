@@ -1,7 +1,10 @@
 """
 Test API endpoints for authentication
 """
+import time
+
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import check_for_docker, get_token
@@ -14,10 +17,9 @@ def test_get_token(client: FlaskClient, test_user):
     """Test getting an authetication token for the test user."""
     with client:
         response = get_token(client)
-        assert response.status_code == 200
         body = response.json
-        assert body is not None
-        assert set(body.keys()) == {"access_token"}
+        assert response.status_code == 200 and body is not None
+        assert set(body.keys()) == {"access_token", "refresh_token"}
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
@@ -28,5 +30,40 @@ def test_get_token_nonexistent(client):
             "email": "snoopy@dogg.land",
             "password": "whatsmyname?",
         }
-        response = client.post("/auth/new-token", json=type_data)
+        response = client.post("/auth/login", json=type_data)
         assert response.status_code == 401
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_refresh_token(client: FlaskClient, test_user):
+    """Test refreshing an authentication token."""
+    with client:
+        response1 = get_token(client)
+        body1 = response1.json
+        assert response1.status_code == 200 and body1 is not None
+        refresh_token = body1["refresh_token"]
+
+        response2 = client.post(
+            "/auth/refresh", headers={"Authorization": f"Bearer {refresh_token}"}
+        )
+        body2 = response2.json
+        assert response2.status_code == 200 and body2 is not None
+        assert set(body2.keys()) == {"access_token", "refresh_token"}
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_refresh_token_expired(app: Flask, test_user):
+    """Test refreshing an authentication token when the refresh token has expired."""
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 1
+    with app.test_client() as client:
+        response1 = get_token(client)
+        body1 = response1.json
+        assert response1.status_code == 200 and body1 is not None
+        refresh_token = body1["refresh_token"]
+        time.sleep(1)  # By the time this is done, the token should have expired.
+
+        response2 = client.post(
+            "/auth/refresh", headers={"Authorization": f"Bearer {refresh_token}"}
+        )
+        assert response2.status_code == 401
+        assert response2.json == {"msg": "Token has expired"}

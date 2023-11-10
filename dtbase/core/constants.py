@@ -133,3 +133,8 @@ CONST_OPENWEATHERMAP_FORECAST_URL = (
 if "DT_JWT_SECRET_KEY" not in os.environ:
     raise RuntimeError("The environment variable 'DT_JWT_SECRET_KEY' must be set.")
 JWT_SECRET_KEY = os.environ["DT_JWT_SECRET_KEY"]
+
+JWT_ACCESS_TOKEN_EXPIRES = int(
+    os.environ.get("DT_JWT_ACCESS_TOKEN_EXPIRES_SECONDS", 3600)
+)
+JWT_REFRESH_TOKEN_EXPIRES = JWT_ACCESS_TOKEN_EXPIRES + 3600
