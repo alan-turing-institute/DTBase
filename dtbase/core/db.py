@@ -126,7 +126,7 @@ def drop_db(conn_string, db_name):
                 "pid_column": pid_column,
                 "database": db_name,
             }
-            connection.execute(text)
+            connection.execute(sqla.text(text))
 
             # Drops db
             drop_database(db_conn_string)
