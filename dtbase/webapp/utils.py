@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import requests
-from flask import Request, Response
+from flask import Request
 
 from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
@@ -36,7 +36,7 @@ def backend_call(
     end_point_path: str,
     payload: Optional[dict] = None,
     headers: Optional[dict] = None,
-) -> Response:
+) -> requests.models.Response:
     """Make an API call to the backend server."""
     headers = {} if headers is None else headers
     request_func = getattr(requests, request_type)
@@ -45,7 +45,7 @@ def backend_call(
         headers = headers | {"content-type": "application/json"}
         response = request_func(url, headers=headers, json=payload)
     else:
-        response = request_func(url)
+        response = request_func(url, headers=headers)
     return response
 
 

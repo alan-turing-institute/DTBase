@@ -75,6 +75,14 @@
         Users
       </a>
     </li>
+
+    <li>
+      <a href="/logout"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
+        <i class="fa fa-sign-out me-2 fa-fw"></i>
+        Log out
+      </a>
+    </li>
   </ul>
   <hr>
 </div>
