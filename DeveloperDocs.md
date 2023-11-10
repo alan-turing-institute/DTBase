@@ -46,11 +46,12 @@ export DT_SQL_DBNAME="dt_dev"
 ```
 3. Run `source .secrets/dtenv_localdb.sh`
 4. Install Docker
-5. Run a postgresql server in a docker container:
+5. Install postgresql. With brew, thats done like this: `brew install postgresql`
+6. Run a postgresql server in a docker container:
 
 `docker run --name dt_dev -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
 
-6. To run the backend, we first need to create an empty database:
+7. To run the backend, we first need to create an empty database:
 
 `createdb --host localhost --username postgres dt_dev`
 
