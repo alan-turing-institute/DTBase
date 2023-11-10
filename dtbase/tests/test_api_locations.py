@@ -1,7 +1,10 @@
 """
 Test API endpoints for locations
 """
+from typing import Any
+
 import pytest
+from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import check_for_docker
 
@@ -10,12 +13,12 @@ DOCKER_RUNNING = check_for_docker()
 
 # use the testuser fixture to add a user to the database
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_user(testuser):
+def test_user(testuser: Any) -> None:
     assert True
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_schema(client):
+def test_insert_location_schema(client: FlaskClient) -> None:
     with client:
         schema = {
             "name": "building-floor-room",
@@ -31,7 +34,7 @@ def test_insert_location_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_no_schema(client):
+def test_insert_location_no_schema(client: FlaskClient) -> None:
     with client:
         location = {
             "identifiers": [
@@ -47,7 +50,7 @@ def test_insert_location_no_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_nonexisting_schema(client):
+def test_insert_location_nonexisting_schema(client: FlaskClient) -> None:
     with client:
         # use a non-existing schema name to insert a location
         with pytest.raises(ValueError):
@@ -56,7 +59,7 @@ def test_insert_location_nonexisting_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_existing_schema(client):
+def test_insert_location_existing_schema(client: FlaskClient) -> None:
     with client:
         schema = {
             "name": "xy",
@@ -76,7 +79,7 @@ def test_insert_location_existing_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_locations_no_coords(client):
+def test_list_locations_no_coords(client: FlaskClient) -> None:
     with client:
         response = client.get("/location/list-locations", json={"schema_name": "xy"})
         assert response.status_code == 200
@@ -84,7 +87,7 @@ def test_list_locations_no_coords(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_identifiers(client):
+def test_list_location_identifiers(client: FlaskClient) -> None:
     with client:
         # Insert location schemas with unique identifiers
         schema1 = {
@@ -120,7 +123,7 @@ def test_list_location_identifiers(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_schemas(client):
+def test_list_location_schemas(client: FlaskClient) -> None:
     with client:
         # Insert location schemas
         schema1 = {
@@ -153,7 +156,7 @@ def test_list_location_schemas(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location_schema(client):
+def test_delete_location_schema(client: FlaskClient) -> None:
     with client:
         # First, insert a location schema to delete later
         schema = {
@@ -185,7 +188,7 @@ def test_delete_location_schema(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location(client):
+def test_delete_location(client: FlaskClient) -> None:
     with client:
         # Insert a location schema and a location
         schema = {

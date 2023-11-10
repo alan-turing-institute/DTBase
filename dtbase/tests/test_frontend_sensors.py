@@ -2,6 +2,7 @@
 Test that the DTBase sensors pages load
 """
 import requests_mock
+from flask.testing import FlaskClient
 
 MOCK_SENSOR_TYPES = [
     {
@@ -31,7 +32,7 @@ MOCK_SENSOR_READINGS = [
 ]
 
 
-def test_sensors_timeseries_no_backend(frontend_client):
+def test_sensors_timeseries_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get(
             "/sensors/time-series-plots", follow_redirects=True
@@ -41,7 +42,7 @@ def test_sensors_timeseries_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_sensors_timeseries_no_sensor_types(frontend_client):
+def test_sensors_timeseries_no_sensor_types(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
@@ -51,7 +52,7 @@ def test_sensors_timeseries_no_sensor_types(frontend_client):
             assert "Choose sensors and time period" in html_content
 
 
-def test_sensors_timeseries_dummy_sensor_types(frontend_client):
+def test_sensors_timeseries_dummy_sensor_types(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -67,7 +68,7 @@ def test_sensors_timeseries_dummy_sensor_types(frontend_client):
             assert 'value="dummyType2"' in html_content
 
 
-def test_sensors_timeseries_no_sensor_data(frontend_client):
+def test_sensors_timeseries_no_sensor_data(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -82,7 +83,7 @@ def test_sensors_timeseries_no_sensor_data(frontend_client):
             assert 'value="sensor1"' in html_content
 
 
-def test_sensors_timeseries_with_data(frontend_client):
+def test_sensors_timeseries_with_data(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -105,7 +106,7 @@ def test_sensors_timeseries_with_data(frontend_client):
             assert '<canvas id="HumidityCanvas"></canvas>' in html_content
 
 
-def test_sensors_readings_no_backend(frontend_client):
+def test_sensors_readings_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get("/sensors/readings", follow_redirects=True)
         assert response.status_code == 200
@@ -113,7 +114,7 @@ def test_sensors_readings_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_sensors_readings_initial_get(frontend_client):
+def test_sensors_readings_initial_get(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
@@ -123,7 +124,7 @@ def test_sensors_readings_initial_get(frontend_client):
             assert "Time period" in html_content
 
 
-def test_sensors_readings_post_time_period(frontend_client):
+def test_sensors_readings_post_time_period(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
@@ -136,7 +137,7 @@ def test_sensors_readings_post_time_period(frontend_client):
             assert "Sensor Type" in html_content
 
 
-def test_sensors_readings_post_sensor(frontend_client):
+def test_sensors_readings_post_sensor(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -167,7 +168,7 @@ def test_sensors_readings_post_sensor(frontend_client):
             assert html_content.count("<tr>") == 6
 
 
-def test_add_sensor_type_no_backend(frontend_client):
+def test_add_sensor_type_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get(
             "/sensors/add-sensor-type", follow_redirects=True
@@ -177,7 +178,7 @@ def test_add_sensor_type_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_add_sensor_type_no_existing_measures(frontend_client):
+def test_add_sensor_type_no_existing_measures(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-measures", json=[])
@@ -190,7 +191,7 @@ def test_add_sensor_type_no_existing_measures(frontend_client):
             assert "Select existing measure" in html_content
 
 
-def test_add_sensor_type_submit_empty(frontend_client):
+def test_add_sensor_type_submit_empty(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-measures", json=[])
@@ -206,7 +207,7 @@ def test_add_sensor_type_submit_empty(frontend_client):
             )
 
 
-def test_add_sensor_type_submit_duplicate(frontend_client):
+def test_add_sensor_type_submit_duplicate(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-measures", json=[])
@@ -234,7 +235,7 @@ def test_add_sensor_type_submit_duplicate(frontend_client):
             assert "The sensor type &#39;testname&#39; already exists" in html_content
 
 
-def test_add_sensor_type_submit_ok(frontend_client):
+def test_add_sensor_type_submit_ok(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-measures", json=[])
@@ -260,7 +261,7 @@ def test_add_sensor_type_submit_ok(frontend_client):
                 assert flash_message["success"] == "Sensor type added successfully"
 
 
-def test_add_sensor_no_backend(frontend_client):
+def test_add_sensor_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get("/sensors/add-sensor", follow_redirects=True)
         assert response.status_code == 200
@@ -268,7 +269,7 @@ def test_add_sensor_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_add_sensor_no_sensor_types(frontend_client):
+def test_add_sensor_no_sensor_types(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
@@ -277,7 +278,7 @@ def test_add_sensor_no_sensor_types(frontend_client):
             assert "Add New Sensor" in html_content
 
 
-def test_add_sensor_ok(frontend_client):
+def test_add_sensor_ok(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get(
@@ -299,7 +300,7 @@ def test_add_sensor_ok(frontend_client):
                 assert flash_message["success"] == "Sensor added successfully"
 
 
-def test_sensor_list_no_backend(frontend_client):
+def test_sensor_list_no_backend(frontend_client: FlaskClient) -> None:
     with frontend_client:
         response = frontend_client.get("/sensors/sensor-list", follow_redirects=True)
         assert response.status_code == 200
@@ -307,7 +308,7 @@ def test_sensor_list_no_backend(frontend_client):
         assert "Backend API not found" in html_content
 
 
-def test_sensor_list_no_sensor_types(frontend_client):
+def test_sensor_list_no_sensor_types(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
@@ -319,7 +320,7 @@ def test_sensor_list_no_sensor_types(frontend_client):
             assert "Select a sensor type" in html_content
 
 
-def test_sensor_list_ok(frontend_client):
+def test_sensor_list_ok(frontend_client: FlaskClient) -> None:
     with frontend_client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])

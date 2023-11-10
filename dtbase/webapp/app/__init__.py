@@ -1,8 +1,10 @@
+import datetime as dt
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from os import path
+from typing import Union
 
-from flask import Flask, url_for
+from flask import Flask, Request, url_for
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin
 
@@ -15,20 +17,20 @@ DUMMY_USER.id = "dummy user"
 
 
 @login_manager.user_loader
-def user_loader(id):
+def user_loader(id: int) -> UserMixin:
     return DUMMY_USER
 
 
 @login_manager.request_loader
-def request_loader(request):
+def request_loader(request: Request) -> UserMixin:
     return DUMMY_USER
 
 
-def register_extensions(app):
+def register_extensions(app: Flask) -> None:
     login_manager.init_app(app)
 
 
-def register_blueprints(app):
+def register_blueprints(app: Flask) -> None:
     module_list = ("base", "home", "sensors", "locations", "models")
 
     for module_name in module_list:
@@ -37,22 +39,22 @@ def register_blueprints(app):
         app.register_blueprint(module.blueprint)
 
 
-def register_template_filters(app):
+def register_template_filters(app: Flask) -> None:
     @app.template_filter()
-    def format_datetime(value):
+    def format_datetime(value: dt.datetime) -> Union[dt.datetime, str]:
         try:
             return value.strftime("%Y-%m-%d %H:%M")
         except (ValueError, AttributeError):
             return value
 
 
-def configure_logs(app):
+def configure_logs(app: Flask) -> None:
     basicConfig(filename="error.log", level=DEBUG)
     logger = getLogger()
     logger.addHandler(StreamHandler())
 
 
-def apply_themes(app):
+def apply_themes(app: Flask) -> None:
     """
     Add support for themes.
 
@@ -69,10 +71,10 @@ def apply_themes(app):
     """
 
     @app.context_processor
-    def override_url_for():
+    def override_url_for() -> dict:
         return dict(url_for=_generate_url_for_theme)
 
-    def _generate_url_for_theme(endpoint, **values):
+    def _generate_url_for_theme(endpoint: str, **values) -> str:
         if endpoint.endswith("static"):
             themename = values.get("theme", None) or app.config.get(
                 "DEFAULT_THEME", None
@@ -84,7 +86,7 @@ def apply_themes(app):
         return url_for(endpoint, **values)
 
 
-def create_app(config, selenium=False):
+def create_app(config: Union[object, str], selenium: bool = False) -> Flask:
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
 
