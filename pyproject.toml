@@ -130,4 +130,5 @@ select = [
 #  "RUF",
 ]
 # Don't use the automatic fixing for now.
-unfixable = ["ALL"]
+fixable = ["I"]
+unfixable = ["F", "E"]
