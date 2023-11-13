@@ -4,6 +4,7 @@ from typing import Generator
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient, FlaskCliRunner
+from sqlalchemy.orm import Session
 from werkzeug.test import Client, TestResponse
 
 from dtbase.backend.api import create_app as create_backend_app
@@ -125,8 +126,7 @@ def client(app: Flask) -> FlaskClient:
 
 
 @pytest.fixture()
-def testuser(app: Flask) -> None:
-    # create a dummy test user
+def test_user(app: Flask, session: Session) -> None:
     with app.app_context():
         insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
         session.commit()
