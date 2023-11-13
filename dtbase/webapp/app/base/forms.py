@@ -1,14 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, TextField
-
-## login and registration
+from wtforms import PasswordField
+from wtforms.fields.html5 import EmailField
 
 
 class LoginForm(FlaskForm):
-    email = TextField("Email", id="email_login")
+    email = EmailField("Email", id="email_login")
     password = PasswordField("Password", id="pwd_login")
-
-
-class CreateAccountForm(FlaskForm):
-    email = TextField("Email", id="email_create")
-    password = PasswordField("Password", id="pwd_create")

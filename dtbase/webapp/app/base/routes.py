@@ -1,4 +1,3 @@
-from os import environ
 from typing import Any, Union
 
 from flask import (
@@ -10,12 +9,12 @@ from flask import (
     request,
     url_for,
 )
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user
 from werkzeug.wrappers import Response
 
 from dtbase.webapp.app import login_manager
 from dtbase.webapp.app.base import blueprint
-from dtbase.webapp.app.base.forms import CreateAccountForm, LoginForm
+from dtbase.webapp.app.base.forms import LoginForm
 from dtbase.webapp.exc import AuthorizationError
 from dtbase.webapp.user import User
 from dtbase.webapp.utils import url_has_allowed_host_and_scheme
@@ -59,8 +58,8 @@ def favicon() -> Response:
 @blueprint.route("/login", methods=["GET", "POST"])
 def login() -> Union[Response, str]:
     login_form = LoginForm(request.form)
-    create_account_form = CreateAccountForm(request.form)
-    if "login" in request.form:
+    # The validate only passes if this is a POST request.
+    if login_form.validate_on_submit():
         user = User(request.form["email"])
         try:
             user.authenticate(request.form["password"])
@@ -69,21 +68,12 @@ def login() -> Union[Response, str]:
         login_user(user)
 
         next = request.args.get("next")
-        print(next)
         # url_has_allowed_host_and_scheme checks if the url is safe for redirects,
         # meaning it matches the request host.
         if next and not url_has_allowed_host_and_scheme(next, request.host):
             abort(400)
         return redirect(next or url_for("home_blueprint.index"))
-
-    if not current_user.is_authenticated:
-        return render_template(
-            "login/login.html",
-            login_form=login_form,
-            create_account_form=create_account_form,
-            disable_register=(environ.get("DTBASE_DISABLE_REGISTER", "True") == "True"),
-        )
-    return redirect(url_for("home_blueprint.index"))
+    return render_template("login/login.html", login_form=login_form)
 
 
 # @blueprint.route("/create_user", methods=["POST"])
