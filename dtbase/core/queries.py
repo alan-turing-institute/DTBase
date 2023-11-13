@@ -4,7 +4,8 @@ Each function returns a SQLAlchemy Query object. Turning these into subqueries o
 or executing them is the responsibility of the caller.
 """
 import sqlalchemy as sqla
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import Session, aliased
+from sqlalchemy.sql.selectable import Select
 
 from dtbase.core import utils
 from dtbase.core.structure import (
@@ -18,7 +19,7 @@ from dtbase.core.structure import (
 )
 
 
-def location_identifiers_by_schema():
+def location_identifiers_by_schema() -> Select:
     """Query for identifiers of locations by schema."""
     query = (
         sqla.select(
@@ -41,7 +42,9 @@ def location_identifiers_by_schema():
     return query
 
 
-def select_location_by_coordinates(schema_name, session, **kwargs):
+def select_location_by_coordinates(
+    schema_name: str, session: Session, **kwargs
+) -> Select:
     """Query for locations and their coordinates.
 
     Return a query with the column `id` and one column for each location identifier for
@@ -91,7 +94,7 @@ def select_location_by_coordinates(schema_name, session, **kwargs):
     return location_q
 
 
-def sensor_measures_by_type():
+def sensor_measures_by_type() -> Select:
     """Query for measures of sensors by sensor type."""
     query = (
         sqla.select(

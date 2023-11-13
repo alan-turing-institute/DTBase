@@ -9,7 +9,7 @@ from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.db import connect_db, create_database, create_tables
 
 
-def check_for_docker():
+def check_for_docker() -> (str | bool):
     """
     See if we have a postgres docker container already running.
 
@@ -32,7 +32,7 @@ def check_for_docker():
         return m.groups()[0]  # return the container ID
 
 
-def start_docker_postgres():
+def start_docker_postgres() -> (str | None):
     """
     Start a postgres docker container, if one isn't already running.
 
@@ -76,7 +76,7 @@ def start_docker_postgres():
             return container_id
 
 
-def create_db_tables():
+def create_db_tables() -> None:
     create_database(SQL_CONNECTION_STRING, SQL_DBNAME)
     status, log, engine = connect_db(SQL_CONNECTION_STRING, SQL_DBNAME)
     create_tables(engine)
@@ -91,7 +91,7 @@ def stop_docker_postgres(container_id):
         os.system("docker kill " + container_id)
 
 
-def main():
+def main() -> None:
     docker_check = check_for_docker()
     container_id = None
     if isinstance(docker_check, bool):

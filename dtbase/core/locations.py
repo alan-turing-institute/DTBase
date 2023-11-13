@@ -1,5 +1,8 @@
 """Functions for accessing the locations tables. """
+from typing import Dict, List, Optional
+
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries, utils
@@ -12,7 +15,12 @@ from dtbase.core.structure import (
 
 
 @add_default_session
-def insert_location_value(value, location_id, identifier_id, session=None):
+def insert_location_value(
+    value: (float | str),
+    location_id: str,
+    identifier_id: str,
+    session: Optional[Session] = None,
+) -> None:
     """Insert a coordinate for a location into the database.
 
     Args:
@@ -36,7 +44,9 @@ def insert_location_value(value, location_id, identifier_id, session=None):
 
 
 @add_default_session
-def identifier_id_from_name(identifier_name, session=None):
+def identifier_id_from_name(
+    identifier_name: str, session: Optional[Session] = None
+) -> None:
     """Find the id of a location identifier of the given name.
 
     Args:
@@ -58,7 +68,7 @@ def identifier_id_from_name(identifier_name, session=None):
 
 
 @add_default_session
-def schema_id_from_name(schema_name, session=None):
+def schema_id_from_name(schema_name: str, session: Optional[Session] = None) -> None:
     """Find the id of a location schema of the given name.
 
     Args:
@@ -78,7 +88,9 @@ def schema_id_from_name(schema_name, session=None):
 
 
 @add_default_session
-def insert_location(schema_name, session=None, **kwargs):
+def insert_location(
+    schema_name: str, session: Optional[Session] = None, **kwargs
+) -> None:
     """Insert a new location into the database.
 
     Args:
@@ -139,7 +151,12 @@ def insert_location(schema_name, session=None, **kwargs):
 
 
 @add_default_session
-def insert_location_identifier(name, units, datatype, session=None):
+def insert_location_identifier(
+    name: str,
+    units: str,
+    datatype: (str | int | float | bool),
+    session: Optional[Session] = None,
+) -> None:
     """Insert a new location identifier into the database.
 
     Location identifiers are types of coordinates by which locations can be set and
@@ -174,7 +191,12 @@ def insert_location_identifier(name, units, datatype, session=None):
 
 
 @add_default_session
-def insert_location_schema(name, description, identifiers, session=None):
+def insert_location_schema(
+    name: str,
+    description: str,
+    identifiers: List[str],
+    session: Optional[Session] = None,
+) -> None:
     """Insert a new location schema into the database.
 
     Location schema specifies a set of identifiers by which locations are identified
@@ -207,7 +229,7 @@ def insert_location_schema(name, description, identifiers, session=None):
 
 
 @add_default_session
-def delete_location_by_id(location_id, session=None):
+def delete_location_by_id(location_id: str, session: Optional[Session] = None) -> None:
     """Delete a location from the database, identified by its primary key id.
 
     Also deletes any coordinate values for this location.
@@ -225,7 +247,9 @@ def delete_location_by_id(location_id, session=None):
 
 
 @add_default_session
-def delete_location_by_coordinates(schema_name, session=None, **kwargs):
+def delete_location_by_coordinates(
+    schema_name: str, session: Optional[Session] = None, **kwargs
+) -> None:
     """Delete a location from the database, identified by its coordinates.
 
     Also deletes any coordinate values for this location.
@@ -249,7 +273,9 @@ def delete_location_by_coordinates(schema_name, session=None, **kwargs):
 
 
 @add_default_session
-def delete_location_identifier(identifier_name, session=None):
+def delete_location_identifier(
+    identifier_name: str, session: Optional[Session] = None
+) -> None:
     """Delete a location identifier from the database.
 
     Raises an error if a schema exists that uses this identifier.
@@ -271,7 +297,7 @@ def delete_location_identifier(identifier_name, session=None):
 
 
 @add_default_session
-def delete_location_schema(schema_name, session=None):
+def delete_location_schema(schema_name: str, session: Optional[Session] = None) -> None:
     """Delete a location schema from the database.
 
     Raises an error if a location exists that uses this schema.
@@ -291,7 +317,7 @@ def delete_location_schema(schema_name, session=None):
 
 
 @add_default_session
-def list_location_identifiers(session=None):
+def list_location_identifiers(session: Optional[Session] = None) -> List[dict]:
     """List all location identifiers
 
     Args:
@@ -317,7 +343,7 @@ def list_location_identifiers(session=None):
 
 
 @add_default_session
-def list_location_schemas(session=None):
+def list_location_schemas(session: Optional[Session] = None) -> List[dict]:
     """List all location schemas with their identifiers
 
     Args:
@@ -371,7 +397,9 @@ def list_location_schemas(session=None):
 
 
 @add_default_session
-def list_locations(schema_name, session=None, **kwargs):
+def list_locations(
+    schema_name: str, session: Optional[Session] = None, **kwargs
+) -> List[dict]:
     """List all locations in a schema, optionally filtering by coordinates.
 
     With `list_locations(schema_name)`, all locations in a schema will be returned.
@@ -396,7 +424,9 @@ def list_locations(schema_name, session=None, **kwargs):
 
 
 @add_default_session
-def get_schema_details(schema_name, session=None):
+def get_schema_details(
+    schema_name: str, session: Optional[Session] = None
+) -> Dict[str, list]:
     """Fetch details of a location schema from the database, including the identifiers
     associated with the schema.
 

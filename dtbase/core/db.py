@@ -3,22 +3,25 @@ Module for the main functions to create a new database with SQLAlchemy and Postg
 drop database, and check its structure.
 """
 
+from typing import Literal, Tuple
+
 import sqlalchemy as sqla
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import RelationshipProperty, sessionmaker
+from sqlalchemy.orm import RelationshipProperty, Session, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
 
 from .constants import SQL_DEFAULT_DBNAME
 from .structure import BASE
 
 
-def create_tables(engine):
+def create_tables(engine: Engine) -> None:
     """Create all the tables for the database."""
     BASE.metadata.create_all(engine)
 
 
-def create_database(conn_string, db_name):
+def create_database(conn_string: str, db_name: str) -> Tuple[Literal[True], None]:
     """
     Function to create a new database
     -sql_connection_string: a string that holds an address to the db
@@ -65,7 +68,9 @@ def create_database(conn_string, db_name):
     return True, None
 
 
-def connect_db(conn_string, db_name):
+def connect_db(
+    conn_string: str, db_name: str
+) -> (Tuple[Literal[False], str, None] | Tuple[Literal[True], None, Engine]):
     """
     Function to connect to a database
     -conn_string: the string that holds the connection to postgres
@@ -94,7 +99,9 @@ def drop_tables(engine):
     BASE.metadata.drop_all(engine)
 
 
-def drop_db(conn_string, db_name):
+def drop_db(
+    conn_string: str, db_name: str
+) -> (Tuple[Literal[False], str] | Tuple[Literal[True], None]):
     """
     Function to drop db
     *What it doesnt do: drop individual table/column/values
@@ -136,7 +143,9 @@ def drop_db(conn_string, db_name):
     return True, None
 
 
-def check_database_structure(engine):
+def check_database_structure(
+    engine: Engine,
+) -> (Tuple[Literal[False], str] | Tuple[Literal[True], None]):
     """
     Check whether the current database matches the models declared in model base.
 
@@ -191,9 +200,8 @@ def check_database_structure(engine):
             else:
                 return (
                     False,
-                    "Model %s declares table %s which doesn't exist",
-                    sql_class,
-                    tablename,
+                    "Model %s declares table %s which doesn't exist"
+                    % (sql_class, tablename),
                 )
 
     else:
@@ -202,7 +210,7 @@ def check_database_structure(engine):
     return True, None
 
 
-def session_open(engine):
+def session_open(engine: Engine):
     """
     Opens a new connection/session to the db and binds the engine
     -engine: the connected engine
@@ -212,7 +220,7 @@ def session_open(engine):
     return Session()
 
 
-def session_close(session):
+def session_close(session: Session) -> None:
     """
     Closes the current open session
     -session: an open session

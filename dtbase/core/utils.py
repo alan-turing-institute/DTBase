@@ -1,15 +1,19 @@
 """
 Utilities (miscellaneous routines) module
 """
+import datetime as dt
 import io
 import json
 import logging
 import uuid
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Literal, Tuple
 
 import pandas as pd
-from flask import send_file
+from flask import Response, send_file
 from sqlalchemy import exc
+from sqlalchemy.engine import Engine, ResultProxy, RowMapping
+from sqlalchemy.orm import Session
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.db import connect_db, session_close, session_open
@@ -31,7 +35,9 @@ from dtbase.core.structure import (
 )
 
 
-def get_db_session(return_engine=False):
+def get_db_session(
+    return_engine: bool = False,
+) -> (Tuple[Session, Engine] | Session | None):
     """
     Get an SQLAlchemy session on the database.
 
@@ -57,7 +63,9 @@ def get_db_session(return_engine=False):
         return session
 
 
-def query_result_to_array(query_result, date_iso=True):
+def query_result_to_array(
+    query_result: List[ResultProxy], date_iso: bool = True
+) -> list:
     """
     Forms an array of ResultProxy results.
     Args:
@@ -95,7 +103,9 @@ def query_result_to_array(query_result, date_iso=True):
     return results_arr
 
 
-def query_result_to_dict(query_result, date_iso=True):
+def query_result_to_dict(
+    query_result: List[ResultProxy], date_iso: bool = True
+) -> (Dict | ResultProxy):
     """
     If we have a single query result, return output as a dict rather than a list
     Args:
@@ -125,7 +135,7 @@ def query_result_to_dict(query_result, date_iso=True):
     return dict_entry
 
 
-def jsonify_query_result(query_result):
+def jsonify_query_result(query_result: ResultProxy) -> str:
     """
     Jasonifies ResultProxy results.
 
@@ -152,7 +162,7 @@ def jsonify_query_result(query_result):
     return result
 
 
-def get_default_datetime_range():
+def get_default_datetime_range() -> Tuple[dt.datetime, dt.datetime]:
     """
     Returns a default datetime range (7 days): dt_from, dt_to
     """
@@ -172,7 +182,7 @@ def get_default_datetime_range():
     return dt_from, dt_to
 
 
-def parse_date_range_argument(request_args):
+def parse_date_range_argument(request_args: str) -> Tuple[dt.datetime, dt.datetime]:
     """
     Parses date range arguments from the request_arguments string.
 
@@ -206,7 +216,9 @@ def parse_date_range_argument(request_args):
         return get_default_datetime_range()
 
 
-def create_user(username, email, password):
+def create_user(
+    username: str, email: str, password: str
+) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
     """Create a new user.
 
     Return (True, user_id) if successful, (False, error_message) if not.
@@ -221,7 +233,9 @@ def create_user(username, email, password):
         return False, str(e)
 
 
-def delete_user(username, email):
+def delete_user(
+    username: str, email: str
+) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
     """Delete the user with this username and email.
 
     Return (True, user_id) if successful, (False, error_message) if not.
@@ -237,7 +251,9 @@ def delete_user(username, email):
         return False, str(e)
 
 
-def change_user_password(username, email, password):
+def change_user_password(
+    username: str, email: str, password: str
+) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
     """Change the password of a given user.
 
     Return (True, user_id) if successful, (False, error_message) if not.
@@ -258,7 +274,7 @@ def change_user_password(username, email, password):
         return False, str(e)
 
 
-def insert_to_db_from_df(engine, df, DbClass):
+def insert_to_db_from_df(engine: Engine, df: pd.DataFrame, DbClass: Any) -> None:
     """
     Read a CSV file into a pandas dataframe, and then upload to
     database table
@@ -329,7 +345,7 @@ sensor_reading_class_dict = {
 }
 
 
-def check_datatype(value, datatype_name):
+def check_datatype(value: str, datatype_name: str) -> bool:
     if datatype_name == "string":
         return isinstance(value, str)
     if datatype_name == "integer":
@@ -341,14 +357,14 @@ def check_datatype(value, datatype_name):
     raise ValueError(f"Unrecognised datatype: {datatype_name}")
 
 
-def row_mappings_to_dicts(rows):
+def row_mappings_to_dicts(rows: List[RowMapping]) -> List[Dict]:
     """Convert the list of RowMappings that SQLAlchemy's mappings() returns into plain
     dicts.
     """
     return [{k: v for k, v in row.items()} for row in rows]
 
 
-def download_csv(readings, filename_base="results"):
+def download_csv(readings: List[Any], filename_base: str = "results") -> Response:
     """
     Use Pandas to convert array of readings into a csv
     Args:
