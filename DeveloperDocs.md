@@ -35,7 +35,7 @@ export DT_SQL_TESTUSER="postgres"
 export DT_SQL_TESTPASS="password"
 export DT_SQL_TESTHOST="localhost"
 export DT_SQL_TESTPORT="5432"
-export DT_SQL_TESTDBNAME="dt_dev"
+export DT_SQL_TESTDBNAME="test_db"
 
 # Dev database
 export DT_SQL_USER="postgres"
