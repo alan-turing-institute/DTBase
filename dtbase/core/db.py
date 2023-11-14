@@ -94,7 +94,7 @@ def connect_db(
     return True, None, engine
 
 
-def drop_tables(engine):
+def drop_tables(engine: Engine) -> None:
     """Drop all tables in the database."""
     BASE.metadata.drop_all(engine)
 
@@ -210,7 +210,7 @@ def check_database_structure(
     return True, None
 
 
-def session_open(engine: Engine):
+def session_open(engine: Engine) -> Session:
     """
     Opens a new connection/session to the db and binds the engine
     -engine: the connected engine

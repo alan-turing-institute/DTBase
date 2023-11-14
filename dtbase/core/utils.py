@@ -150,7 +150,7 @@ def jsonify_query_result(query_result: ResultProxy) -> str:
 
     # extend the JSONEncode to deal with UUID objects
     class UUIDEncoder(json.JSONEncoder):
-        def default(self, obj):
+        def default(self: "UUIDEncoder", obj: Any) -> str:
             if isinstance(obj, uuid.UUID):
                 return str(obj)
             return json.JSONEncoder.default(self, obj)

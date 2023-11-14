@@ -1,6 +1,6 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
-from typing import Union
+from typing import Optional, Union
 
 from flask import Flask, Request
 from flask_cors import CORS
@@ -49,7 +49,7 @@ def configure_database(app: Flask) -> None:
         db.create_all()
 
     @app.teardown_request
-    def shutdown_session(exception=None) -> None:
+    def shutdown_session(exception: Optional[Exception] = None) -> None:
         db.session.remove()
 
 

@@ -255,9 +255,9 @@ def insert_model_run(
     model_name: str,
     scenario_description: str,
     measures_and_values: str,
-    sensor_id: int = None,
-    sensor_measure_id: int = None,
-    time_created=dt.datetime.now(dt.timezone.utc),
+    sensor_id: Optional[int] = None,
+    sensor_measure_id: Optional[int] = None,
+    time_created: dt.datetime = dt.datetime.now(dt.timezone.utc),
     create_scenario: bool = False,
     session: Optional[Session] = None,
 ) -> None:

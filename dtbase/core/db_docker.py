@@ -82,7 +82,7 @@ def create_db_tables() -> None:
     create_tables(engine)
 
 
-def stop_docker_postgres(container_id):
+def stop_docker_postgres(container_id: str) -> None:
     """
     Stop the docker container with the specified container_id
     """

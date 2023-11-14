@@ -3,6 +3,8 @@
 Each function returns a SQLAlchemy Query object. Turning these into subqueries or CTEs
 or executing them is the responsibility of the caller.
 """
+from typing import Any
+
 import sqlalchemy as sqla
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy.sql.selectable import Select
@@ -43,7 +45,7 @@ def location_identifiers_by_schema() -> Select:
 
 
 def select_location_by_coordinates(
-    schema_name: str, session: Session, **kwargs
+    schema_name: str, session: Session, **kwargs: Any
 ) -> Select:
     """Query for locations and their coordinates.
 

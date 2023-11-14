@@ -1,5 +1,5 @@
 """Functions for accessing the locations tables. """
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import Session
@@ -89,7 +89,7 @@ def schema_id_from_name(schema_name: str, session: Optional[Session] = None) -> 
 
 @add_default_session
 def insert_location(
-    schema_name: str, session: Optional[Session] = None, **kwargs
+    schema_name: str, session: Optional[Session] = None, **kwargs: Any
 ) -> None:
     """Insert a new location into the database.
 
@@ -248,7 +248,7 @@ def delete_location_by_id(location_id: str, session: Optional[Session] = None) -
 
 @add_default_session
 def delete_location_by_coordinates(
-    schema_name: str, session: Optional[Session] = None, **kwargs
+    schema_name: str, session: Optional[Session] = None, **kwargs: Any
 ) -> None:
     """Delete a location from the database, identified by its coordinates.
 
@@ -398,7 +398,7 @@ def list_location_schemas(session: Optional[Session] = None) -> List[dict]:
 
 @add_default_session
 def list_locations(
-    schema_name: str, session: Optional[Session] = None, **kwargs
+    schema_name: str, session: Optional[Session] = None, **kwargs: Any
 ) -> List[dict]:
     """List all locations in a schema, optionally filtering by coordinates.
 

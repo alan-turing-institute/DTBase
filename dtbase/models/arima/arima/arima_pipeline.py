@@ -177,7 +177,9 @@ def cross_validate_arima(
     rmse = []  # this will hold the RMSE at each fold
     mape = []  # this will hold the MAPE score at each fold
 
-    def update_result(model_fit, cv_test, test_index):
+    def update_result(
+        model_fit: SARIMAXResultsWrapper, cv_test: pd.Series, test_index: pd.Series
+    ) -> None:
         # compute the forecast for the test sample of the current fold
         forecast = model_fit.forecast(steps=len(test_index))
         # compute the RMSE for the current fold
