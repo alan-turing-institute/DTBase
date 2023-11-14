@@ -3,7 +3,7 @@ name = "dtbase"
 version = "0.1"
 description = "Core functionality for a generic digital twin"
 authors = [{name = "The Alan Turing Institute Research Engineering Group"}]
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.10,<3.13"
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -11,57 +11,57 @@ classifiers = [
 ]
 keywords = ["digital twin"]
 dependencies = [
-    "coloredlogs==15.0.1",
-    "sqlalchemy ~= 2.0",
-    "SQLAlchemy-Utils ~= 0.41",
+    "coloredlogs ~= 15.0.1 ",
+    "sqlalchemy ~= 2.0.23",
+    "SQLAlchemy-Utils ~= 0.41.1",
 
-    "flask-sqlalchemy==3.0.3",
-    "flask==2.2.3",
-    "flask_login==0.6.2",
-    "flask-cors == 3.0.10",
-    "flask_migrate==3.1.0",
+    "flask-sqlalchemy ~= 3.1.1",
+    "flask ~= 3.0.0",
+    "flask_login ~= 0.6.3",
+    "flask-cors ~= 4.0.0",
+    "flask_migrate ~= 4.0.5",
 
-    "Jinja2==3.0.3",
-    "jinjasql==0.1.8",
-    "psycopg2-binary==2.9.3",
-    "pandas==1.5.3",
+    "Jinja2 ~= 3.1.2 ",
+    "jinjasql ~= 0.1.8",
+    "psycopg2-binary ~= 2.9.9",
+    "pandas ~= 2.1.3",
 
-    "scipy==1.11.3",
-    "numpy==1.22.3",
-    "matplotlib==3.5.1",
-    "scikit-learn==1.0.2",
+    "scipy ~= 1.11.3",
+    "numpy ~= 1.26.2",
+    "matplotlib ~= 3.8.1",
+    "scikit-learn ~= 1.3.2",
 
-    "bcrypt==3.2.2",
+    "bcrypt ~= 4.0.1",
 
-    "azure-functions==1.11.2",
-    "flask_wtf==1.0.1",
+    "azure-functions ~= 1.17.0",
+    "flask_wtf ~= 1.2.1",
 
-    "azure-storage-blob==12.13.0",
+    "azure-storage-blob ~= 12.19.0",
 
-    "WTForms==2.3.3",
-    "werkzeug==2.2.3",
-    "requests==2.28.1",
-    "python-dateutil==2.8.2",
+    "WTForms ~= 3.1.1",
+    "werkzeug ~= 3.0.1",
+    "requests ~= 2.31.0",
+    "python-dateutil ~= 2.8.2",
 
-    "PyYAML==6.0",
-    "requests_mock==1.9.3",
+    "PyYAML ~= 6.0.1",
+    "requests_mock ~= 1.11.0",
 
-    "statsmodels==0.14",
-    "pydmd==0.4.1",
+    "statsmodels ~= 0.14.0",
+    "pydmd ~= 0.4.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit",
-    "black==22.3.0",
-    "pylint==2.13.5",
-    "pytest==7.1.1",
-    "pytest-cov==4.0.0",
-    "ruff==0.1.3",
+    "pre-commit ~= 3.5.0",
+    "black ~= 23.11.0",
+    "pylint ~= 3.0.2",
+    "pytest ~= 7.4.3",
+    "pytest-cov ~= 4.1.0",
+    "ruff ~= 0.1.5",
 ]
 infrastructure = [
-    "pulumi==3.56.0",
-    "pulumi-azure-native==1.96.0",
+    "pulumi ~= 3.93.0",
+    "pulumi-azure-native ~= 2.17.0",
 ]
 
 [project.urls]
@@ -89,19 +89,16 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # TODO Comment in more of the below as we clean up the code.
-ignore = [
-    "ANN401"
-]
 select = [
   "F",
   "E",
   "I",
-  "ANN",
 #  "W",
 #  "N",
 #  "C",
 #  "D",
 #  "YTT",
+#  "ANN",
 #  "ASYNC",
 #  "B",
 #  "A",
