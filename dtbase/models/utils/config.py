@@ -6,16 +6,17 @@ including parameters required to connect to the PostgreSQL database server
 import ast
 import os
 from configparser import ConfigParser
+from typing import Dict
 
 
 def config(
     # gets config.ini file from the parent directory, no matter where the script is run
     # from
-    filename=os.path.join(
+    filename: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "dataprocessor/data_config.ini"
     ),
-    section="postgresql",
-):
+    section: str = "postgresql",
+) -> Dict:
     # check that configuration file exists
     if not os.path.isfile(filename):
         raise Exception(f"File {filename} does not exist")

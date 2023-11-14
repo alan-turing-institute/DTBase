@@ -4,8 +4,10 @@ Data access module for ARIMA model and potentially others
 
 import datetime
 import logging
+from typing import List, Optional, Tuple
 
 import pandas as pd
+from sqlalchemy.orm import Session
 
 from dtbase.core.sensors import get_sensor_readings
 from dtbase.models.utils.config import config
@@ -14,7 +16,7 @@ from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 logger = logging.getLogger(__name__)
 
 
-def remove_time_zone(dataframe: pd.DataFrame):
+def remove_time_zone(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Remove timezone information from datetime columns.
     Note that all timestamps in the SQL database should be UTC.
@@ -31,11 +33,11 @@ def remove_time_zone(dataframe: pd.DataFrame):
 
 
 def get_training_data(
-    measures_list=None,
-    sensors_list=None,
-    delta_days=None,
-    session=None,
-):
+    measures_list: Optional[List[str]] = None,
+    sensors_list: Optional[List[str]] = None,
+    delta_days: Optional[int] = None,
+    session: Optional[Session] = None,
+) -> Tuple[pd.DataFrame, ...]:
     """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
     Each output DataFrame can also be the result of joining two tables, as specified in
