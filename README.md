@@ -53,7 +53,3 @@ See [here](infrastructure/README.md) for docs on the Pulumi deployment.
 ### Developer documentation / Local running.
 
 See [here](DeveloperDocs.md)
-
-### Contributing
-
-See [here](Contributing.md)

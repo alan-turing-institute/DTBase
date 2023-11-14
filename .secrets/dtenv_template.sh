@@ -7,15 +7,12 @@ export DT_SQL_TESTHOST="<REPLACE_ME>"
 export DT_SQL_TESTPORT="<REPLACE_ME>"
 export DT_SQL_TESTDBNAME="<REPLACE_ME>"
 
-# Docker
-export DT_DOCKER_USER="<REPLACE_ME>"
-export DT_DOCKER_PASS="<REPLACE_ME>"
-
-# Openweather API
-export DT_OPENWEATHERMAP_APIKEY="<REPLACE_ME>"
-
-# Hyper AG API key
-export DT_HYPER_APIKEY="<REPLACE_ME>"
+# Dev database
+export DT_SQL_USER="<REPLACE_ME>"
+export DT_SQL_PASS="<REPLACE_ME>"
+export DT_SQL_HOST="<REPLACE_ME>"
+export DT_SQL_PORT="<REPLACE_ME>"
+export DT_SQL_DBNAME="<REPLACE_ME>"
 
 # Pulumi backend on Azure
 export AZURE_STORAGE_KEY="<REPLACE_ME>"
