@@ -1,6 +1,6 @@
 import typing as ty
 from collections.abc import Container, Mapping
-from typing import Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 from flask import Response, jsonify
 from sqlalchemy.orm import Session
@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from dtbase.core.structure import SQLA as db
 
 
-def add_default_session(func):
+def add_default_session(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator for adding a default value of db.session for the `session` argument."""
 
-    def new_func(*args, session: Session = None, **kwargs):
+    def new_func(*args: Any, session: Optional[Session] = None, **kwargs: Any) -> Any:
         if session is None:
             session = db.session
         return func(*args, session=session, **kwargs)

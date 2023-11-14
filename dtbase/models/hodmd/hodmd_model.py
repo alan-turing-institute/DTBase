@@ -1,20 +1,23 @@
 #!/usr/bin/env python
+from typing import List, Optional, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from pydmd import HODMD, ModesTuner
 from pydmd.plotter import plot_eigs
 from sklearn.preprocessing import StandardScaler
 
 
 def plot_data(
-    xtrain_timestamp,
-    xtrain,
-    xtest_timestamp,
-    xtest,
-    plot_label,
-    save_path=None,
-    save_suffix="",
-):
+    xtrain_timestamp: List[float],
+    xtrain: List[float],
+    xtest_timestamp: List[float],
+    xtest: List[float],
+    plot_label: (str | List[str]),
+    save_path: Optional[str] = None,
+    save_suffix: str = "",
+) -> Figure:
     if isinstance(plot_label, list):
         plot_label_train = [label + "_train" for label in plot_label]
         plot_label_forecast = [label + "_forecast" for label in plot_label]
@@ -31,14 +34,14 @@ def plot_data(
 
 
 def hodmd_pipeline(
-    timestamps,
-    xdata,
-    labels,
-    hodmd_d=250,
-    train_test_split=0.8,
-    save_path=None,
-    save_suffix="",
-):
+    timestamps: List[float],
+    xdata: np.ndarray,
+    labels: List[str],
+    hodmd_d: int = 250,
+    train_test_split: float = 0.8,
+    save_path: Optional[str] = None,
+    save_suffix: str = "",
+) -> Tuple[np.ndarray, List[float]]:
     # data shape: num_samples x num_sensor_measures (1 for now)
     if xdata.ndim == 1:
         xdata = np.expand_dims(xdata, axis=1)

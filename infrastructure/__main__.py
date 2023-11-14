@@ -1,5 +1,6 @@
 """The main Pulumi deployment script."""
 import hashlib
+from typing import Any, List
 
 import pulumi_azure_native.dbforpostgresql as postgresql
 import pulumi_azure_native.insights as insights
@@ -21,7 +22,7 @@ POSTGRES_ALLOWED_IPS = CONFIG.get("postgres-allowed-ips")
 assert RESOURCE_NAME_PREFIX is not None
 
 
-def get_connection_string(account_name, resource_group_name):
+def get_connection_string(account_name: str, resource_group_name: str) -> str:
     storage_account_keys = storage.list_storage_account_keys_output(
         account_name=account_name, resource_group_name=resource_group_name
     )
@@ -34,7 +35,7 @@ def get_connection_string(account_name, resource_group_name):
     return connection_string
 
 
-def create_sql_server(resource_group):
+def create_sql_server(resource_group: resource.ResourceGroup) -> postgresql.Server:
     sql_server_name = f"{RESOURCE_NAME_PREFIX}-postgresql"
     sql_server = postgresql.Server(
         sql_server_name,
@@ -60,7 +61,9 @@ def create_sql_server(resource_group):
     return sql_server
 
 
-def create_pg_database(resource_group, sql_server):
+def create_pg_database(
+    resource_group: resource.ResourceGroup, sql_server: postgresql.Server
+) -> postgresql.Database:
     pg_database = postgresql.Database(
         SQL_DB_NAME,
         charset="UTF8",
@@ -72,7 +75,9 @@ def create_pg_database(resource_group, sql_server):
     return pg_database
 
 
-def create_app_service_plan(resource_group):
+def create_app_service_plan(
+    resource_group: resource.ResourceGroup,
+) -> web.AppServicePlan:
     app_service_plan = web.AppServicePlan(
         f"{RESOURCE_NAME_PREFIX}-web-asp",
         resource_group_name=resource_group.name,
@@ -83,7 +88,7 @@ def create_app_service_plan(resource_group):
     return app_service_plan
 
 
-def create_app_insights(resource_group):
+def create_app_insights(resource_group: resource.ResourceGroup) -> insights.Component:
     app_insights = insights.Component(
         f"{RESOURCE_NAME_PREFIX}-web-ai",
         application_type=insights.ApplicationType.WEB,
@@ -93,7 +98,9 @@ def create_app_insights(resource_group):
     return app_insights
 
 
-def create_storage_account(resource_group):
+def create_storage_account(
+    resource_group: resource.ResourceGroup,
+) -> storage.StorageAccount:
     # Storage accounts can't have special characters in their names, hence no hyphen for
     # this one after the prefix.
     storage_account = storage.StorageAccount(
@@ -106,8 +113,12 @@ def create_storage_account(resource_group):
 
 
 def create_backend_webapp(
-    name, resource_group, app_service_plan, sql_server, app_insights
-):
+    name: str,
+    resource_group: resource.ResourceGroup,
+    app_service_plan: Any,
+    sql_server: postgresql.Server,
+    app_insights: insights.Component,
+) -> web.WebApp:
     _sql_host = Output.format("{0}.postgres.database.azure.com", sql_server.name)
     _sql_user = Output.format("{0}@{1}", SQL_SERVER_USER, sql_server.name)
     webapp_settings = [
@@ -148,8 +159,12 @@ def create_backend_webapp(
 
 
 def create_frontend_webapp(
-    name, resource_group, app_service_plan, app_insights, backend_url
-):
+    name: str,
+    resource_group: resource.ResourceGroup,
+    app_service_plan: Any,
+    app_insights: postgresql.Server,
+    backend_url: str,
+) -> web.WebApp:
     webapp_settings = [
         web.NameValuePairArgs(name=name, value=value)
         for name, value in (
@@ -183,8 +198,12 @@ def create_frontend_webapp(
 
 
 def create_postgres_firewall_rules(
-    resource_group, sql_server, ips_string, already_created, num_hash_chars=4
-):
+    resource_group: resource.ResourceGroup,
+    sql_server: postgresql.Server,
+    ips_string: str,
+    already_created: Any,
+    num_hash_chars: int = 4,
+) -> List[postgresql.FirewallRule]:
     """Given a list of comma separated IP addresses, create a firewall rule for the
     Postgres server to allow each one of them.
 
@@ -211,7 +230,7 @@ def create_postgres_firewall_rules(
     return rules
 
 
-def main():
+def main() -> None:
     resource_group = resource.ResourceGroup(f"{RESOURCE_NAME_PREFIX}-rg")
     sql_server = create_sql_server(resource_group)
     create_pg_database(resource_group, sql_server)

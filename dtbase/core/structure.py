@@ -8,6 +8,8 @@ database.
     mapper() is generated.
 """
 
+from typing import Any
+
 from bcrypt import gensalt, hashpw
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -671,7 +673,7 @@ class User(BASE, UserMixin):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
-    def __init__(self, **kwargs):
+    def __init__(self: "User", **kwargs: Any) -> None:
         for prop, value in kwargs.items():
             # depending on whether value is an iterable or not, we must
             # unpack it's value (when **kwargs is request.form, some values
@@ -681,13 +683,13 @@ class User(BASE, UserMixin):
                 value = value[0]
             setattr(self, prop, value)
 
-    def __setattr__(self, prop, value):
+    def __setattr__(self: "User", prop: str, value: str) -> None:
         """Like setattr, but if the property we are setting is the password, hash it."""
         if prop == "password":
             value = hashpw(value.encode("utf8"), gensalt())
         super().__setattr__(prop, value)
 
-    def __repr__(self):
+    def __repr__(self: "User") -> str:
         """
         Computes a string reputation of the object.
         """

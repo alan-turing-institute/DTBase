@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,9 @@ sensors_list = sensors_config["include_sensors"]
 measures_list = sensors_config["include_measures"]
 
 
-def get_time_vector(start, end, frequency="1H", offset=1):
+def get_time_vector(
+    start: datetime, end: datetime, frequency: str = "1H", offset: int = 1
+) -> pd.DataFrame:
     """
     Create a vector of increasing timestamps.
 
@@ -53,7 +56,9 @@ def get_time_vector(start, end, frequency="1H", offset=1):
     return time_vector
 
 
-def hourly_average_sensor(sensor_data, col_names, time_vector):
+def hourly_average_sensor(
+    sensor_data: pd.DataFrame, col_names: List[str], time_vector: pd.DataFrame
+) -> Dict:
     """
     Split the pandas dataframe containing the sensor data
     into the user-requested list of sensors, group by the column
@@ -112,7 +117,7 @@ def hourly_average_sensor(sensor_data, col_names, time_vector):
     return hour_averages
 
 
-def centered_ma(series: pd.Series, window: int = 3):
+def centered_ma(series: pd.Series, window: int = 3) -> pd.Series:
     """
     Compute a weighted centered moving average of a time series.
 
@@ -146,7 +151,9 @@ def centered_ma(series: pd.Series, window: int = 3):
     return MA
 
 
-def clean_sensor_data(sensor_data: pd.DataFrame, measures: list[str]):
+def clean_sensor_data(
+    sensor_data: pd.DataFrame, measures: list[str]
+) -> Tuple[Dict, pd.DataFrame]:
     """
     Clean the pandas dataframe containing e.g. temperature and humidity data
     retrieved from the database (DB).
@@ -219,7 +226,7 @@ def clean_sensor_data(sensor_data: pd.DataFrame, measures: list[str]):
     return cleaned_data, time_vector
 
 
-def clean_data(sensor_readings):
+def clean_data(sensor_readings: pd.DataFrame) -> Dict:
     """
     Parent function of this module: clean sensor readings retrieved from the database.
 
@@ -264,7 +271,7 @@ def clean_data(sensor_readings):
     return cleaned_data
 
 
-def clean_data_list(sensor_readings_list):
+def clean_data_list(sensor_readings_list: List[pd.DataFrame]) -> Dict:
     """
     Meta Parent function of this module: for each sensor readings in the list
     (argument), `clean_data` is called to clean the readings.

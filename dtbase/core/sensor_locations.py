@@ -1,5 +1,9 @@
 """Functions for accessing the sensor_location table."""
+import datetime as dt
+from typing import Optional
+
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries, sensors, utils
@@ -8,12 +12,12 @@ from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocati
 
 @add_default_session
 def insert_sensor_location(
-    sensor_uniq_id,
-    schema_name,
-    coordinates,
-    installation_datetime,
-    session=None,
-):
+    sensor_uniq_id: int,
+    schema_name: str,
+    coordinates: dict,
+    installation_datetime: dt.datetime,
+    session: Optional[Session] = None,
+) -> None:
     """Add a sensor location installation.
 
     Args:
@@ -52,7 +56,9 @@ def insert_sensor_location(
 
 
 @add_default_session
-def get_location_history(sensor_uniq_id, session=None):
+def get_location_history(
+    sensor_uniq_id: str, session: Optional[Session] = None
+) -> None:
     """Location history of one sensor.
 
     Args:

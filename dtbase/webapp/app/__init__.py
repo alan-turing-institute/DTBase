@@ -2,7 +2,7 @@ import datetime as dt
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from os import path
-from typing import Union
+from typing import Any, Union
 
 from flask import Flask, Request, url_for
 from flask_cors import CORS
@@ -74,7 +74,7 @@ def apply_themes(app: Flask) -> None:
     def override_url_for() -> dict:
         return dict(url_for=_generate_url_for_theme)
 
-    def _generate_url_for_theme(endpoint: str, **values) -> str:
+    def _generate_url_for_theme(endpoint: str, **values: Any) -> str:
         if endpoint.endswith("static"):
             themename = values.get("theme", None) or app.config.get(
                 "DEFAULT_THEME", None

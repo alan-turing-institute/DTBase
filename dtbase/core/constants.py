@@ -8,7 +8,9 @@ from urllib import parse
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_conn_string(sql_engine, sql_user, sql_password, sql_host, sql_port):
+def make_conn_string(
+    sql_engine: str, sql_user: str, sql_password: str, sql_host: str, sql_port: str
+) -> str:
     """
     Constructs a connection string.
     Arguments:

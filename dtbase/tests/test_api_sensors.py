@@ -2,6 +2,7 @@
 Test API endpoints for sensors
 """
 import pytest
+from flask import Response
 from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import check_for_docker
@@ -14,7 +15,7 @@ X_COORD = 0.23
 Y_COORD = 1.44
 
 
-def insert_weather_type(client: FlaskClient):
+def insert_weather_type(client: FlaskClient) -> Response:
     type_data = {
         "name": "weather",
         "description": "Weather sensors that report both temperature and rain",
