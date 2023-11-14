@@ -56,6 +56,54 @@ If your refresh token expires too you will have to log in again.
     ```
     with status code 200.
 
+## User management
+
+Users are identified by their email address and authenticated with a password.
+The following endpoints are implemented:
+
+### `/user/create-user`
+* A POST request will add a new user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+      "password": <schema_password:str>
+    }
+    ```
+    - Returns with status code 201
+
+
+### `/user/delete-user`
+* A DELETE request will delete a user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+    }
+    ```
+    - Returns with status code 200
+
+### `/user/change-password`
+* A POST request will change the password of a user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+      "password": <schema_password:str>
+    }
+    ```
+    where the password is the new password.
+    - Returns with status code 200
+
+### `/user/list-users`
+* A GET request list all existing users by email.
+    - No payload needed.
+    - Returns 200 with
+    ```
+    [ email_of_user_1, email_of user2, ... ]
+    ```
+
+
 ## Locations
 
 Locations can be defined using any combination of floating point, integer, or string variables.   These variables, known as _LocationIdentifiers_ must be inserted into the database before an actual _Location_ can be entered.  The set of _LocationIdentifiers_ that is sufficient to define a _Location_ is called a _LocationSchema_.   A _Location_ will therefore have a _LocationSchema_, and one _LocationXYZValue_ for each _LocationIdentifier_ within that schema (where _XYZ_ can be "Float", "Integer" or "String").

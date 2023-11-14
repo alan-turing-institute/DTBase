@@ -19,7 +19,9 @@ def insert_user(session: Session) -> None:
 
 def test_insert_user(session: Session) -> None:
     """Test inserting users."""
+    assert users.list_users(session=session) == []
     insert_user(session)
+    assert users.list_users(session=session) == [EMAIL]
 
 
 def test_insert_user_duplicate(session: Session) -> None:
@@ -70,6 +72,7 @@ def test_delete_user(session: Session) -> None:
     """Try to delete a non-existent user."""
     insert_user(session)
     users.delete_user(EMAIL, session=session)
+    assert users.list_users(session=session) == []
     # This user shouldn't exist any more
     assert not users.check_password(EMAIL, PASSWORD, session=session)
 

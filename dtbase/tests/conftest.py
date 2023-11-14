@@ -1,3 +1,4 @@
+"""Configuration module for unit tests."""
 import time
 from typing import Generator
 
@@ -5,7 +6,6 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient, FlaskCliRunner
 from sqlalchemy.orm import Session
-from werkzeug.test import Client, TestResponse
 
 from dtbase.backend.api import create_app as create_backend_app
 from dtbase.backend.config import config_dict as backend_config
@@ -29,23 +29,12 @@ from dtbase.core.db_docker import (
     stop_docker_postgres,
 )
 from dtbase.core.users import insert_user
+from dtbase.tests.utils import TEST_USER_EMAIL, TEST_USER_PASSWORD, get_token
 from dtbase.webapp.app import create_app as create_frontend_app
 from dtbase.webapp.config import config_dict as frontend_config
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
-TEST_USER_EMAIL = "test@test.com"
-TEST_USER_PASSWORD = "test"
-
-
-def get_token(client: Client) -> TestResponse:
-    """Get an authentication token for the test user."""
-    type_data = {
-        "email": TEST_USER_EMAIL,
-        "password": TEST_USER_PASSWORD,
-    }
-    response = client.post("/auth/login", json=type_data)
-    return response
 
 
 class AuthenticatedClient(FlaskClient):

@@ -7,7 +7,8 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 
-from dtbase.tests.conftest import check_for_docker, get_token
+from dtbase.tests.conftest import check_for_docker
+from dtbase.tests.utils import can_login, get_token
 
 DOCKER_RUNNING = check_for_docker()
 
@@ -16,21 +17,14 @@ DOCKER_RUNNING = check_for_docker()
 def test_get_token(client: FlaskClient, test_user):
     """Test getting an authetication token for the test user."""
     with client:
-        response = get_token(client)
-        body = response.json
-        assert response.status_code == 200 and body is not None
-        assert set(body.keys()) == {"access_token", "refresh_token"}
+        assert can_login(client)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_get_token_nonexistent(client):
     """Test getting an authetication token for a non-existent test user."""
     with client:
-        type_data = {
-            "email": "snoopy@dogg.land",
-            "password": "whatsmyname?",
-        }
-        response = client.post("/auth/login", json=type_data)
+        response = get_token(client, email="snoopy@dogg.land", password="whatsmyname?")
         assert response.status_code == 401
 
 

@@ -27,7 +27,7 @@ def register_extensions(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    module_list = ("auth", "location", "sensor", "model")
+    module_list = ("auth", "location", "sensor", "model", "user")
 
     for module_name in module_list:
         module = import_module("dtbase.backend.api.{}.routes".format(module_name))

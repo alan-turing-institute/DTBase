@@ -1,9 +1,27 @@
 """Functions for accessing the user table. """
+from typing import List
+
 import sqlalchemy as sqla
 from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core.structure import User
+
+
+@add_default_session
+def list_users(session: Session) -> List[str]:
+    """
+    List all users in the database
+
+    Args:
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        A list of user emails.
+    """
+    rows = session.execute(sqla.select(User.email)).fetchall()
+    emails = [r[0] for r in rows]
+    return emails
 
 
 @add_default_session
