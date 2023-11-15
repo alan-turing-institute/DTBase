@@ -68,7 +68,8 @@ def insert_trh_readings(
     # readings will be a pandas dataframe.
     # we want to extract some columns as lists, and convert timestamps to datetime
     timestamps = list(readings.timestamp)
-    timestamps = [t.to_pydatetime() for t in timestamps]
+    # warn=False disables a warning about losing nanosecond precision in the conversion
+    timestamps = [t.to_pydatetime(warn=False) for t in timestamps]
     temps = list(readings.temperature)
     humids = list(readings.humidity)
     insert_sensor_readings(

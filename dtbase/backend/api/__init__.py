@@ -44,8 +44,7 @@ def register_blueprints(app: Flask) -> None:
 
 
 def configure_database(app: Flask) -> None:
-    @app.before_first_request
-    def initialize_database() -> None:
+    with app.app_context():
         db.create_all()
 
     @app.teardown_request

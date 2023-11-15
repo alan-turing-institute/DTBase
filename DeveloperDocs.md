@@ -1,6 +1,6 @@
 ## Installing DTBase
 
-* We recommend that you use a fresh Python environment (either via virtualenv, conda, or poetry), and **Python version >=3.8 and <= 3.10.**
+* We recommend that you use a fresh Python environment (either via virtualenv, conda, or poetry), and **Python version 3.10 <= and <=3.12.**
 
 * Clone this repository and change to this directory.
 * Install the `dtbase` package and dependencies (including the optional development dependencies) by running

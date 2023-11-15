@@ -259,7 +259,7 @@ class Sensor(BASE):
     string_values_relationship = relationship("SensorStringReading")
     integer_values_relationship = relationship("SensorIntegerReading")
     float_values_relationship = relationship("SensorFloatReading")
-    boolean_values_relationship = relationship("SensorFloatReading")
+    boolean_values_relationship = relationship("SensorBooleanReading")
 
     # arguments
     __table_args__ = (UniqueConstraint("unique_identifier"),)
