@@ -6,7 +6,7 @@ RUN apt dist-upgrade -y
 RUN apt install -y build-essential
 RUN apt install -y python3-pip
 RUN apt install -y python3.10
-RUN rm -f /usr/bin/python3 && ln -s /usr/bin/python3.11 /usr/bin/python3
+RUN rm -f /usr/bin/python3 && ln -s /usr/bin/python3.10 /usr/bin/python3
 RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 RUN python3 -m pip install --upgrade pip
 
