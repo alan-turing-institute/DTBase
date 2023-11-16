@@ -8,6 +8,8 @@ database.
     mapper() is generated.
 """
 
+import re
+
 from bcrypt import checkpw, gensalt, hashpw
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
@@ -656,6 +658,16 @@ class ModelBooleanValue(BASE):
 # Other
 
 
+def is_email(candidate: str) -> bool:
+    """Check whether a given string can plausibly be an email.
+
+    Not a strict check for the official schema of email addresses, but more practically
+    just checks if the string is of the form [blahblah]@[blah].
+    """
+    regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\b"
+    return re.fullmatch(regex, candidate) is not None
+
+
 class User(BASE):
     """
     Class for user credentials.
@@ -683,6 +695,9 @@ class User(BASE):
         """Like setattr, but if the property we are setting is the password, hash it."""
         if prop == "password":
             value = hashpw(value.encode("utf8"), gensalt())
+        if prop == "email":
+            if not isinstance(value, str) or not is_email(value):
+                raise ValueError("Not a valid email address: %s", value)
         super().__setattr__(prop, value)
 
     def __repr__(self):
