@@ -3,7 +3,6 @@ from typing import Any, Union
 from flask import (
     abort,
     current_app,
-    # jsonify,
     redirect,
     render_template,
     request,
