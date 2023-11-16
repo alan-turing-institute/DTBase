@@ -52,7 +52,7 @@ def favicon() -> Response:
     return current_app.send_static_file("favicon.ico")
 
 
-## Login & Registration
+# Login and logout
 
 
 @blueprint.route("/login", methods=["GET", "POST"])
@@ -74,13 +74,6 @@ def login() -> Union[Response, str]:
             abort(400)
         return redirect(next or url_for("home_blueprint.index"))
     return render_template("login/login.html", login_form=login_form)
-
-
-# @blueprint.route("/create_user", methods=["POST"])
-# @login_required
-# def create_user():
-#     success, result = utils.create_user(**request.form)
-#     return jsonify({"success": success, "output": result})
 
 
 @blueprint.route("/logout")

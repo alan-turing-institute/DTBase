@@ -86,9 +86,4 @@ class User(UserMixin):
                 payload=payload,
                 headers=headers | {"Authorization": f"Bearer {self.access_token}"},
             )
-        if 500 > response.status_code >= 400:
-            raise exc.BackendApiError(
-                f"A request to {end_point_path} with payload "
-                f"{payload} returned {response}, {response.json()}."
-            )
         return response
