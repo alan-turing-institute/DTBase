@@ -59,7 +59,7 @@ def add_default_user(app: Flask) -> None:
         session.begin()
         if DEFAULT_USER_PASS is None:
             try:
-                delete_user(**user_info, session=session)
+                delete_user(user_info["email"], session=session)
             except SQLAlchemyError:
                 # If the user doesn't exist then nothing to do.
                 session.rollback()
