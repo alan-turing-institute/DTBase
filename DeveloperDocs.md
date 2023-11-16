@@ -70,6 +70,9 @@ The DTBase frontend is currently an extremely lightweight Flask webapp:
 1. Install npm
 2. Navigate to the directory `dtbase/backend` and run the command `./run.sh`.
 3. You should now be able to view the webapp on your browser at http://localhost:8000.
+4. Optionally, you can use different modes for the frontend, by running e.g.
+   `DT_CONFIG_MODE=No-login ./run.sh` to run with user login disabled. The valid
+   options for `DT_CONFIG_MODE` can be found in `dtbase/webapp/config.py`.
 
 
 ### Running with an Azure Deployed Database
