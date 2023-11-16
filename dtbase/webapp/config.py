@@ -42,4 +42,13 @@ class DebugConfig(Config):
     DISABLE_REGISTER = True
 
 
-config_dict = {"Production": ProductionConfig, "Test": TestConfig, "Debug": DebugConfig}
+class NoLoginConfig(DebugConfig):
+    LOGIN_DISABLED = True
+
+
+config_dict = {
+    "Production": ProductionConfig,
+    "Test": TestConfig,
+    "Debug": DebugConfig,
+    "No-login": NoLoginConfig,
+}
