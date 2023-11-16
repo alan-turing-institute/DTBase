@@ -19,6 +19,7 @@ jobs:
       DT_SQL_TESTPASS: "postgres"
       DT_SQL_TESTDBNAME: "test_db"
       DT_SQL_TESTPORT: "5432"
+      DT_DEFAULT_USER_PASS: "password"
     steps:
       - uses: actions/setup-python@v4
         with:
