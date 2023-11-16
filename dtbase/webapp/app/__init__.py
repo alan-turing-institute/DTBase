@@ -8,6 +8,7 @@ from flask import Flask, url_for
 from flask_cors import CORS
 from flask_login import LoginManager
 
+from dtbase.webapp.config import Config
 from dtbase.webapp.user import User
 
 login_manager = LoginManager()
@@ -78,7 +79,9 @@ def apply_themes(app: Flask) -> None:
         return url_for(endpoint, **values)
 
 
-def create_app(config: Union[object, str]) -> Flask:
+def create_app(config: Config) -> Flask:
+    if not config.SECRET_KEY:
+        raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
     register_extensions(app)
