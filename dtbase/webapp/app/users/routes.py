@@ -35,5 +35,4 @@ def index() -> str:
             else:
                 flash("Failed to create user", "error")
     users = current_user.backend_call("get", "/user/list-users").json()
-    flash("DEBUG", "success")
     return render_template("users.html", new_user_form=new_user_form, users=users)
