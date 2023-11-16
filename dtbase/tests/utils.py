@@ -33,5 +33,4 @@ def can_login(
 def assert_unauthorized(client: Client, method: str, endpoint: str) -> None:
     """Assert that calling the given endpoint with the given client returns 401."""
     response = client.open(endpoint, method=method)
-    print(response)
     assert response.status_code == 401

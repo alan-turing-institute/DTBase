@@ -282,7 +282,6 @@ def test_get_model_run(auth_client: AuthenticatedClient) -> None:
             "scenario": SCENARIO1,
         }
         responses = client.get("/model/list-model-runs", json=runs)
-        print(responses.json[0]["id"])
         run_id = responses.json[0]["id"]
 
         run = {

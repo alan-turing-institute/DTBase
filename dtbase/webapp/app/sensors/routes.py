@@ -400,7 +400,6 @@ def new_sensor() -> Response:
     except ConnectionError:
         return redirect("/backend_not_found_error")
     sensor_types = response.json()
-    print(sensor_types)
     return render_template("sensor_form.html", sensor_types=sensor_types)
 
 
@@ -408,7 +407,6 @@ def new_sensor() -> Response:
 @blueprint.route("/add-sensor", methods=["POST"])
 def submit_sensor() -> Response:
     form_data = request.form
-    print(f"============={form_data}================")
     payload = {}
     for k, v in form_data.items():
         if k == "sensor_type":
