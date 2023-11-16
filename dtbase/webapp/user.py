@@ -1,4 +1,7 @@
+from typing import Optional
+
 from flask_login import UserMixin
+from requests.models import Response
 
 import dtbase.webapp.exc as exc
 import dtbase.webapp.utils as utils
@@ -13,24 +16,24 @@ class User(UserMixin):
     the methods.
     """
 
-    def __init__(self, email):
+    def __init__(self: "User", email: str) -> None:
         self.email = email
         self.access_token = None
         self.refresh_token = None
         ALL_USERS[email] = self
 
-    def get_id(self):
+    def get_id(self: "User") -> str:
         return self.email
 
-    @classmethod
-    def get(cls, email):
+    @staticmethod
+    def get(email: str) -> "User":
         if email in ALL_USERS:
             user = ALL_USERS[email]
         else:
             user = User(email)
         return user
 
-    def authenticate(self, password):
+    def authenticate(self: "User", password: str) -> None:
         response = utils.backend_call(
             "post", "/auth/login", payload={"email": self.email, "password": password}
         )
@@ -42,7 +45,7 @@ class User(UserMixin):
         except KeyError:
             raise exc.BackendApiError("Malformed response from /auth/login")
 
-    def refresh(self):
+    def refresh(self: "User") -> None:
         response = utils.backend_call(
             "post",
             "/auth/refresh",
@@ -59,10 +62,16 @@ class User(UserMixin):
             raise exc.BackendApiError("Malformed response from /auth/refresh")
 
     @property
-    def is_authenticated(self):
+    def is_authenticated(self: "User") -> bool:
         return self.access_token is not None
 
-    def backend_call(self, request_type, end_point_path, payload=None, headers=None):
+    def backend_call(
+        self: "User",
+        request_type: str,
+        end_point_path: str,
+        payload: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> Response:
         headers = {} if headers is None else headers
         if not self.is_authenticated:
             raise exc.AuthorizationError(

@@ -1,7 +1,7 @@
 """Configuration module for unit tests."""
 import time
 from html.parser import HTMLParser
-from typing import Callable, Generator
+from typing import Any, Callable, Generator, cast
 from unittest import mock
 from urllib.parse import urlparse
 
@@ -11,6 +11,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 from requests.models import Response as RequestsResponse
 from sqlalchemy.orm import Session
+from werkzeug.test import TestResponse
 from werkzeug.wrappers import Response
 
 from dtbase.backend.api import create_app as create_backend_app
@@ -51,7 +52,9 @@ DOCKER_CONTAINER_ID = None
 class CSRFTokenParser(HTMLParser):
     """HTML parser that finds a CSRF token in a page."""
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+    def handle_starttag(
+        self: "CSRFTokenParser", tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
         if tag == "input":
             dict_attrs = dict(attrs)
             if dict_attrs.get("id") == "csrf_token":
@@ -75,12 +78,12 @@ def get_csrf_token(client: FlaskClient) -> str:
 class AuthenticatedClient(FlaskClient):
     """Like a FlaskClient, but adds an authentication header to all requests."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self: "AuthenticatedClient", *args: Any, **kwargs: Any) -> None:
         """Initialise a client that behaves exactly like a normal FlaskClient."""
         super().__init__(*args, **kwargs)
         self._headers = {}
 
-    def authenticate(self):
+    def authenticate(self: "AuthenticatedClient") -> None:
         """Authenticate with the /auth/login endpoint.
 
         After this method has been called all requests sent by this client will include
@@ -92,7 +95,7 @@ class AuthenticatedClient(FlaskClient):
         token = response.json["access_token"]
         self._headers = {"Authorization": f"Bearer {token}"}
 
-    def open(self, *args, **kwargs):
+    def open(self: "AuthenticatedClient", *args: Any, **kwargs: Any) -> TestResponse:
         """For any request, append the authentication headers, and call the usual
         request function.
 
@@ -136,21 +139,24 @@ def app() -> Generator[Flask, None, None]:
 
 
 @pytest.fixture()
-def client(app: Flask) -> FlaskClient:
+def client(app: Flask) -> AuthenticatedClient:
     """Pytest fixture for a client for the backend app."""
-    return app.test_client()
+    # The type system can't figure out that app returns an AuthenticatedClient, since we
+    # set that dynamically in the app() fixture. Hence the explicit cast.
+    client = cast(AuthenticatedClient, app.test_client())
+    return client
 
 
 @pytest.fixture()
 def test_user(app: Flask, session: Session) -> None:
-    """Pytest fixture for a user in the backend, inserted into the database."""
+    """Pytest fixture that ensures that there is a test user in the database."""
     with app.app_context():
         insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
         session.commit()
 
 
 @pytest.fixture()
-def auth_client(client, test_user):
+def auth_client(client: AuthenticatedClient, test_user: None) -> AuthenticatedClient:
     """Pytest fixture for a client for the backend app that is authenticated, and uses
     its credentials in all requests it makes.
     """
@@ -179,7 +185,7 @@ def mock_request_method_builder(
     """
     request_func = getattr(client, method_name)
 
-    def method(url: str, *args, **kwargs) -> RequestsResponse:
+    def method(url: str, *args: Any, **kwargs: Any) -> RequestsResponse:
         endpoint = urlparse(url).path
         response = werkzeug_to_requests_response(
             request_func(endpoint, *args, **kwargs)
@@ -204,7 +210,7 @@ def frontend_client(frontend_app: Flask) -> FlaskClient:
 
 
 @pytest.fixture()
-def mock_auth_frontend_client(frontend_client) -> FlaskClient:
+def mock_auth_frontend_client(frontend_client: FlaskClient) -> FlaskClient:
     """Pytest fixture for front end client that acts as if the user has logged in,
     although there is no backend to actually connect to.
     """
@@ -227,7 +233,9 @@ def mock_auth_frontend_client(frontend_client) -> FlaskClient:
 
 
 @pytest.fixture()
-def conn_frontend_app(frontend_app, client) -> Generator[Flask, None, None]:
+def conn_frontend_app(
+    frontend_app: Flask, client: AuthenticatedClient
+) -> Generator[Flask, None, None]:
     """Pytest fixture for a frontend Flask app that is connected to a backend.
 
     This fixture also spins up a testing backend and routes any calls made through

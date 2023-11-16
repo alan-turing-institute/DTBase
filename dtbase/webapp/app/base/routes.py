@@ -27,23 +27,23 @@ def route_default() -> Response:
 
 @blueprint.route("/<template>")
 @login_required
-def route_template(template: str) -> Response:
+def route_template(template: str) -> str:
     return render_template(template + ".html")
 
 
 @blueprint.route("/fixed_<template>")
 @login_required
-def route_fixed_template(template: str) -> Response:
+def route_fixed_template(template: str) -> str:
     return render_template("fixed/fixed_{}.html".format(template))
 
 
 @blueprint.route("/page_<error>")
-def route_errors(error: Any) -> Response:
+def route_errors(error: Any) -> str:
     return render_template("errors/page_{}.html".format(error))
 
 
 @blueprint.route("/backend_not_found_error")
-def route_backend_not_found() -> Response:
+def route_backend_not_found() -> str:
     return render_template("errors/backend_not_found.html")
 
 
@@ -78,7 +78,7 @@ def login() -> Union[Response, str]:
 
 @blueprint.route("/logout")
 @login_required
-def logout():
+def logout() -> Response:
     logout_user()
     return redirect(url_for("base_blueprint.login"))
 
@@ -97,10 +97,10 @@ def access_forbidden(error: Any) -> Response:
 
 
 @blueprint.errorhandler(404)
-def not_found_error(error: Any) -> Response:
+def not_found_error(error: Any) -> str:
     return render_template("errors/page_404.html"), 404
 
 
 @blueprint.errorhandler(500)
-def internal_error(error: Any) -> Response:
+def internal_error(error: Any) -> str:
     return render_template("errors/page_500.html"), 500

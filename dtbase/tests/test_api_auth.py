@@ -14,14 +14,14 @@ DOCKER_RUNNING = check_for_docker()
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_token(client: FlaskClient, test_user):
+def test_get_token(client: FlaskClient, test_user: None) -> None:
     """Test getting an authetication token for the test user."""
     with client:
         assert can_login(client)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_token_nonexistent(client):
+def test_get_token_nonexistent(client: FlaskClient) -> None:
     """Test getting an authetication token for a non-existent test user."""
     with client:
         response = get_token(client, email="snoopy@dogg.land", password="whatsmyname?")
@@ -29,7 +29,7 @@ def test_get_token_nonexistent(client):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_refresh_token(client: FlaskClient, test_user):
+def test_refresh_token(client: FlaskClient, test_user: None) -> None:
     """Test refreshing an authentication token."""
     with client:
         response1 = get_token(client)
@@ -46,7 +46,7 @@ def test_refresh_token(client: FlaskClient, test_user):
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_refresh_token_expired(app: Flask, test_user):
+def test_refresh_token_expired(app: Flask, test_user: None) -> None:
     """Test refreshing an authentication token when the refresh token has expired."""
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 1
     with app.test_client() as client:

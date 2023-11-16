@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import logging
 import sys
+from typing import Optional
 
 import coloredlogs
+from flask import Session
 
 from dtbase.core.models import (
     insert_model,
@@ -27,7 +29,7 @@ from dtbase.models.utils.db_utils import get_sqlalchemy_session
 logger = logging.getLogger(__name__)
 
 
-def run_pipeline(session=None) -> None:
+def run_pipeline(session: Optional[Session] = None) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES

@@ -2,7 +2,7 @@
 Module (routes.py) to handle API endpoints related to authentication
 """
 import flask_jwt_extended as fjwt
-from flask import jsonify, request
+from flask import Response, jsonify, request
 
 from dtbase.backend.api.auth import blueprint
 from dtbase.backend.utils import check_keys
@@ -11,7 +11,7 @@ from dtbase.core.structure import SQLA as db
 
 
 @blueprint.route("/login", methods=["POST"])
-def new_token():
+def new_token() -> tuple[Response, int]:
     """
     Generate a new authentication token.
 
@@ -51,7 +51,7 @@ def new_token():
 
 @blueprint.route("/refresh", methods=["POST"])
 @fjwt.jwt_required(refresh=True)
-def refresh():
+def refresh() -> tuple[Response, int]:
     """
     Refresh an authentication token.
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import logging
 import sys
+from typing import Dict, List, Optional, Tuple
 
 import coloredlogs
+import pandas as pd
+from flask import Session
 
 from dtbase.core.models import (
     insert_model,
@@ -28,7 +31,7 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def fetch_data():
+def fetch_data() -> Tuple[Dict, pd.DataFrame]:
     # fetch training data from the database
     sensor_data = get_training_data()
 
@@ -41,7 +44,11 @@ def fetch_data():
     return prep_data
 
 
-def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> None:
+def run_pipeline(
+    session: Optional[Session] = None,
+    plots_save_path: Optional[str] = None,
+    multi_measure: bool = False,
+) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
@@ -99,8 +106,12 @@ def run_pipeline(session=None, plots_save_path=None, multi_measure=False) -> Non
 
 
 def hodmd_single_measure(
-    session, prep_data, sensor_unique_ids, measures_list, save_path
-):
+    session: Session,
+    prep_data: pd.DataFrame,
+    sensor_unique_ids: List[(str | int)],
+    measures_list: List[Tuple[str, str]],
+    save_path: str,
+) -> None:
     # loop through every sensor
     for sensor in sensor_unique_ids:
         session.begin()
@@ -154,8 +165,12 @@ def hodmd_single_measure(
 
 
 def hodmd_multi_measure(
-    session, prep_data, sensor_unique_ids, measures_list, save_path
-):
+    session: Session,
+    prep_data: pd.DataFrame,
+    sensor_unique_ids: List[(str | int)],
+    measures_list: List[Tuple[str, str]],
+    save_path: str,
+) -> None:
     # loop through every sensor
     for sensor in sensor_unique_ids:
         session.begin()

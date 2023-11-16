@@ -2,6 +2,7 @@
 import datetime as dt
 import unicodedata
 import urllib
+from collections.abc import Collection
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -96,7 +97,11 @@ def convert_form_values(
 # The following two functions mimic similar ones from Django.
 
 
-def url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
+def url_has_allowed_host_and_scheme(
+    url: Optional[str],
+    allowed_hosts: Collection[str] | str | None,
+    require_https: bool = False,
+) -> bool:
     """
     Return `True` if the url uses an allowed host and a safe scheme.
 
@@ -122,7 +127,9 @@ def url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
     )
 
 
-def _url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
+def _url_has_allowed_host_and_scheme(
+    url: str, allowed_hosts: Collection[str], require_https: bool = False
+) -> bool:
     # Chrome considers any URL with more than two slashes to be absolute, but
     # urlparse is not so flexible. Treat any url with three slashes as unsafe.
     if url.startswith("///"):

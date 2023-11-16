@@ -8,7 +8,9 @@ from urllib import parse
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_conn_string(sql_engine, sql_user, sql_password, sql_host, sql_port):
+def make_conn_string(
+    sql_engine: str, sql_user: str, sql_password: str, sql_host: str, sql_port: str
+) -> str:
     """
     Constructs a connection string.
     Arguments:
@@ -99,7 +101,7 @@ CONST_MAX_RECORDS = 50000
 
 CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-DEFAULT_USER_EMAIL = "default_user"
+DEFAULT_USER_EMAIL = "default_user@localhost"
 DEFAULT_USER_PASS = (
     os.environ["DT_DEFAULT_USER_PASS"] if "DT_DEFAULT_USER_PASS" in os.environ else None
 )

@@ -8,7 +8,7 @@ from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL
-from dtbase.tests.conftest import check_for_docker
+from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
 from dtbase.tests.utils import TEST_USER_EMAIL, assert_unauthorized, can_login
 
 DOCKER_RUNNING = check_for_docker()
@@ -37,7 +37,7 @@ def assert_list_users(client: FlaskClient, users: Collection[str]) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_create_user(auth_client: FlaskClient) -> None:
+def test_create_user(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         response = create_user(client)
         assert response.status_code == 201
@@ -47,7 +47,7 @@ def test_create_user(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_create_user_duplicate(auth_client: FlaskClient) -> None:
+def test_create_user_duplicate(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         create_user(client)
         response = create_user(client)
@@ -56,7 +56,7 @@ def test_create_user_duplicate(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_user(auth_client: FlaskClient) -> None:
+def test_delete_user(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         create_user(client)
         payload = {"email": EMAIL, "password": PASSWORD}
@@ -67,7 +67,7 @@ def test_delete_user(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_user_nonexistent(auth_client: FlaskClient) -> None:
+def test_delete_user_nonexistent(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         response = client.delete(
             "/user/delete-user", json={"email": EMAIL, "password": PASSWORD}
@@ -77,7 +77,7 @@ def test_delete_user_nonexistent(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_change_password(auth_client: FlaskClient) -> None:
+def test_change_password(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         create_user(client)
         new_password = "new kids on the block"
@@ -90,7 +90,7 @@ def test_change_password(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_change_password_nonexistent(auth_client: FlaskClient) -> None:
+def test_change_password_nonexistent(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         new_password = "new kids on the block"
         response = client.post(
@@ -101,7 +101,7 @@ def test_change_password_nonexistent(auth_client: FlaskClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_unauthorized(client):
+def test_unauthorized(client: FlaskClient) -> None:
     """Check that we aren't able to access any of the end points if we don't have an
     authorization token.
 

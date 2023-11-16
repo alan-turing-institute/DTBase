@@ -1,7 +1,9 @@
 """Functions for accessing the model tables."""
 import datetime as dt
+from typing import Any, List, Optional, Tuple
 
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import utils
@@ -17,7 +19,9 @@ from dtbase.core.structure import (
 
 
 @add_default_session
-def scenario_id_from_description(model_name, description, session=None):
+def scenario_id_from_description(
+    model_name: str, description: str, session: Optional[Session] = None
+) -> None:
     """Find the id of a model scenario of the given description and model.
 
     Args:
@@ -40,7 +44,7 @@ def scenario_id_from_description(model_name, description, session=None):
 
 
 @add_default_session
-def measure_id_from_name(name, session=None):
+def measure_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     """Find the id of a model measure of the given name.
 
     Args:
@@ -58,7 +62,7 @@ def measure_id_from_name(name, session=None):
 
 
 @add_default_session
-def measure_name_from_id(measure_id, session=None):
+def measure_name_from_id(measure_id: int, session: Optional[Session] = None) -> Any:
     """Find the name of a model measure given the id
 
     Args:
@@ -76,7 +80,7 @@ def measure_name_from_id(measure_id, session=None):
 
 
 @add_default_session
-def model_id_from_name(name, session=None):
+def model_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     """Find the id of a model of the given name.
 
     Args:
@@ -94,7 +98,7 @@ def model_id_from_name(name, session=None):
 
 
 @add_default_session
-def insert_model(name, session=None):
+def insert_model(name: str, session: Optional[Session] = None) -> Model:
     """Insert a new model into the database.
 
     Args:
@@ -111,7 +115,9 @@ def insert_model(name, session=None):
 
 
 @add_default_session
-def insert_model_scenario(model_name, description, session=None):
+def insert_model_scenario(
+    model_name: str, description: str, session: Optional[Session] = None
+) -> ModelScenario:
     """Insert a new model scenario into the database.
 
     A model scenario specifies parameters for running a model. It is always tied to a
@@ -134,7 +140,12 @@ def insert_model_scenario(model_name, description, session=None):
 
 
 @add_default_session
-def insert_model_measure(name, units, datatype, session=None):
+def insert_model_measure(
+    name: str,
+    units: str,
+    datatype: bool | str | int | float,
+    session: Optional[Session] = None,
+) -> ModelMeasure:
     """Insert a new model measure into the database.
 
     Model measures are types of values that models can output in their forecasts. For
@@ -159,7 +170,13 @@ def insert_model_measure(name, units, datatype, session=None):
 
 
 @add_default_session
-def insert_model_product(model_run, measure_name, values, timestamps, session=None):
+def insert_model_product(
+    model_run: ModelRun,
+    measure_name: str,
+    values: str,
+    timestamps: dt.datetime,
+    session: Optional[Session] = None,
+) -> None:
     """Insert a model product and its results.
 
     Args:
@@ -235,15 +252,15 @@ def insert_model_product(model_run, measure_name, values, timestamps, session=No
 
 @add_default_session
 def insert_model_run(
-    model_name,
-    scenario_description,
-    measures_and_values,
-    sensor_id=None,
-    sensor_measure_id=None,
-    time_created=dt.datetime.now(dt.timezone.utc),
-    create_scenario=False,
-    session=None,
-):
+    model_name: str,
+    scenario_description: str,
+    measures_and_values: str,
+    sensor_id: Optional[int] = None,
+    sensor_measure_id: Optional[int] = None,
+    time_created: dt.datetime = dt.datetime.now(dt.timezone.utc),
+    create_scenario: bool = False,
+    session: Optional[Session] = None,
+) -> None:
     """Insert a model run and its results.
 
     Args:
@@ -303,7 +320,13 @@ def insert_model_run(
 
 
 @add_default_session
-def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session=None):
+def list_model_runs(
+    model_name: str,
+    dt_from: dt.datetime = None,
+    dt_to: dt.datetime = None,
+    scenario: str = None,
+    session: Optional[Session] = None,
+) -> List[dict]:
     """List model runs in a time window.
 
     Args:
@@ -346,7 +369,9 @@ def list_model_runs(model_name, dt_from=None, dt_to=None, scenario=None, session
 
 
 @add_default_session
-def get_datatype_by_measure_name(measure_name, session=None):
+def get_datatype_by_measure_name(
+    measure_name: str, session: Optional[Session] = None
+) -> Any:
     """Get the datatype of the model measure named.
 
     Args:
@@ -365,7 +390,7 @@ def get_datatype_by_measure_name(measure_name, session=None):
 
 
 @add_default_session
-def get_model_run_results(run_id, session=None):
+def get_model_run_results(run_id: int, session: Optional[Session] = None) -> Any:
     """Get the output of a model run for all measures.
 
     Args:
@@ -386,7 +411,9 @@ def get_model_run_results(run_id, session=None):
 
 
 @add_default_session
-def get_model_run_results_for_measure(run_id, measure_name=None, session=None):
+def get_model_run_results_for_measure(
+    run_id: int, measure_name: str = None, session: Optional[Session] = None
+) -> Any:
     """Get the output of a model run for a single measure.
 
     Args:
@@ -414,7 +441,9 @@ def get_model_run_results_for_measure(run_id, measure_name=None, session=None):
 
 
 @add_default_session
-def get_model_run_measures(run_id, session=None):
+def get_model_run_measures(
+    run_id: int, session: Optional[Session] = None
+) -> List[Tuple[str, int]]:
     """
     Get the list of ModelMeasures for a given ModelRun.
 
@@ -434,7 +463,9 @@ def get_model_run_measures(run_id, session=None):
 
 
 @add_default_session
-def get_model_run_sensor_measures(run_id, session=None):
+def get_model_run_sensor_measures(
+    run_id: int, session: Optional[Session] = None
+) -> Any:
     """
     Get the info about what sensor/measure can be compared to a given ModelRun.
 
@@ -455,7 +486,7 @@ def get_model_run_sensor_measures(run_id, session=None):
 
 
 @add_default_session
-def delete_model(model_name, session=None):
+def delete_model(model_name: str, session: Optional[Session] = None) -> None:
     """Delete a model from the database.
 
     Refuses to proceed if there are runs for this model in the database.
@@ -473,7 +504,9 @@ def delete_model(model_name, session=None):
 
 
 @add_default_session
-def delete_model_scenario(model_name, description, session=None):
+def delete_model_scenario(
+    model_name: str, description: str, session: Optional[Session] = None
+) -> None:
     """Delete a model scenario from the database.
 
     Refuses to proceed if there are runs for this scenario in the database.
@@ -498,7 +531,7 @@ def delete_model_scenario(model_name, description, session=None):
 
 
 @add_default_session
-def delete_model_measure(name, session=None):
+def delete_model_measure(name: str, session: Optional[Session] = None) -> None:
     """Delete a model measure from the database.
 
     Refuses to proceed if there are model products attached to this measure.
@@ -516,7 +549,7 @@ def delete_model_measure(name, session=None):
 
 
 @add_default_session
-def delete_model_run(run_id, session=None):
+def delete_model_run(run_id: int, session: Optional[Session] = None) -> None:
     """Delete a model run from the database.
 
     Args:
@@ -532,7 +565,7 @@ def delete_model_run(run_id, session=None):
 
 
 @add_default_session
-def list_model_measures(session=None):
+def list_model_measures(session: Optional[Session] = None) -> List[dict]:
     """List all model measures.
 
     Args:
@@ -553,7 +586,7 @@ def list_model_measures(session=None):
 
 
 @add_default_session
-def list_model_scenarios(session=None):
+def list_model_scenarios(session: Optional[Session] = None) -> List[dict]:
     """List all model scenarios.
 
     Args:
@@ -571,7 +604,7 @@ def list_model_scenarios(session=None):
 
 
 @add_default_session
-def list_models(session=None):
+def list_models(session: Optional[Session] = None) -> List[dict]:
     """List all models.
 
     Args:

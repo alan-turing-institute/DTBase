@@ -8,7 +8,7 @@ from dtbase.webapp.app.users import blueprint
 
 @blueprint.route("/index", methods=["GET", "POST"])
 @login_required
-def index():
+def index() -> str:
     """The index page of users."""
     new_user_form = NewUserForm(request.form)
     if request.method == "POST":

@@ -1,5 +1,9 @@
 """Functions for accessing the sensor tables. """
+import datetime as dt
+from typing import Any, List, Optional
+
 import sqlalchemy as sqla
+from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries, utils
@@ -12,7 +16,9 @@ from dtbase.core.structure import (
 
 
 @add_default_session
-def measure_id_from_name_and_units(measure_name, measure_units, session=None):
+def measure_id_from_name_and_units(
+    measure_name: str, measure_units: str, session: Optional[Session] = None
+) -> Any:
     """
     Find the id of a sensor measure of the given name and units.
     (Note that our uniqueness constraint is on the name+units combination)
@@ -42,7 +48,7 @@ def measure_id_from_name_and_units(measure_name, measure_units, session=None):
 
 
 @add_default_session
-def type_id_from_name(type_name, session=None):
+def type_id_from_name(type_name: str, session: Optional[Session] = None) -> Any:
     """Find the id of a sensor type of the given name.
 
     Args:
@@ -62,7 +68,9 @@ def type_id_from_name(type_name, session=None):
 
 
 @add_default_session
-def sensor_id_from_unique_identifier(unique_identifier, session=None):
+def sensor_id_from_unique_identifier(
+    unique_identifier: str, session: Optional[Session] = None
+) -> Any:
     """Find the id of a sensor of the given unique identifier.
 
     Args:
@@ -82,7 +90,12 @@ def sensor_id_from_unique_identifier(unique_identifier, session=None):
 
 
 @add_default_session
-def insert_sensor_measure(name, units, datatype, session=None):
+def insert_sensor_measure(
+    name: str,
+    units: str,
+    datatype: str | int | int | float,
+    session: Optional[Session] = None,
+) -> None:
     """Insert a new sensor measure into the database.
 
     Sensor measures are types of readings that sensors can report. For instance
@@ -106,7 +119,9 @@ def insert_sensor_measure(name, units, datatype, session=None):
 
 
 @add_default_session
-def insert_sensor_type(name, description, measures, session=None):
+def insert_sensor_type(
+    name: str, description: str, measures: str, session: Optional[Session] = None
+) -> None:
     """Insert a new sensor type into the database.
 
     Sensor type specifies a set of measures that sensors of this type can report. For
@@ -139,7 +154,13 @@ def insert_sensor_type(name, description, measures, session=None):
 
 
 @add_default_session
-def insert_sensor(type_name, unique_identifier, name=None, notes=None, session=None):
+def insert_sensor(
+    type_name: str,
+    unique_identifier: str,
+    name: str = None,
+    notes: str = None,
+    session: Optional[Session] = None,
+) -> None:
     """Insert a new sensor into the database.
 
     Args:
@@ -162,8 +183,12 @@ def insert_sensor(type_name, unique_identifier, name=None, notes=None, session=N
 
 @add_default_session
 def insert_sensor_readings(
-    measure_name, sensor_uniq_id, readings, timestamps, session=None
-):
+    measure_name: str,
+    sensor_uniq_id: str,
+    readings: str,
+    timestamps: dt.datetime,
+    session: Optional[Session] = None,
+) -> None:
     """Insert sensor readings to the database.
 
     Args:
@@ -255,7 +280,9 @@ def insert_sensor_readings(
 
 
 @add_default_session
-def get_measures_for_sensor_identifier(sensor_unique_id, session=None):
+def get_measures_for_sensor_identifier(
+    sensor_unique_id: str, session: Optional[Session] = None
+) -> Any:
     """
     Get list of sensor measures for a sensor
 
@@ -278,7 +305,9 @@ def get_measures_for_sensor_identifier(sensor_unique_id, session=None):
 
 
 @add_default_session
-def get_datatype_by_measure_name(measure_name, session=None):
+def get_datatype_by_measure_name(
+    measure_name: str, session: Optional[Session] = None
+) -> Any:
     """Get the datatype of the sensor measure named.
 
     Args:
@@ -299,7 +328,13 @@ def get_datatype_by_measure_name(measure_name, session=None):
 
 
 @add_default_session
-def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=None):
+def get_sensor_readings(
+    measure_name: str,
+    sensor_uniq_id: str,
+    dt_from: dt.datetime,
+    dt_to: dt.datetime,
+    session: Optional[Session] = None,
+) -> Any:
     """Get sensor readings from the database.
 
     Args:
@@ -330,7 +365,7 @@ def get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to, session=No
 
 
 @add_default_session
-def delete_sensor(unique_identifier, session=None):
+def delete_sensor(unique_identifier: str, session: Optional[Session] = None) -> None:
     """Delete a sensor from the database.
 
     Also deletes any readings for this sensor.
@@ -350,7 +385,7 @@ def delete_sensor(unique_identifier, session=None):
 
 
 @add_default_session
-def delete_sensor_measure(measure_name, session=None):
+def delete_sensor_measure(measure_name: str, session: Optional[Session] = None) -> None:
     """Delete a sensor measure from the database.
 
     Refuses to proceed if there are sensor readings or sensor types attached to this
@@ -371,7 +406,7 @@ def delete_sensor_measure(measure_name, session=None):
 
 
 @add_default_session
-def delete_sensor_type(type_name, session=None):
+def delete_sensor_type(type_name: str, session: Optional[Session] = None) -> None:
     """Delete a sensor type from the database.
 
     Refuses to proceed if there are sensors of this type in the database.
@@ -391,7 +426,7 @@ def delete_sensor_type(type_name, session=None):
 
 
 @add_default_session
-def list_sensor_measures(session=None):
+def list_sensor_measures(session: Optional[Session] = None) -> List[dict]:
     """List all sensor measures.
 
     Args:
@@ -412,7 +447,7 @@ def list_sensor_measures(session=None):
 
 
 @add_default_session
-def list_sensor_types(session=None):
+def list_sensor_types(session: Optional[Session] = None) -> List[dict]:
     """List all sensor types.
 
     Args:
@@ -444,7 +479,9 @@ def list_sensor_types(session=None):
 
 
 @add_default_session
-def list_sensors(type_name=None, session=None):
+def list_sensors(
+    type_name: Optional[str] = None, session: Optional[Session] = None
+) -> List[dict]:
     """List all sensors, optionally filtering by sensor type.
 
     Args:

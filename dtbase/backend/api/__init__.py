@@ -1,6 +1,6 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
-from typing import Union
+from typing import Optional, Union
 
 import flask_jwt_extended as fjwt
 from flask import Flask
@@ -35,12 +35,11 @@ def register_blueprints(app: Flask) -> None:
 
 
 def configure_database(app: Flask) -> None:
-    @app.before_first_request
-    def initialize_database() -> None:
+    with app.app_context():
         db.create_all()
 
     @app.teardown_request
-    def shutdown_session(exception=None) -> None:
+    def shutdown_session(exception: Optional[Exception] = None) -> None:
         db.session.remove()
 
 
