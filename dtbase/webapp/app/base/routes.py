@@ -22,7 +22,7 @@ from dtbase.webapp.utils import url_has_allowed_host_and_scheme
 
 @blueprint.route("/")
 def route_default() -> Response:
-    return redirect(url_for("base_blueprint.login"))
+    return redirect(url_for("home_blueprint.index"))
 
 
 @blueprint.route("/<template>")
