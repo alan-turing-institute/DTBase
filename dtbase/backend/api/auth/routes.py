@@ -11,7 +11,7 @@ from dtbase.core.structure import SQLA as db
 
 
 @blueprint.route("/login", methods=["POST"])
-def new_token() -> tuple[Response, int]:
+def login() -> tuple[Response, int]:
     """
     Generate a new authentication token.
 
