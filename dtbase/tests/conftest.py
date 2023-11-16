@@ -1,4 +1,5 @@
 """Configuration module for unit tests."""
+import os
 import time
 from html.parser import HTMLParser
 from typing import Any, Callable, Generator, cast
@@ -47,6 +48,12 @@ from dtbase.webapp.config import config_dict as frontend_config
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
+
+# The following environment variables should usually be set to secret valus to run the
+# web servers. For testing, we use these not-so-secret values.
+os.environ["DT_DEFAULT_USER_PASS"] = "password"
+os.environ["DT_FRONT_SECRET_KEY"] = "the world's worst kept secret"
+os.environ["DT_JWT_SECRET_KEY"] = "the world's second worst kept secret"
 
 
 class CSRFTokenParser(HTMLParser):
