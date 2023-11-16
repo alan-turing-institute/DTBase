@@ -63,6 +63,9 @@ export DT_SQL_DBNAME="dt_dev"
 
 The backend API is a flask app that provides REST API endpoints to facilitate reading and writing to the database.
 1. Navigate to the directory `dtbase/backend` and run the command `./run_localdb.sh`. You should then have the flask app listening on `http://localhost:5000` and be able to send HTTP requests to it.  See the [API docs](dtbase/backend/README.md) for details.
+2. Optionally, you can use different modes for the backend, by running e.g.
+   `DT_CONFIG_MODE=Debug ./run_localdb.sh` to run in debug mode. The valid
+   options for `DT_CONFIG_MODE` can be found in `dtbase/backend/config.py`.
 
 #### Running the frontend
 
@@ -70,9 +73,10 @@ The DTBase frontend is currently an extremely lightweight Flask webapp:
 1. Install npm
 2. Navigate to the directory `dtbase/backend` and run the command `./run.sh`.
 3. You should now be able to view the webapp on your browser at http://localhost:8000.
-4. Optionally, you can use different modes for the frontend, by running e.g.
+4. Like for the backend, you can use different modes for the frontend, by running e.g.
    `DT_CONFIG_MODE=No-login ./run.sh` to run with user login disabled. The valid
-   options for `DT_CONFIG_MODE` can be found in `dtbase/webapp/config.py`.
+   options for `DT_CONFIG_MODE` for the frontend can be found in
+   `dtbase/webapp/config.py`.
 
 
 ### Running with an Azure Deployed Database

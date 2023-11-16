@@ -1,5 +1,4 @@
 """Configuration module for unit tests."""
-import os
 import time
 from html.parser import HTMLParser
 from typing import Any, Callable, Generator, cast
@@ -48,12 +47,6 @@ from dtbase.webapp.config import config_dict as frontend_config
 
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID = None
-
-# The following environment variables should usually be set to secret valus to run the
-# web servers. For testing, we use these not-so-secret values.
-os.environ["DT_DEFAULT_USER_PASS"] = "password"
-os.environ["DT_FRONT_SECRET_KEY"] = "the world's worst kept secret"
-os.environ["DT_JWT_SECRET_KEY"] = "the world's second worst kept secret"
 
 
 class CSRFTokenParser(HTMLParser):
@@ -139,6 +132,9 @@ def app() -> Generator[Flask, None, None]:
     Initialises a database and cleans it up afterwards.
     """
     config = backend_config["Test"]
+    # This would usually be set by an environment variable, but for tests we hardcode
+    # it.
+    config.SECRET_KEY = "the world's second worst kept secret"
     app = create_backend_app(config)
     app.test_client_class = AuthenticatedClient
     yield app
@@ -206,6 +202,9 @@ def mock_request_method_builder(
 def frontend_app() -> Flask:
     """Pytest fixture for a Flask app for the front end."""
     config = frontend_config["Test"]
+    # This would usually be set by an environment variable, but for tests we hardcode
+    # it.
+    config.SECRET_KEY = "the world's third worst kept secret"
     frontend_app = create_frontend_app(config)
     return frontend_app
 

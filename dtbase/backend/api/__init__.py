@@ -1,27 +1,24 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
-from typing import Optional, Union
+from typing import Optional
 
 import flask_jwt_extended as fjwt
 from flask import Flask
 from flask_cors import CORS
 from sqlalchemy.exc import SQLAlchemyError
 
+from dtbase.backend.config import Config
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
     JWT_ACCESS_TOKEN_EXPIRES,
     JWT_REFRESH_TOKEN_EXPIRES,
-    JWT_SECRET_KEY,
 )
 from dtbase.core.structure import SQLA as db
 from dtbase.core.users import change_password, delete_user, insert_user
 
 
 def register_extensions(app: Flask) -> None:
-    if not JWT_SECRET_KEY:
-        raise RuntimeError("The environment variable 'DT_JWT_SECRET_KEY' must be set.")
-    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
     fjwt.JWTManager(app)
@@ -76,7 +73,9 @@ def add_default_user(app: Flask) -> None:
         session.commit()
 
 
-def create_app(config: Union[object, str]) -> Flask:
+def create_app(config: Config) -> Flask:
+    if not config.SECRET_KEY:
+        raise RuntimeError("The environment variable DT_JWT_SECRET_KEY must be set.")
     app = Flask(__name__)
     app.config.from_object(config)
     register_extensions(app)
