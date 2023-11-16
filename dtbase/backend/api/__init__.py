@@ -19,6 +19,8 @@ from dtbase.core.users import change_password, delete_user, insert_user
 
 
 def register_extensions(app: Flask) -> None:
+    if not JWT_SECRET_KEY:
+        raise RuntimeError("The environment variable 'DT_JWT_SECRET_KEY' must be set.")
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
