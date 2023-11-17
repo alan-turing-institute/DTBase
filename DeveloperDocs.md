@@ -68,7 +68,7 @@ The backend API is a flask app that provides REST API endpoints to facilitate re
 
 The DTBase frontend is currently an extremely lightweight Flask webapp:
 1. Install npm
-2. Navigate to the directory `dtbase/backend` and run the command `./run.sh`.
+2. Navigate to the directory `dtbase/webapp` and run the command `./run.sh`.
 3. You should now be able to view the webapp on your browser at http://localhost:8000.
 
 
