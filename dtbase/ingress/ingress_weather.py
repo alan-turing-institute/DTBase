@@ -3,7 +3,7 @@ Python module to import data using the Openweathermap API
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 import requests
@@ -11,11 +11,14 @@ import requests
 from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
+    DEFAULT_USER_EMAIL,
+    DEFAULT_USER_PASS,
 )
 from dtbase.ingress.ingress_utils import (
     add_sensor_types,
     add_sensors,
     backend_call,
+    backend_login,
     log_rest_response,
 )
 
@@ -54,44 +57,19 @@ METRICS_TO_MEASURES = {
 # Sensor types that Hyper reports data for
 SENSOR_TYPES = [
     {
-        "name": "weather",
-        "description": "Weather-related measurements",
+        "name": "Weather",
+        "description": (
+            "Weather sensors and sensor-like data sources, "
+            "such as weather forecast sources."
+        ),
         "measures": [
-            {
-                "name": "temperature",
-                "units": "degrees Celsius",
-                "datatype": "float",
-            },
-            {
-                "name": "relative humidity",
-                "units": "percent",
-                "datatype": "integer",
-            },
-            {
-                "name": "air pressure",
-                "units": "millibar",
-                "datatype": "integer",
-            },
-            {
-                "name": "wind speed",
-                "units": "m/s",
-                "datatype": "float",
-            },
-            {
-                "name": "wind direction",
-                "units": "degrees",
-                "datatype": "integer",
-            },
-            {
-                "name": "rain",
-                "units": "mm",
-                "datatype": "float",
-            },
-            {
-                "name": "icon",
-                "units": "",
-                "datatype": "string",
-            },
+            METRICS_TO_MEASURES["temperature"] | {"datatype": "float"},
+            METRICS_TO_MEASURES["relative_humidity"] | {"datatype": "integer"},
+            METRICS_TO_MEASURES["air_pressure"] | {"datatype": "integer"},
+            METRICS_TO_MEASURES["wind_speed"] | {"datatype": "float"},
+            METRICS_TO_MEASURES["wind_direction"] | {"datatype": "integer"},
+            METRICS_TO_MEASURES["rain"] | {"datatype": "float"},
+            METRICS_TO_MEASURES["icon"] | {"datatype": "string"},
         ],
     },
 ]
@@ -99,12 +77,22 @@ SENSOR_TYPES = [
 
 # Mapping of sensor IDs to their types
 SENSORS = [
-    {"unique_identifier": "OpenWeatherMapHistory", "type_name": "weather"},
-    {"unique_identifier": "OpenWeatherMapForecast", "type_name": "weather"},
+    {
+        "unique_identifier": "OpenWeatherMapHistory",
+        "type_name": "Weather",
+        "name": "OpenWeatherMap Historical Data",
+    },
+    {
+        "unique_identifier": "OpenWeatherMapForecast",
+        "type_name": "Weather",
+        "name": "OpenWeatherMap Forecasts",
+    },
 ]
 
 
-def query_openweathermap_api(dt_to: datetime) -> Tuple[bool, str, pd.DataFrame]:
+def query_openweathermap_api(
+    dt_to: datetime,
+) -> Tuple[bool, str, Optional[pd.DataFrame]]:
     """
     Retrieve weather data from the openweathermap API.
     If dt_to is in the past, return historical data, or if it is in the
@@ -175,7 +163,11 @@ def query_openweathermap_api(dt_to: datetime) -> Tuple[bool, str, pd.DataFrame]:
 
 
 def import_openweathermap_data(
-    dt_to: datetime, sensor_uniq_id: str, create_sensors: bool = False
+    dt_to: datetime,
+    sensor_uniq_id: str,
+    backend_user: str,
+    backend_password: str,
+    create_sensors: bool = False,
 ) -> Tuple[bool, str]:
     """
     This is the main function for this module.
@@ -186,21 +178,25 @@ def import_openweathermap_data(
     Arguments:
         dt_to:datetime date range to
         sensor_uniq_id: str, either "OpenWeatherMapHistory" or "OpenWeatherMapForecast"
+        backend_user: str, email of the user to login to the backend
+        backend_password: str, password for that user
         create_sensors: Create new sensors in the database if they don't exist. False by
             default.
     Returns:
         success, error
     """
+    access_token = backend_login(backend_user, backend_password)
     success, error, df = query_openweathermap_api(dt_to)
     if not success:
         logging.error(error)
         return success, error
+    assert df is not None
 
     all_timestamps = [ts.isoformat() for ts in df.index]
 
     if create_sensors:
-        add_sensor_types(SENSOR_TYPES)
-        add_sensors(SENSORS)
+        add_sensor_types(SENSOR_TYPES, access_token=access_token)
+        add_sensors(SENSORS, access_token=access_token)
 
     for metric in df.columns:
         values = df[metric]
@@ -217,9 +213,23 @@ def import_openweathermap_data(
             "timestamps": timestamps,
         }
 
-        response = backend_call("post", "/sensor/insert-sensor-readings", payload)
+        response = backend_call(
+            "post", "/sensor/insert-sensor-readings", payload, access_token=access_token
+        )
         log_rest_response(response)
     logging.info("Done uploading data.")
     error = ""
     success = True
     return success, error
+
+
+if __name__ == "__main__":
+    dt_to = datetime.now() + timedelta(hours=24)
+    sensor_uniq_id = "OpenWeatherMapForecast"
+    import_openweathermap_data(
+        dt_to,
+        sensor_uniq_id,
+        create_sensors=True,
+        backend_user=DEFAULT_USER_EMAIL,
+        backend_password=DEFAULT_USER_PASS,
+    )
