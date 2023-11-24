@@ -4,6 +4,7 @@ Test API endpoints for users
 from collections.abc import Collection
 
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 
@@ -101,15 +102,20 @@ def test_change_password_nonexistent(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_unauthorized(client: FlaskClient) -> None:
+def test_unauthorized(client: FlaskClient, app: Flask) -> None:
     """Check that we aren't able to access any of the end points if we don't have an
     authorization token.
 
     Note that this one, unlike all the others, uses the `client` rather than the
     `auth_client` fixture.
     """
+
     with client:
-        assert_unauthorized(client, "get", "/user/list-users")
-        assert_unauthorized(client, "post", "/user/create-user")
-        assert_unauthorized(client, "delete", "/user/delete-user")
-        assert_unauthorized(client, "post", "/user/change-password")
+        # loop through all endpoints
+        for rule in app.url_map.iter_rules():
+            if rule.methods is None:
+                continue
+            methods = rule.methods - {"OPTIONS", "HEAD"}
+            if methods and str(rule).startswith("/user"):
+                method = next(iter(methods))
+                assert_unauthorized(client, method.lower(), str(rule))
