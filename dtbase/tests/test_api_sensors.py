@@ -2,6 +2,7 @@
 Test API endpoints for sensors
 """
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 
@@ -270,7 +271,11 @@ def test_unauthorized(client: FlaskClient, app: Flask) -> None:
     with client:
         # loop through all endpoints
         for rule in app.url_map.iter_rules():
-            # extract ones beginning with. /sensor. This would change depending on what is being tested
-            if rule.methods - {'OPTIONS', 'HEAD'} and str(rule).startswith('/sensor'):  
-                method = next(iter(rule.methods - {'OPTIONS', 'HEAD'}))  
+            # extract ones beginning with. /sensor. This would change depending on what
+            # is being tested
+            if rule.methods is None:
+                continue
+            methods = rule.methods - {"OPTIONS", "HEAD"}
+            if methods and str(rule).startswith("/sensor"):
+                method = next(iter(methods))
                 assert_unauthorized(client, method.lower(), str(rule))
