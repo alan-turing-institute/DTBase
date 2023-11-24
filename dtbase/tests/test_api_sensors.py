@@ -259,22 +259,18 @@ def test_delete_sensor_type(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_unauthorized(client: FlaskClient) -> None:
+def test_unauthorized(client: FlaskClient, app: Flask) -> None:
     """Check that we aren't able to access any of the end points if we don't have an
     authorization token.
 
     Note that this one, unlike all the others, uses the `client` rather than the
     `auth_client` fixture.
     """
+
     with client:
-        assert_unauthorized(client, "post", "/sensor/insert-sensor-type")
-        assert_unauthorized(client, "post", "/sensor/insert-sensor")
-        assert_unauthorized(client, "post", "/sensor/insert-sensor-location")
-        assert_unauthorized(client, "post", "/sensor/insert-sensor-readings")
-        assert_unauthorized(client, "get", "/sensor/list-sensor-types")
-        assert_unauthorized(client, "get", "/sensor/list-sensors")
-        assert_unauthorized(client, "get", "/sensor/list-measures")
-        assert_unauthorized(client, "get", "/sensor/list-sensor-locations")
-        assert_unauthorized(client, "get", "/sensor/sensor-readings")
-        assert_unauthorized(client, "delete", "/sensor/delete-sensor-type")
-        assert_unauthorized(client, "delete", "/sensor/delete-sensor")
+        # loop through all endpoints
+        for rule in app.url_map.iter_rules():
+            # extract ones beginning with. /sensor. This would change depending on what is being tested
+            if rule.methods - {'OPTIONS', 'HEAD'} and str(rule).startswith('/sensor'):  
+                method = next(iter(rule.methods - {'OPTIONS', 'HEAD'}))  
+                assert_unauthorized(client, method.lower(), str(rule))
