@@ -4,26 +4,19 @@ from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from os import path
 from typing import Any, Union
 
-from flask import Flask, Request, url_for
+from flask import Flask, url_for
 from flask_cors import CORS
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager
+
+from dtbase.webapp.config import Config
+from dtbase.webapp.user import User
 
 login_manager = LoginManager()
 
-# TODO Currently this dummy user makes all login_required requests pass authentication.
-# Implement proper user management.
-DUMMY_USER = UserMixin()
-DUMMY_USER.id = "dummy user"
-
 
 @login_manager.user_loader
-def user_loader(id: int) -> UserMixin:
-    return DUMMY_USER
-
-
-@login_manager.request_loader
-def request_loader(request: Request) -> UserMixin:
-    return DUMMY_USER
+def load_user(email: str) -> User:
+    return User.get(email)
 
 
 def register_extensions(app: Flask) -> None:
@@ -31,7 +24,7 @@ def register_extensions(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    module_list = ("base", "home", "sensors", "locations", "models")
+    module_list = ("base", "home", "sensors", "locations", "models", "users")
 
     for module_name in module_list:
         module = import_module("dtbase.webapp.app.{}.routes".format(module_name))
@@ -86,12 +79,11 @@ def apply_themes(app: Flask) -> None:
         return url_for(endpoint, **values)
 
 
-def create_app(config: Union[object, str], selenium: bool = False) -> Flask:
+def create_app(config: Config) -> Flask:
+    if not config.SECRET_KEY:
+        raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
-
-    if selenium:
-        app.config["LOGIN_DISABLED"] = True
     register_extensions(app)
     register_blueprints(app)
     register_template_filters(app)

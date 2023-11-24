@@ -4,6 +4,105 @@ The DTBase backend is a Flask application providing an API for interacting with 
 The endpoints in this document should be appended to a base url, which will depend on where you deploy the app.   If you are developing/running locally, it will be `http://localhost:5000`.   If you deploy to e.g. Azure, it will be somthing like `https://<your-azure-app-name>.azurewebsites.net`.
 
 
+## Authentication
+
+To be able to access any of the API end points you need an authentication token. You can get it from the following endpoint:
+
+### `/auth/login`
+* A POST request will return an authentication token
+    - Payload should have the form
+    ```
+    {
+      "email": <email:str>,
+      "password": <password:str>
+    }
+    ```
+    - returns a payload of the form
+    ```
+    {
+        "access_token": <token_value:str>
+        "refresh_token": <token_value:str>
+    }
+    ```
+    with status code 200.
+
+Once you've obtained a token, you need to add it to header of any other API calls you make as a bearer token.
+So if `/auth/login` returned
+```
+{
+    "access_token": "abc"
+    "refresh_token": "xyz"
+}
+```
+then you would call the other end points with the following in the header of the request:
+```
+Authorization: Bearer abc
+```
+
+If your token expires, you can use the refresh token to get a new for some time still,
+by calling the below end point. This one requires setting you header like above, but
+using the refresh token (`xyz`) rather than the access token (`abc`).
+If your refresh token expires too you will have to log in again.
+
+### `/auth/refresh`
+* A POST request will return an authentication token
+    - No payload needed, just the authorization header.
+    - returns a payload of the form
+    ```
+    {
+        "access_token": <token_value:str>
+        "refresh_token": <token_value:str>
+    }
+    ```
+    with status code 200.
+
+## User management
+
+Users are identified by their email address and authenticated with a password.
+The following endpoints are implemented:
+
+### `/user/create-user`
+* A POST request will add a new user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+      "password": <schema_password:str>
+    }
+    ```
+    - Returns with status code 201
+
+
+### `/user/delete-user`
+* A DELETE request will delete a user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+    }
+    ```
+    - Returns with status code 200
+
+### `/user/change-password`
+* A POST request will change the password of a user.
+    - Payload should have the form
+    ```
+    {
+      "email": <schema_email:str>,
+      "password": <schema_password:str>
+    }
+    ```
+    where the password is the new password.
+    - Returns with status code 200
+
+### `/user/list-users`
+* A GET request list all existing users by email.
+    - No payload needed.
+    - Returns 200 with
+    ```
+    [ email_of_user_1, email_of user2, ... ]
+    ```
+
 
 ## Locations
 

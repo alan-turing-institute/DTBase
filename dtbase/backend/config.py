@@ -1,8 +1,8 @@
 from os import environ
 
 
-class Config(object):
-    SECRET_KEY = "key"
+class Config:
+    SECRET_KEY = environ.get("DT_JWT_SECRET_KEY", None)
 
     # PostgreSQL database
     SQLALCHEMY_DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(

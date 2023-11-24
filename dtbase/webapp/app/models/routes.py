@@ -6,10 +6,10 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from flask import redirect, render_template, request
+from flask_login import current_user
 from requests.exceptions import ConnectionError
 from werkzeug.wrappers import Response
 
-from dtbase.webapp import utils
 from dtbase.webapp.app.models import blueprint
 
 
@@ -22,7 +22,7 @@ def fetch_all_models() -> List[dict]:
         List of dicts, one for each model
     """
     try:
-        response = utils.backend_call("get", "/model/list-models")
+        response = current_user.backend_call("get", "/model/list-models")
     except ConnectionError as e:
         print("Error getting model list - is the backend running?")
         raise e
@@ -42,7 +42,7 @@ def get_run_ids(model_name: str) -> List[int]:
         run_id:int
     """
     try:
-        response = utils.backend_call(
+        response = current_user.backend_call(
             "get", "/model/list-model-runs", {"model_name": model_name}
         )
     except ConnectionError as e:
@@ -69,7 +69,9 @@ def get_run_pred_data(run_id: int) -> Dict[str, Any]:
     """
     # now get the output of the model for that run
     try:
-        response = utils.backend_call("get", "/model/get-model-run", {"run_id": run_id})
+        response = current_user.backend_call(
+            "get", "/model/get-model-run", {"run_id": run_id}
+        )
     except ConnectionError as e:
         print(f"Error getting run {run_id} - is the backend running?")
         raise e
@@ -92,7 +94,7 @@ def get_run_sensor_data(run_id: int, earliest_timestamp: str) -> Dict[str, Any]:
        a list of (value, timestamp) tuples.
     """
     try:
-        response = utils.backend_call(
+        response = current_user.backend_call(
             "get", "/model/get-model-run-sensor-measure", {"run_id": run_id}
         )
     except ConnectionError as e:
@@ -105,7 +107,7 @@ def get_run_sensor_data(run_id: int, earliest_timestamp: str) -> Dict[str, Any]:
     dt_from = earliest_timestamp
     dt_to = datetime.now().isoformat()
     try:
-        response = utils.backend_call(
+        response = current_user.backend_call(
             "get",
             "/sensor/sensor-readings",
             payload={

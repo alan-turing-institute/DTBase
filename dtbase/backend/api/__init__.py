@@ -1,42 +1,32 @@
 from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
-from typing import Optional, Union
+from typing import Optional
 
-from flask import Flask, Request
+import flask_jwt_extended as fjwt
+from flask import Flask
 from flask_cors import CORS
-from flask_login import LoginManager, UserMixin
+from sqlalchemy.exc import SQLAlchemyError
 
+from dtbase.backend.config import Config
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
-    DEFAULT_USER_USERNAME,
+    JWT_ACCESS_TOKEN_EXPIRES,
+    JWT_REFRESH_TOKEN_EXPIRES,
 )
 from dtbase.core.structure import SQLA as db
-from dtbase.core.structure import User
-from dtbase.core.utils import change_user_password, create_user, delete_user
-
-login_manager = LoginManager()
-
-
-@login_manager.user_loader
-def user_loader(id: int) -> Union[UserMixin, None]:
-    return User.query.filter_by(id=id).first()
-
-
-@login_manager.request_loader
-def request_loader(request: Request) -> Union[UserMixin, None]:
-    username = request.form.get("username")
-    user = User.query.filter_by(username=username).first()
-    return user if user else None
+from dtbase.core.users import change_password, delete_user, insert_user
 
 
 def register_extensions(app: Flask) -> None:
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
+    fjwt.JWTManager(app)
     db.init_app(app)
-    login_manager.init_app(app)
 
 
 def register_blueprints(app: Flask) -> None:
-    module_list = ("location", "sensor", "model")
+    module_list = ("auth", "location", "sensor", "model", "user")
 
     for module_name in module_list:
         module = import_module("dtbase.backend.api.{}.routes".format(module_name))
@@ -61,21 +51,31 @@ def configure_logs(app: Flask) -> None:
 def add_default_user(app: Flask) -> None:
     """Ensure that there's a default user, with the right credentials."""
     with app.app_context():
+        user_info = {
+            "email": DEFAULT_USER_EMAIL,
+            "password": DEFAULT_USER_PASS,
+        }
+        session = db.session
+        session.begin()
         if DEFAULT_USER_PASS is None:
-            delete_user(username=DEFAULT_USER_USERNAME, email=DEFAULT_USER_EMAIL)
+            try:
+                delete_user(user_info["email"], session=session)
+            except SQLAlchemyError:
+                # If the user doesn't exist then nothing to do.
+                session.rollback()
         else:
-            user_info = {
-                "username": DEFAULT_USER_USERNAME,
-                "email": DEFAULT_USER_EMAIL,
-                "password": DEFAULT_USER_PASS,
-            }
-            success, _ = create_user(**user_info)
-            if not success:
+            try:
+                insert_user(**user_info, session=session)
+            except SQLAlchemyError:
                 # Presumably the user exists already, so change their password.
-                change_user_password(**user_info)
+                session.rollback()
+                change_password(**user_info, session=session)
+        session.commit()
 
 
-def create_app(config: Union[object, str]) -> Flask:
+def create_app(config: Config) -> Flask:
+    if not config.SECRET_KEY:
+        raise RuntimeError("The environment variable DT_JWT_SECRET_KEY must be set.")
     app = Flask(__name__)
     app.config.from_object(config)
     register_extensions(app)

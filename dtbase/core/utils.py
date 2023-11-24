@@ -7,7 +7,7 @@ import json
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Literal, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 from flask import Response, send_file
@@ -17,7 +17,6 @@ from sqlalchemy.orm import Session
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.db import connect_db, session_close, session_open
-from dtbase.core.structure import SQLA as db
 from dtbase.core.structure import (
     LocationBooleanValue,
     LocationFloatValue,
@@ -31,7 +30,6 @@ from dtbase.core.structure import (
     SensorFloatReading,
     SensorIntegerReading,
     SensorStringReading,
-    User,
 )
 
 
@@ -214,64 +212,6 @@ def parse_date_range_argument(request_args: str) -> Tuple[dt.datetime, dt.dateti
 
     except ValueError:
         return get_default_datetime_range()
-
-
-def create_user(
-    username: str, email: str, password: str
-) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
-    """Create a new user.
-
-    Return (True, user_id) if successful, (False, error_message) if not.
-    """
-    try:
-        user = User(username=username, email=email, password=password)
-        db.session.add(user)
-        db.session.commit()
-        return True, user.id
-    except exc.SQLAlchemyError as e:
-        db.session.rollback()
-        return False, str(e)
-
-
-def delete_user(
-    username: str, email: str
-) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
-    """Delete the user with this username and email.
-
-    Return (True, user_id) if successful, (False, error_message) if not.
-    """
-    try:
-        user = User.query.filter_by(username=username, email=email).first()
-        db.session.delete(user)
-        db.session.flush()
-        db.session.commit()
-        return True, user.id
-    except exc.SQLAlchemyError as e:
-        db.session.rollback()
-        return False, str(e)
-
-
-def change_user_password(
-    username: str, email: str, password: str
-) -> (Tuple[Literal[True], int] | Tuple[Literal[False], str]):
-    """Change the password of a given user.
-
-    Return (True, user_id) if successful, (False, error_message) if not.
-    """
-    try:
-        user = User.query.filter_by(username=username, email=email).first()
-        old_hashed_password = user.password
-        user.password = password
-        new_hashed_password = user.password
-        if old_hashed_password != new_hashed_password:
-            db.session.flush()
-            db.session.commit()
-            return True, user.id
-        else:
-            return False, f"Password already up-to-date for {username}"
-    except exc.SQLAlchemyError as e:
-        db.session.rollback()
-        return False, str(e)
 
 
 def insert_to_db_from_df(engine: Engine, df: pd.DataFrame, DbClass: Any) -> None:

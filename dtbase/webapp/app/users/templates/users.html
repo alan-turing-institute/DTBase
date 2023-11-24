@@ -1,0 +1,55 @@
+{% extends "base_site.html" %}
+
+{% block title %} Users {% endblock title %}
+
+{% block content %}
+<div class="container">
+  <h3>List of all users</h3>
+
+  <div class='table-responsive'>
+    <table class='table location-table table-striped table-hover'>
+      <thead>
+        <tr>
+          <th scope='col'>Email</th>
+          <th scope='col'>Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for t_user in users: %}
+        <tr>
+          <td>{{ t_user }}</td>
+          <td>
+            <form method="post">
+              <input type="hidden" name="email" value={{ t_user }}>
+              <button type="submit" class="btn btn-default submit" name="submitDelete">
+                <i class="fa fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div>
+      <form data-parsley-validate method="post">
+        {{ new_user_form.hidden_tag() }}
+        <h3>Create a user</h3>
+        {% for field in new_user_form if field.widget.input_type != 'hidden'  %}
+        <div>
+          {{ field.label }}
+          {{ field(class="form-control required", placeholder=field.label.text) }}
+        </div>
+        {% endfor %}
+        <div>
+          <button type="submit" class="btn btn-default submit" name="submitNewUser">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ super() }}
+{% endblock javascripts %}
