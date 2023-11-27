@@ -4,7 +4,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
   updateTable();
 });
 
-
 function updateTable() {
   try {
     var selectedSensorType = document.getElementById("sensor_type").value;
@@ -63,7 +62,9 @@ function updateTable() {
 }
 
 function confirmDeleteSensor(sensorId) {
-  var confirmation = window.confirm("Are you sure you want to delete this sensor?");
+  var confirmation = window.confirm(
+    "Are you sure you want to delete this sensor?"
+  );
   if (confirmation) {
     // User clicked "OK" in the confirmation popup
     deleteSensor(sensorId);
@@ -73,8 +74,7 @@ function confirmDeleteSensor(sensorId) {
   }
 }
 
-
 function editSensor(sensorId) {
   // Your logic to handle the form submission for the specific sensor
-  alert('Editing sensor ID: ' + sensorId);
+  alert("Editing sensor ID: " + sensorId);
 }
