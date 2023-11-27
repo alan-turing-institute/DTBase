@@ -5,6 +5,7 @@
 {% block stylesheets %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block body_class %}login{% endblock body_class %}
@@ -21,7 +22,10 @@
             <h1>Login</h1>
             {% for field in login_form if field.widget.input_type != 'hidden'  %}
               <div>
-                {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
+                  {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
+                  {% if field.name == "password" %}
+                    <i class="fa-solid fa-eye" id="show-password" onclick="passwordToggle()"></i>
+                  {% endif %}
               </div>
             {% endfor %}
             <div>
@@ -32,4 +36,16 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function passwordToggle() {
+      var passwordField = document.getElementById("pwd_login");
+      var passwordFieldType = passwordField.getAttribute("type");
+      if (passwordFieldType === "password") {
+        passwordField.setAttribute("type", "text");
+      } else {
+        passwordField.setAttribute("type", "password");
+      }
+    }
+  </script>
 {% endblock body %}

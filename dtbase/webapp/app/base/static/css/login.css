@@ -102,3 +102,12 @@
 .button a:hover {
   background-position: 0 -135px;
 }
+
+.fa-eye{
+  position: absolute;
+  top: 58%;
+  right: 4%;
+  z-index: 10;
+  cursor: pointer; 
+  color: LightGray;
+}
