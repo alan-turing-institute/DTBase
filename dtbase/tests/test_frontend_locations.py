@@ -5,36 +5,34 @@ import requests_mock
 from flask.testing import FlaskClient
 
 
-def test_new_location_schema_no_backend(frontend_client: FlaskClient) -> None:
-    with frontend_client:
-        response = frontend_client.get(
-            "/locations/new-location-schema", follow_redirects=True
-        )
+def test_new_location_schema_backend(auth_frontend_client: FlaskClient) -> None:
+    with auth_frontend_client as client:
+        response = client.get("/locations/new-location-schema", follow_redirects=True)
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
-        assert "Backend API not found" in html_content
+        assert "Enter New Location Schema" in html_content
 
 
-def test_new_location_schema_get(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_new_location_schema_get_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
             m.get("http://localhost:5000/location/list-location-identifiers", json=[])
-            response = frontend_client.get("/locations/new-location-schema")
+            response = client.get("/locations/new-location-schema")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
-            assert "New Location Schema" in html_content
+            assert "Enter New Location Schema" in html_content
 
 
-def test_new_location_schema_post(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_new_location_schema_post_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
             m.get("http://localhost:5000/location/list-location-identifiers", json=[])
             m.post(
                 "http://localhost:5000/location/insert-location-schema", status_code=201
             )
-            response = frontend_client.post(
+            response = client.post(
                 "/locations/new-location-schema",
                 data={
                     "name": "loc1",
@@ -45,32 +43,32 @@ def test_new_location_schema_post(frontend_client: FlaskClient) -> None:
                     "identifier_existing[]": "",
                 },
             )
-            with frontend_client.session_transaction() as session:
+            with client.session_transaction() as session:
                 flash_message = dict(session["_flashes"])
                 assert flash_message["success"] == "Location schema added successfully"
             assert response.status_code == 302
 
 
-def test_new_location_no_backend(frontend_client: FlaskClient) -> None:
-    with frontend_client:
-        response = frontend_client.get("/locations/new-location", follow_redirects=True)
+def test_new_location_backend(auth_frontend_client: FlaskClient) -> None:
+    with auth_frontend_client as client:
+        response = client.get("/locations/new-location", follow_redirects=True)
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
-        assert "Backend API not found" in html_content
+        assert "Add New Location" in html_content
 
 
-def test_new_location_get(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_new_location_get_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/location/list-location-schemas", json=[])
-            response = frontend_client.get("/locations/new-location")
+            response = client.get("/locations/new-location")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
-            assert "New Location" in html_content
+            assert "Add New Location" in html_content
 
 
-def test_new_location_post(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_new_location_post_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get(
                 "http://localhost:5000/location/get-schema-details",
@@ -86,28 +84,26 @@ def test_new_location_post(frontend_client: FlaskClient) -> None:
                 "http://localhost:5000/location/insert-location-for-schema",
                 status_code=201,
             )
-            response = frontend_client.post(
+            response = client.post(
                 "/locations/new-location",
                 data={"schema": "xy", "identifier_x": 12.3, "identifier_y": 23.4},
             )
-            with frontend_client.session_transaction() as session:
+            with client.session_transaction() as session:
                 flash_message = dict(session["_flashes"])
                 assert flash_message["success"] == "Location added successfully"
             assert response.status_code == 302
 
 
-def test_locations_table_no_backend(frontend_client: FlaskClient) -> None:
-    with frontend_client:
-        response = frontend_client.get(
-            "/locations/locations-table", follow_redirects=True
-        )
+def test_locations_table_backend(auth_frontend_client: FlaskClient) -> None:
+    with auth_frontend_client as client:
+        response = client.get("/locations/locations-table", follow_redirects=True)
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
-        assert "Backend API not found" in html_content
+        assert "Locations" in html_content
 
 
-def test_locations_table(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_locations_table_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get(
                 "http://localhost:5000/location/list-location-schemas",
@@ -132,7 +128,7 @@ def test_locations_table(frontend_client: FlaskClient) -> None:
                     },
                 ],
             )
-            response = frontend_client.get("/locations/locations-table")
+            response = client.get("/locations/locations-table")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert "<title>DTBase |  Locations </title>" in html_content

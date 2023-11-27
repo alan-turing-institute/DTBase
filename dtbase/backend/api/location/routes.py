@@ -6,6 +6,7 @@ import logging
 from typing import Tuple
 
 from flask import Response, jsonify, make_response, request
+from flask_jwt_extended import jwt_required
 
 from dtbase.backend.api.location import blueprint
 from dtbase.backend.utils import check_keys
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @blueprint.route("/insert-location-schema", methods=["POST"])
-# @login_required
+@jwt_required()
 def insert_location_schema() -> Tuple[Response, int]:
     """
     Add a location schema to the database.
@@ -65,7 +66,7 @@ def insert_location_schema() -> Tuple[Response, int]:
 
 
 @blueprint.route("/insert-location", methods=["POST"])
-# @login_required
+@jwt_required()
 def insert_location() -> Tuple[Response, int]:
     """
     Add a location to the database, defining the schema at the same time.
@@ -121,7 +122,7 @@ def insert_location() -> Tuple[Response, int]:
 
 
 @blueprint.route("/insert-location-for-schema", methods=["POST"])
-# @login_required
+@jwt_required()
 def insert_location_existing_schema() -> Tuple[Response, int]:
     """
     Add a location to the database, given an existing schema name.
@@ -147,7 +148,7 @@ def insert_location_existing_schema() -> Tuple[Response, int]:
 
 
 @blueprint.route("/list-locations", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_locations() -> Tuple[Response, int]:
     """
     List location in the database, filtered by schema name.
@@ -178,7 +179,7 @@ def list_locations() -> Tuple[Response, int]:
 
 
 @blueprint.route("/list-location-schemas", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_location_schemas() -> Tuple[Response, int]:
     """
     List location schemas in the database.
@@ -204,7 +205,7 @@ def list_location_schemas() -> Tuple[Response, int]:
 
 
 @blueprint.route("/list-location-identifiers", methods=["GET"])
-# @login_required
+@jwt_required()
 def list_location_identifiers() -> Tuple[Response, int]:
     """
     List location identifiers in the database.
@@ -215,7 +216,7 @@ def list_location_identifiers() -> Tuple[Response, int]:
 
 
 @blueprint.route("/get-schema-details", methods=["GET"])
-# @login_required
+@jwt_required()
 def get_schema_details() -> Tuple[Response, int]:
     """
     Get a location schema and its identifiers from the database.
@@ -235,7 +236,7 @@ def get_schema_details() -> Tuple[Response, int]:
 
 
 @blueprint.route("/delete-location-schema", methods=["DELETE"])
-# @login_required
+@jwt_required()
 def delete_location_schema() -> Tuple[Response, int]:
     """
     Delete a location schema from the database.
@@ -277,7 +278,7 @@ def delete_location_schema() -> Tuple[Response, int]:
 
 
 @blueprint.route("/delete-location", methods=["DELETE"])
-# @login_required
+@jwt_required()
 def delete_location() -> Tuple[Response, int]:
     """
     Delete a location with the specified schema name and coordinates.

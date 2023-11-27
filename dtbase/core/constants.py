@@ -101,8 +101,7 @@ CONST_MAX_RECORDS = 50000
 
 CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-DEFAULT_USER_USERNAME = "default_user"
-DEFAULT_USER_EMAIL = "N/A"
+DEFAULT_USER_EMAIL = "default_user@localhost"
 DEFAULT_USER_PASS = (
     os.environ["DT_DEFAULT_USER_PASS"] if "DT_DEFAULT_USER_PASS" in os.environ else None
 )
@@ -132,3 +131,8 @@ CONST_OPENWEATHERMAP_FORECAST_URL = (
     f"https://api.openweathermap.org/data/3.0/onecall?"
     f"lat={CONST_LAT}&lon={CONST_LON}&units=metric&appid={CONST_OPENWEATHERMAP_APIKEY}"
 )
+
+JWT_ACCESS_TOKEN_EXPIRES = int(
+    os.environ.get("DT_JWT_ACCESS_TOKEN_EXPIRES_SECONDS", 3600)
+)
+JWT_REFRESH_TOKEN_EXPIRES = JWT_ACCESS_TOKEN_EXPIRES + 3600

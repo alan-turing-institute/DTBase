@@ -37,49 +37,47 @@ MOCK_RUN_SENSOR_MEASURE_DATA = {
 }
 
 
-def test_models_index_no_backend(frontend_client: FlaskClient) -> None:
-    with frontend_client:
-        response = frontend_client.get("/models/index", follow_redirects=True)
+def test_models_index_backend(auth_frontend_client: FlaskClient) -> None:
+    with auth_frontend_client as client:
+        response = client.get("/models/index", follow_redirects=True)
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
-        assert "Backend API not found" in html_content
+        assert "Choose predictive model" in html_content
 
 
-def test_models_index_no_models(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_models_index_no_models_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/model/list-models", json=[])
-            response = frontend_client.get("/models/index")
+            response = client.get("/models/index")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert "Choose predictive model" in html_content
 
 
-def test_models_index_no_runs(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_models_index_no_runs_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get(
                 "http://localhost:5000/model/list-models",
                 json=[{"name": "model1"}, {"name": "model2"}],
             )
             m.get("http://localhost:5000/model/list-model-runs", json=[])
-            response = frontend_client.get("/models/index")
+            response = client.get("/models/index")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             # should have a select block including model1 and model2
             assert 'value="model1"' in html_content
             assert 'value="model2"' in html_content
             # now select model2
-            response = frontend_client.post(
-                "/models/index", data={"model_name": "model2"}
-            )
+            response = client.post("/models/index", data={"model_name": "model2"})
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert "Select a model run" in html_content
 
 
-def test_models_index_with_data(frontend_client: FlaskClient) -> None:
-    with frontend_client:
+def test_models_index_with_data_mock(mock_auth_frontend_client: FlaskClient) -> None:
+    with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get(
                 "http://localhost:5000/model/list-models",
@@ -94,9 +92,9 @@ def test_models_index_with_data(frontend_client: FlaskClient) -> None:
                 json=MOCK_RUN_SENSOR_MEASURE_DATA,
             )
             m.get("http://localhost:5000/sensor/sensor-readings", json=MOCK_SENSOR_DATA)
-            response = frontend_client.get("/models/index")
+            response = client.get("/models/index")
             # select model1 and run_id 2
-            response = frontend_client.post(
+            response = client.post(
                 "/models/index", data={"model_name": "model2", "run_id": 2}
             )
             assert response.status_code == 200

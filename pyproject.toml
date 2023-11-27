@@ -17,6 +17,7 @@ dependencies = [
 
     "flask-sqlalchemy ~= 3.1.1",
     "flask ~= 3.0.0",
+    "flask_jwt_extended ~= 4.5",
     "flask_login ~= 0.6.3",
     "flask-cors ~= 4.0.0",
     "flask_migrate ~= 4.0.5",
@@ -89,7 +90,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # TODO Comment in more of the below as we clean up the code.
- ignore = ["ANN401"]
+ignore = ["ANN401"]
 select = [
   "F",
   "E",
