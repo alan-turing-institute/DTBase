@@ -5,7 +5,6 @@
 {% block stylesheets %}
   {{ super() }}
   <link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block body_class %}login{% endblock body_class %}
@@ -13,6 +12,8 @@
 {% block body %}
   <!-- Parsley -->
   <script src="{{ url_for('static', filename='node_modules/parsleyjs/dist/parsley.min.js') }}"></script>
+  <!-- Utility -->
+  <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
   <div>
     <div class="login_wrapper">
       <div class="form login_form">
@@ -24,7 +25,7 @@
               <div>
                   {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
                   {% if field.name == "password" %}
-                    <i class="fa-solid fa-eye" id="show-password" onclick="passwordToggle()"></i>
+                    <i class="fa fa-eye" id="show-password" onclick="passwordToggle()"></i>
                   {% endif %}
               </div>
             {% endfor %}
@@ -36,16 +37,4 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function passwordToggle() {
-      var passwordField = document.getElementById("pwd_login");
-      var passwordFieldType = passwordField.getAttribute("type");
-      if (passwordFieldType === "password") {
-        passwordField.setAttribute("type", "text");
-      } else {
-        passwordField.setAttribute("type", "password");
-      }
-    }
-  </script>
 {% endblock body %}

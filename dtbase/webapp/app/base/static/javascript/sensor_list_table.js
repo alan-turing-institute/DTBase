@@ -35,8 +35,6 @@ function updateTable() {
           tableContent += `<td>${sensors[i][key]}</td>`;
         }
       }
-      tableContent += `<td><button type='button' class='btn btn-danger btn-margin' onclick='confirmDeleteSensor(${sensors[i].id})'>Delete</button></td>`;
-      tableContent += `<td><button type='button' class='btn btn-warning btn-margin' onclick='editSensor(${sensors[i].id})'>Edit</button></td>`;
       tableContent += "</tr>";
     }
     tableContent += "</tbody>";
@@ -59,22 +57,4 @@ function updateTable() {
   } catch (error) {
     console.error(error);
   }
-}
-
-function confirmDeleteSensor(sensorId) {
-  var confirmation = window.confirm(
-    "Are you sure you want to delete this sensor?"
-  );
-  if (confirmation) {
-    // User clicked "OK" in the confirmation popup
-    deleteSensor(sensorId);
-  } else {
-    // User clicked "Cancel" in the confirmation popup
-    // You can add additional logic if needed
-  }
-}
-
-function editSensor(sensorId) {
-  // Your logic to handle the form submission for the specific sensor
-  alert("Editing sensor ID: " + sensorId);
 }

@@ -5,11 +5,13 @@
 {% block stylesheets %}
   {{ super() }}
   <!-- <link href="{{ url_for('static', filename='css/create_user.css') }}" rel="stylesheet"> -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
 {% endblock stylesheets %}
 
 
 {% block content %}
+<!-- Utility -->
+<script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
+
 <div class="container">
   <h3>List of all users</h3>
 
@@ -48,7 +50,7 @@
           {{ field.label }}
           {{ field(class="form-control required", placeholder=field.label.text) }}
           {% if field.name == "password" %}
-            <i class="fa-solid fa-eye" id="show-password" onclick="passwordToggle()" style="z-index: 10; color: lightgray; cursor: pointer;"></i>
+            <i class="fa fa-eye" id="show-password" onclick="passwordToggle()" style="z-index: 10; color: lightgray; cursor: pointer;"></i>
           {% endif %}
         </div>
         {% endfor %}
@@ -58,17 +60,6 @@
       </form>
     </div>
   </div>
-  <script>
-  function passwordToggle() {
-    var passwordField = document.getElementById("pwd_login");
-    var passwordFieldType = passwordField.getAttribute("type");
-    if (passwordFieldType === "password") {
-      passwordField.setAttribute("type", "text");
-    } else {
-      passwordField.setAttribute("type", "password");
-    }
-  }
-  </script>
 {% endblock content %}
 
 {% block javascripts %}
