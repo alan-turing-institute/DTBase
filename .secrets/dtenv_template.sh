@@ -16,9 +16,10 @@ export DT_SQL_TESTPORT="<REPLACE_ME>"
 export DT_SQL_TESTDBNAME="<REPLACE_ME>"
 
 # Dev database
-# You will need to set these to run a local instance of the DTBase backend using the
-# `dtbase/backend/run.sh` script. They set the PostgreSQL database that the backend will
-# use to store data.
+# You will need to set these to run a local instance of the DTBase backend
+# using the `dtbase/backend/run.sh` and `dtbase/backend/run_localdb.sh`
+# scripts. They set the PostgreSQL database that the backend will use to store
+# data.
 export DT_SQL_USER="<REPLACE_ME>"
 export DT_SQL_PASS="<REPLACE_ME>"
 export DT_SQL_HOST="<REPLACE_ME>"
