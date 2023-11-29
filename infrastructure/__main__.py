@@ -11,18 +11,20 @@ from pulumi import Config, Output, export
 
 CONFIG = Config()
 
-BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:dev"
-FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:dev"
+BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:main"
+FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:main"
 RESOURCE_NAME_PREFIX = CONFIG.get("resource-name-prefix")
 SQL_SERVER_USER = "dbadmin"
 SQL_DB_NAME = "dtdb"
 SQL_SERVER_PASSWORD = CONFIG.require("sql-server-password")
 DEFAULT_USER_PASSWORD = CONFIG.require("default-user-password")
 POSTGRES_ALLOWED_IPS = CONFIG.get("postgres-allowed-ips")
+FRONTEND_SECRET_KEY = CONFIG.require("frontend-secret-key")
+JWT_SECRET_KEY = CONFIG.require("jwt-secret-key")
 assert RESOURCE_NAME_PREFIX is not None
 
 
-def get_connection_string(account_name: str, resource_group_name: str) -> str:
+def get_connection_string(account_name: str, resource_group_name: str) -> Output[str]:
     storage_account_keys = storage.list_storage_account_keys_output(
         account_name=account_name, resource_group_name=resource_group_name
     )
@@ -41,22 +43,16 @@ def create_sql_server(resource_group: resource.ResourceGroup) -> postgresql.Serv
         sql_server_name,
         server_name=sql_server_name,
         resource_group_name=resource_group.name,
-        properties=postgresql.ServerPropertiesForDefaultCreateArgs(
-            administrator_login=SQL_SERVER_USER,
-            administrator_login_password=SQL_SERVER_PASSWORD,
-            create_mode="Default",
-            ssl_enforcement=postgresql.SslEnforcementEnum.DISABLED,
-            minimal_tls_version=postgresql.MinimalTlsVersionEnum.TLS_ENFORCEMENT_DISABLED,
-            storage_profile=postgresql.StorageProfileArgs(
-                backup_retention_days=14,
-                geo_redundant_backup="Disabled",
-                storage_autogrow=postgresql.StorageAutogrow.ENABLED,
-                storage_mb=5120,
-            ),
+        administrator_login=SQL_SERVER_USER,
+        administrator_login_password=SQL_SERVER_PASSWORD,
+        create_mode="Default",
+        storage=postgresql.StorageArgs(storage_size_gb=32),
+        backup=postgresql.BackupArgs(
+            backup_retention_days=14, geo_redundant_backup="Disabled"
         ),
-        sku=postgresql.SkuArgs(
-            capacity=2, family="Gen5", name="B_Gen5_2", tier="Basic"
-        ),
+        sku=postgresql.SkuArgs(tier="Burstable", name="Standard_B1ms"),
+        availability_zone="1",
+        version="16",
     )
     return sql_server
 
@@ -94,6 +90,7 @@ def create_app_insights(resource_group: resource.ResourceGroup) -> insights.Comp
         application_type=insights.ApplicationType.WEB,
         kind="web",
         resource_group_name=resource_group.name,
+        ingestion_mode=insights.IngestionMode.APPLICATION_INSIGHTS,
     )
     return app_insights
 
@@ -113,14 +110,13 @@ def create_storage_account(
 
 
 def create_backend_webapp(
-    name: str,
+    name: str | Output[str],
     resource_group: resource.ResourceGroup,
     app_service_plan: Any,
     sql_server: postgresql.Server,
     app_insights: insights.Component,
 ) -> web.WebApp:
     _sql_host = Output.format("{0}.postgres.database.azure.com", sql_server.name)
-    _sql_user = Output.format("{0}@{1}", SQL_SERVER_USER, sql_server.name)
     webapp_settings = [
         web.NameValuePairArgs(name=name, value=value)
         for name, value in (
@@ -138,9 +134,10 @@ def create_backend_webapp(
             ("DT_SQL_HOST", _sql_host),
             ("DT_SQL_PASS", SQL_SERVER_PASSWORD),
             ("DT_SQL_PORT", "5432"),
-            ("DT_SQL_USER", _sql_user),
+            ("DT_SQL_USER", SQL_SERVER_USER),
             ("DT_SQL_DBNAME", SQL_DB_NAME),
             ("DT_DEFAULT_USER_PASS", f"{DEFAULT_USER_PASSWORD}"),
+            ("DT_JWT_SECRET_KEY", JWT_SECRET_KEY),
             ("WEBSITES_PORT", "5000"),
         )
     ]
@@ -159,11 +156,11 @@ def create_backend_webapp(
 
 
 def create_frontend_webapp(
-    name: str,
+    name: str | Output[str],
     resource_group: resource.ResourceGroup,
     app_service_plan: Any,
-    app_insights: postgresql.Server,
-    backend_url: str,
+    app_insights: insights.Component,
+    backend_url: str | Output[str],
 ) -> web.WebApp:
     webapp_settings = [
         web.NameValuePairArgs(name=name, value=value)
@@ -180,6 +177,7 @@ def create_frontend_webapp(
             ("DOCKER_REGISTRY_SERVER_URL", "https://index.docker.io/v1"),
             ("DOCKER_ENABLE_CI", "true"),
             ("DT_BACKEND_URL", backend_url),
+            ("DT_FRONT_SECRET_KEY", FRONTEND_SECRET_KEY),
             ("WEBSITES_PORT", "8000"),
         )
     ]
