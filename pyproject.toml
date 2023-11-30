@@ -61,8 +61,8 @@ dev = [
     "ruff ~= 0.1.5",
 ]
 infrastructure = [
-    "pulumi ~= 3.93.0",
-    "pulumi-azure-native ~= 2.17.0",
+    "pulumi ~= 3.94",
+    "pulumi-azure-native ~= 2.20",
 ]
 
 [project.urls]

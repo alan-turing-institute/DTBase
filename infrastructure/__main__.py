@@ -60,8 +60,13 @@ def create_sql_server(resource_group: resource.ResourceGroup) -> postgresql.Serv
 def create_pg_database(
     resource_group: resource.ResourceGroup, sql_server: postgresql.Server
 ) -> postgresql.Database:
+    # TODO This is broken as of 2023-11-30. I'm not sure why, but I've raised an issue
+    # on pulumi: https://github.com/pulumi/pulumi-azure-native/issues/2916
+    # That this resource fails to get created doesn't interfere with anything else, so
+    # one can run `pulumi up`, get all the other stuff going, and then manually go and
+    # create a database called ${SQL_DB_NAME} on the PostgreSQL server.
     pg_database = postgresql.Database(
-        SQL_DB_NAME,
+        f"{RESOURCE_NAME_PREFIX}-postgresql-db",
         charset="UTF8",
         collation="English_United States.1252",
         database_name=SQL_DB_NAME,
