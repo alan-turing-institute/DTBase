@@ -24,25 +24,3 @@ def test_elements(frontend_client: FlaskClient) -> None:
         # Find the password toggle button
         eye_button = soup.find("i", {"id": "show-password"})
         assert eye_button is not None, "Password toggle button not found"
-
-
-def test_login(frontend_client: FlaskClient) -> None:
-    with frontend_client as client:
-        from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD
-        from dtbase.tests.conftest import get_csrf_token
-
-        token = get_csrf_token(client)
-        print(token, DEFAULT_USER_EMAIL, DEFAULT_USER_PASSWORD)
-
-
-#        path = "../../.secrets/dtenv_localdb.sh"
-#        key = "DT_DEFAULT_USER_PASS"
-#        result = subprocess.run(f". {path} && echo ${key}", shell=True,
-#                            stdout=subprocess.PIPE)
-#        password = result.stdout.decode("utf-8").strip()
-#        email = "default_user@localhost"
-#        password = "password"
-#        type_data = {"email": email, "password": password}
-#
-#        response = client.post('/login', data=type_data)
-#        print(response.json)
