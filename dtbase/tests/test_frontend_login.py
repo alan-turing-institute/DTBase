@@ -1,4 +1,5 @@
-from bs4 import BeautifulSoup
+import re
+
 from flask.testing import FlaskClient
 
 
@@ -9,18 +10,20 @@ def test_elements(frontend_client: FlaskClient) -> None:
 
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
+        decode = response.data.decode()
 
         # Check if there's a form with the username and password inputs
-        username_input = soup.find("input", {"name": "email"})
-        password_input = soup.find("input", {"name": "password"})
+        username_input = re.search(r'<input[^>]*name="email"[^>]*>', decode)
+        password_input = re.search(r'<input[^>]*name="password"[^>]*>', decode)
         assert username_input is not None, "Username input not found"
         assert password_input is not None, "Password input not found"
 
         # Check the login button
-        login_button = soup.find("button", {"name": "login"})
+        login_button = re.search(r"<button[^>]*name=\"login\"[^>]*>", decode)
         assert login_button is not None, "Login button not found"
 
         # Find the password toggle button
-        eye_button = soup.find("i", {"id": "show-password"})
+        eye_button = re.search(
+            r"<i[^>]*id=\"show-password\"[^>]*>", response.data.decode()
+        )
         assert eye_button is not None, "Password toggle button not found"

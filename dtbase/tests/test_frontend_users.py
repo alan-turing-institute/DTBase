@@ -1,8 +1,9 @@
 """
 Test that the DTBase users pages load
 """
+import re
+
 import requests_mock
-from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 
@@ -14,8 +15,9 @@ def test_users_index_backend(auth_frontend_client: FlaskClient) -> None:
         assert "List of all users" in html_content
 
         # Find the password toggle button
-        soup = BeautifulSoup(response.data, "html.parser")
-        eye_button = soup.find("i", {"id": "show-password"})
+        eye_button = re.search(
+            r"<i[^>]*id=\"show-password\"[^>]*>", response.data.decode()
+        )
         assert eye_button is not None, "Password toggle button not found"
 
 
