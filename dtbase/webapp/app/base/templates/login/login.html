@@ -21,7 +21,10 @@
             <h1>Login</h1>
             {% for field in login_form if field.widget.input_type != 'hidden'  %}
               <div>
-                {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
+                  {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
+                  {% if field.name == "password" %}
+                    <i class="fa fa-eye" id="show-password" onclick="passwordToggle()"></i>
+                  {% endif %}
               </div>
             {% endfor %}
             <div>
@@ -32,4 +35,9 @@
       </div>
     </div>
   </div>
+  {% block javascripts %}
+  {{ super() }}
+    <!-- Utility -->
+    <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
+  {% endblock javascripts %}
 {% endblock body %}

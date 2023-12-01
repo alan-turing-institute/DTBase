@@ -2,6 +2,11 @@
 
 {% block title %} Users {% endblock title %}
 
+{% block stylesheets %}
+  {{ super() }}
+{% endblock stylesheets %}
+
+
 {% block content %}
 <div class="container">
   <h3>List of all users</h3>
@@ -40,6 +45,9 @@
         <div>
           {{ field.label }}
           {{ field(class="form-control required", placeholder=field.label.text) }}
+          {% if field.name == "password" %}
+            <i class="fa fa-eye" id="show-password" onclick="passwordToggle()" style="z-index: 10; color: lightgray; cursor: pointer;"></i>
+          {% endif %}
         </div>
         {% endfor %}
         <div>
@@ -52,4 +60,6 @@
 
 {% block javascripts %}
   {{ super() }}
+  <!-- Utility -->
+  <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
 {% endblock javascripts %}

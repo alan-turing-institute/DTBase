@@ -15,3 +15,14 @@ function dictionary_scatter(x, y) {
 function sort_by_numerical(arr, elname) {
   return arr.sort((e1, e2) => e1[elname] - e2[elname]);
 }
+
+// function used to toggle the visibility of the password field
+function passwordToggle() {
+  const passwordField = document.getElementById("pwd_login");
+  const passwordFieldType = passwordField.getAttribute("type");
+  if (passwordFieldType === "password") {
+    passwordField.setAttribute("type", "text");
+  } else {
+    passwordField.setAttribute("type", "password");
+  }
+}

@@ -1,6 +1,8 @@
 """
 Test that the DTBase users pages load
 """
+import re
+
 import requests_mock
 from flask.testing import FlaskClient
 
@@ -11,6 +13,12 @@ def test_users_index_backend(auth_frontend_client: FlaskClient) -> None:
         assert response.status_code == 200
         html_content = response.data.decode("utf-8")
         assert "List of all users" in html_content
+
+        # Find the password toggle button
+        eye_button = re.search(
+            r"<i[^>]*id=\"show-password\"[^>]*>", response.data.decode()
+        )
+        assert eye_button is not None, "Password toggle button not found"
 
 
 def test_users_index_get_mock(mock_auth_frontend_client: FlaskClient) -> None:
