@@ -10,8 +10,6 @@
 {% block body_class %}login{% endblock body_class %}
 
 {% block body %}
-  <!-- Parsley -->
-  <script src="{{ url_for('static', filename='node_modules/parsleyjs/dist/parsley.min.js') }}"></script>
   <div>
     <div class="login_wrapper">
       <div class="form login_form">
@@ -37,6 +35,8 @@
   </div>
   {% block javascripts %}
   {{ super() }}
+    <!-- Parsley -->
+    <script src="{{ url_for('static', filename='node_modules/parsleyjs/dist/parsley.min.js') }}"></script>
     <!-- Utility -->
     <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
   {% endblock javascripts %}
