@@ -4,6 +4,10 @@ config:
   azure-native:location: UKSouth
   dtbase-azure:default-user-password:
     secure: v1:i3uapFVLBvIIP9ET:gPVpIFEY+bFtPZbt6QoDPdEVau4LoHWI
+  dtbase-azure:frontend-secret-key:
+    secure: v1:lEhsnuDLGNHWKkqU:GefIErqLt3Ee5/DkdtMmM+VD+yGCnXpqbYIMoqYRjc08s6Wk0EdwX50PaOte1dBr95b1/vLodj/CWpMBTVsHvcA2yrh4BWj0QxeoaijslCK3Yxu1
+  dtbase-azure:jwt-secret-key:
+    secure: v1:CXYpLNXsn0XNv2VX:fE9HjpJFnj4eUGoI7W65AmG36F8p8/Gu+jhxuyaapTSau6NcARKhQI2TMuAelu13Qw7XtNYsdDtin0zOmlh3n4QIWBYy6ZHfhbUp8qLZkHdGsYWwP+Se8A==
   dtbase-azure:resource-name-prefix:
     secure: v1:wIdQP6Thgn7DKKnN:/K+TreJIcI3OwffS7MmP8HpfmBFk7ViSXWE=
   dtbase-azure:sql-server-password:
