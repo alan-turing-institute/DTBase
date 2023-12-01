@@ -8,9 +8,6 @@
 
 
 {% block content %}
-<!-- Utility -->
-<script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
-
 <div class="container">
   <h3>List of all users</h3>
 
@@ -63,4 +60,6 @@
 
 {% block javascripts %}
   {{ super() }}
+  <!-- Utility -->
+  <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
 {% endblock javascripts %}
