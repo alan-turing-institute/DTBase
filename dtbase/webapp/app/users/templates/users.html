@@ -38,7 +38,7 @@
     </table>
 
     <div>
-      <form data-parsley-validate method="post">
+      <form method="post">
         {{ new_user_form.hidden_tag() }}
         <h3>Create a user</h3>
         {% for field in new_user_form if field.widget.input_type != 'hidden'  %}

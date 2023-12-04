@@ -14,7 +14,7 @@
     <div class="login_wrapper">
       <div class="form login_form">
         <section class="login_content">
-          <form data-parsley-validate method="post">
+          <form method="post">
             {{ login_form.hidden_tag() }}
             <h1>Login</h1>
             {% for field in login_form if field.widget.input_type != 'hidden'  %}
@@ -35,8 +35,6 @@
   </div>
   {% block javascripts %}
   {{ super() }}
-    <!-- Parsley -->
-    <script src="{{ url_for('static', filename='node_modules/parsleyjs/dist/parsley.min.js') }}"></script>
     <!-- Utility -->
     <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
   {% endblock javascripts %}
