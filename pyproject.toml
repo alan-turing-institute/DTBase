@@ -80,8 +80,13 @@ build-backend = "setuptools.build_meta"
 dtbase = ["models/arima/arima/config_arima.ini", "models/utils/dataprocessor/data_config.ini"]
 
 [tool.setuptools]
-packages = ["dtbase"]
 license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dtbase*"]
+exclude = ["my_package.tests*"]
+namespaces = false
 
 [tool.ruff]
 line-length = 88
