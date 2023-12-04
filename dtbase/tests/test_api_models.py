@@ -4,6 +4,7 @@ Test API endpoints for models
 import datetime as dt
 
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
@@ -294,22 +295,20 @@ def test_get_model_run(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_unauthorized(client: FlaskClient) -> None:
+def test_unauthorized(client: FlaskClient, app: Flask) -> None:
     """Check that we aren't able to access any of the end points if we don't have an
     authorization token.
 
     Note that this one, unlike all the others, uses the `client` rather than the
     `auth_client` fixture.
     """
+
     with client:
-        assert_unauthorized(client, "post", "/model/insert-model")
-        assert_unauthorized(client, "post", "/model/insert-model-scenario")
-        assert_unauthorized(client, "post", "/model/insert-model-measure")
-        assert_unauthorized(client, "post", "/model/insert-model-run")
-        assert_unauthorized(client, "get", "/model/list-models")
-        assert_unauthorized(client, "get", "/model/list-model-scenarios")
-        assert_unauthorized(client, "get", "/model/list-model-measures")
-        assert_unauthorized(client, "get", "/model/list-model-runs")
-        assert_unauthorized(client, "delete", "/model/delete-model")
-        assert_unauthorized(client, "delete", "/model/delete-model-measure")
-        assert_unauthorized(client, "delete", "/model/delete-model-scenario")
+        # loop through all endpoints
+        for rule in app.url_map.iter_rules():
+            if rule.methods is None:
+                continue
+            methods = rule.methods - {"OPTIONS", "HEAD"}
+            if methods and str(rule).startswith("/model"):
+                method = next(iter(methods))
+                assert_unauthorized(client, method.lower(), str(rule))

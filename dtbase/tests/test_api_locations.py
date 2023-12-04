@@ -2,6 +2,7 @@
 Test API endpoints for locations
 """
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
@@ -217,19 +218,20 @@ def test_delete_location(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_unauthorized(client: FlaskClient) -> None:
+def test_unauthorized(client: FlaskClient, app: Flask) -> None:
     """Check that we aren't able to access any of the end points if we don't have an
     authorization token.
 
     Note that this one, unlike all the others, uses the `client` rather than the
     `auth_client` fixture.
     """
+
     with client:
-        assert_unauthorized(client, "post", "/location/insert-location-schema")
-        assert_unauthorized(client, "post", "/location/insert-location")
-        assert_unauthorized(client, "post", "/location/insert-location-for-schema")
-        assert_unauthorized(client, "get", "/location/list-locations")
-        assert_unauthorized(client, "get", "/location/list-location-identifiers")
-        assert_unauthorized(client, "get", "/location/list-location-schemas")
-        assert_unauthorized(client, "delete", "/location/delete-location")
-        assert_unauthorized(client, "delete", "/location/delete-location-schema")
+        # loop through all endpoints
+        for rule in app.url_map.iter_rules():
+            if rule.methods is None:
+                continue
+            methods = rule.methods - {"OPTIONS", "HEAD"}
+            if methods and str(rule).startswith("/location"):
+                method = next(iter(methods))
+                assert_unauthorized(client, method.lower(), str(rule))
