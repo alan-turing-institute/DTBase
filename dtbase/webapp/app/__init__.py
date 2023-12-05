@@ -9,13 +9,15 @@ from flask import (
     flash,
     redirect,
     render_template,
+    session,
     url_for,
 )
 from flask_cors import CORS
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user
 from werkzeug.wrappers import Response
 
-from dtbase.webapp.config import Config
+from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
+from dtbase.webapp.config import AutoLoginConfig, Config
 from dtbase.webapp.exc import AuthorizationError
 from dtbase.webapp.user import User
 
@@ -110,6 +112,21 @@ def register_error_handlers(app: Flask) -> None:
         return redirect(url_for("base_blueprint.login"))
 
 
+def set_autologin(app: Flask) -> None:
+    """Make every Flask session log in as the default user."""
+
+    @app.before_request
+    def autologin() -> None:
+        if "init" not in session:
+            user = User(DEFAULT_USER_EMAIL)
+            try:
+                assert DEFAULT_USER_PASS is not None
+                user.authenticate(DEFAULT_USER_PASS)
+                login_user(user)
+            except (AuthorizationError, AssertionError):
+                app.logger.warning("Logging in as default user failed")
+
+
 def create_app(config: Config) -> Flask:
     if not config.SECRET_KEY:
         raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
@@ -122,4 +139,6 @@ def create_app(config: Config) -> Flask:
     configure_logs(app)
     apply_themes(app)
     CORS(app)
+    if config == AutoLoginConfig:
+        set_autologin(app)
     return app

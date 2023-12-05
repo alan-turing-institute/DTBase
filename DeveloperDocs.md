@@ -82,10 +82,7 @@ The DTBase frontend is currently an extremely lightweight Flask webapp:
 3. Navigate to the directory `dtbase/webapp` and run the command `./run.sh`.
 4. You should now be able to view the webapp on your browser at http://localhost:8000.
 5. You can log in with the username `default_user@localhost` and the password you set above when you created `dtenv_localdb.sh`.
-6. Like for the backend, you can use different modes for the frontend, by running e.g.
-   `DT_CONFIG_MODE=No-login ./run.sh` to run with user login disabled. The valid
-   options for `DT_CONFIG_MODE` for the frontend can be found in
-   `dtbase/webapp/config.py`.
+6. Like for the backend, you can use different modes for the frontend, by running e.g. `DT_CONFIG_MODE=Auto-login ./run.sh` to be always automatically logged in as the default user (handy for development). The valid options for `DT_CONFIG_MODE` for the frontend can be found in `dtbase/webapp/config.py`.
 
 
 ### Running with an Azure Deployed Database
