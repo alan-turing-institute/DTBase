@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.core import locations
+from dtbase.core.exc import RowExistsError, RowMissingError
 
 # Some constants we will use in the tests repeatedly.
 LATITUDE1 = -2.0
@@ -116,7 +117,7 @@ def test_insert_location_schema_no_identifierr(session: Session) -> None:
     """Try to insert a location schema that uses identifiers that don't exist."""
     insert_schemas(session)
     error_msg = "No location identifier 'longitude_misspelled'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         locations.insert_location_schema(
             name="latlong_misspelled",
             description="Latitude and longitude misspelled",
@@ -141,7 +142,7 @@ def test_insert_location_duplicate(session: Session) -> None:
         "Location with schema 'latlong' and coordinates "
         f"{{'latitude': {LATITUDE1}, 'longitude': {LONGITUDE1}}} already exists."
     )
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowExistsError, match=error_msg):
         locations.insert_location(
             "latlong",
             latitude=LATITUDE1,
@@ -153,7 +154,7 @@ def test_insert_location_duplicate(session: Session) -> None:
 def test_insert_location_no_schema(session: Session) -> None:
     """Try to insert a location with a non-existing schema."""
     insert_schemas(session)
-    with pytest.raises(ValueError, match="No location schema 'heightitude'"):
+    with pytest.raises(RowMissingError, match="No location schema 'heightitude'"):
         locations.insert_location(
             "heightitude", latitude=12.0, longitude=0.0, session=session
         )
@@ -218,7 +219,7 @@ def test_delete_location_identifier(session: Session) -> None:
 
     # Doing the same deletion again should fail, since that row is gone.
     error_msg = "No location identifier 'latitude'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_identifier("latitude", session=session)
 
 
@@ -243,7 +244,7 @@ def test_delete_location_schema(session: Session) -> None:
 
     # Doing the same deletion again should fail, since that row is gone.
     error_msg = "No location schema 'latlong'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_schema("latlong", session=session)
 
 
@@ -272,7 +273,7 @@ def test_delete_location(session: Session) -> None:
         "Location not found: latlong, "
         f"{{'latitude': {LATITUDE2}, 'longitude': {LONGITUDE2}}}"
     )
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_by_coordinates(
             "latlong",
             latitude=LATITUDE2,
@@ -291,7 +292,7 @@ def test_delete_location_nonexistent(session: Session) -> None:
     """Try to delete a non-existent location."""
     insert_locations(session)
     error_msg = "Location not found: latlong, {'latitude': 0.0, 'longitude': 0.0}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_by_coordinates(
             "latlong", latitude=0.0, longitude=0.0, session=session
         )

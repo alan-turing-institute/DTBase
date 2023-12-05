@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
 from dtbase.core import queries, utils
+from dtbase.core.exc import RowExistsError, RowMissingError, TooManyRowsError
 from dtbase.core.structure import (
     Location,
     LocationIdentifier,
@@ -61,9 +62,9 @@ def identifier_id_from_name(
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No location identifier '{identifier_name}'")
+        raise RowMissingError(f"No location identifier '{identifier_name}'")
     if len(result) > 1:
-        raise ValueError(f"Multiple location identifiers named {identifier_name}")
+        raise TooManyRowsError(f"Multiple location identifiers named {identifier_name}")
     return result[0][0]
 
 
@@ -81,9 +82,9 @@ def schema_id_from_name(schema_name: str, session: Optional[Session] = None) -> 
     query = sqla.select(LocationSchema.id).where(LocationSchema.name == schema_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No location schema '{schema_name}'")
+        raise RowMissingError(f"No location schema '{schema_name}'")
     if len(result) > 1:
-        raise ValueError(f"Multiple location schemas named {schema_name}")
+        raise TooManyRowsError(f"Multiple location schemas named {schema_name}")
     return result[0][0]
 
 
@@ -136,7 +137,7 @@ def insert_location(
         queries.select_location_by_coordinates(schema_name, session, **kwargs)
     ).fetchall()
     if len(current_locations) > 0:
-        raise ValueError(
+        raise RowExistsError(
             f"Location with schema '{schema_name}' and coordinates "
             f"{kwargs} already exists."
         )
@@ -243,7 +244,7 @@ def delete_location_by_id(location_id: str, session: Optional[Session] = None) -
     """
     result = session.execute(sqla.delete(Location).where(Location.id == location_id))
     if result.rowcount == 0:
-        raise ValueError(f"No location with ID {location_id}")
+        raise RowMissingError(f"No location with ID {location_id}")
 
 
 @add_default_session
@@ -268,7 +269,7 @@ def delete_location_by_coordinates(
     )
     location_id = session.execute(location_query).fetchall()
     if not location_id:
-        raise ValueError(f"Location not found: {schema_name}, {kwargs}")
+        raise RowMissingError(f"Location not found: {schema_name}, {kwargs}")
     delete_location_by_id(location_id[0][0], session=session)
 
 
@@ -293,7 +294,7 @@ def delete_location_identifier(
         )
     )
     if result.rowcount == 0:
-        raise ValueError(f"No location identifier '{identifier_name}'")
+        raise RowMissingError(f"No location identifier '{identifier_name}'")
 
 
 @add_default_session
@@ -313,7 +314,7 @@ def delete_location_schema(schema_name: str, session: Optional[Session] = None) 
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
     )
     if result.rowcount == 0:
-        raise ValueError(f"No location schema '{schema_name}'")
+        raise RowMissingError(f"No location schema '{schema_name}'")
 
 
 @add_default_session

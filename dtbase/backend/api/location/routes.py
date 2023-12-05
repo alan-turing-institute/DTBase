@@ -5,12 +5,14 @@ Module (routes.py) to handle API endpoints related to Locations
 import logging
 from typing import Tuple
 
-from flask import Response, jsonify, make_response, request
+from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.backend.api.location import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import locations
+from dtbase.core.exc import RowExistsError, RowMissingError
 from dtbase.core.structure import SQLA as db
 
 logger = logging.getLogger(__name__)
@@ -59,10 +61,13 @@ def insert_location_schema() -> Tuple[Response, int]:
         db.session.commit()
         return jsonify(payload), 201
 
+    except IntegrityError:
+        return jsonify({"message": "Location schema or measure exists already"}), 409
+
     except Exception as e:
         # Log the error message and return a response with the error message
         logger.error("Error occurred:", str(e))
-        return make_response(jsonify({"error": str(e)}), 500)
+        return jsonify({"error": str(e)}), 500
 
 
 @blueprint.route("/insert-location", methods=["POST"])
@@ -115,8 +120,14 @@ def insert_location() -> Tuple[Response, int]:
         value_dict["schema_name"] = schema_name
         locations.insert_location(**value_dict, session=db.session)
         db.session.commit()
-        return jsonify(value_dict), 201
-    except:
+        return (
+            jsonify({"message": "Location inserted", "schema_name": schema_name}),
+            201,
+        )
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"message": "Location or schema exists already"}), 409
+    except Exception:
         db.session.rollback()
         raise
 
@@ -142,9 +153,14 @@ def insert_location_existing_schema() -> Tuple[Response, int]:
     error_response = check_keys(payload, required_keys, "/insert-location-for-schema")
     if error_response:
         return error_response
-    locations.insert_location(**payload, session=db.session)
-    db.session.commit()
-    return jsonify(payload), 201
+    try:
+        locations.insert_location(**payload, session=db.session)
+        db.session.commit()
+    except RowMissingError:
+        return jsonify({"message": "Location schema does not exist"}), 400
+    except RowExistsError:
+        return jsonify({"message": "Location already exists"}), 409
+    return jsonify({"message": "Location created"}), 201
 
 
 @blueprint.route("/list-locations", methods=["GET"])
@@ -226,7 +242,7 @@ def get_schema_details() -> Tuple[Response, int]:
 
     Returns results in the form:
     {
-
+        TODO Finish this docstring
     }
     """
     payload = request.get_json()
@@ -256,24 +272,13 @@ def delete_location_schema() -> Tuple[Response, int]:
         locations.delete_location_schema(schema_name=schema_name, session=db.session)
         db.session.commit()
         return (
-            jsonify(
-                {
-                    "status": "success",
-                    "message": f"Location schema '{schema_name}' has been deleted.",
-                }
-            ),
+            jsonify({"message": f"Location schema '{schema_name}' has been deleted."}),
             200,
         )
-    except ValueError:
+    except RowMissingError:
         return (
-            jsonify(
-                {
-                    "status": "error",
-                    "message": f"Location schema '{schema_name}'"
-                    " not found or could not be deleted.",
-                }
-            ),
-            404,
+            jsonify({"message": f"Location schema '{schema_name}' not found."}),
+            400,
         )
 
 
@@ -295,5 +300,5 @@ def delete_location() -> Tuple[Response, int]:
         locations.delete_location_by_coordinates(session=db.session, **payload)
         db.session.commit()
         return jsonify({"message": "Location deleted successfully."}), 200
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+    except RowMissingError:
+        return jsonify({"message": "Location not found"}), 400
