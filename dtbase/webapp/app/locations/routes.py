@@ -34,12 +34,6 @@ def submit_location_schema() -> Response:
     identifier_datatypes = request.form.getlist("identifier_datatype[]")
     identifier_existing = request.form.getlist("identifier_existing[]")
 
-    # print the values
-    print("Names: ", identifier_names)
-    print("Units: ", identifier_units)
-    print("Datatypes: ", identifier_datatypes)
-    print("Existing: ", identifier_existing)
-
     identifiers = [
         {
             "name": name,
@@ -61,33 +55,6 @@ def submit_location_schema() -> Response:
         "identifiers": identifiers,
     }
 
-    # check if the schema already exists
-    existing_schemas_response = current_user.backend_call(
-        "get", "/location/list-location-schemas"
-    )
-    existing_schemas = existing_schemas_response.json()
-    if any(schema["name"] == name for schema in existing_schemas):
-        flash(f"The schema '{name}' already exists.", "error")
-        return new_location_schema(form_data=form_data)
-
-    # check if any of the identifiers already exist
-    existing_identifiers_response = current_user.backend_call(
-        "get", "/location/list-location-identifiers"
-    )
-
-    existing_identifiers = existing_identifiers_response.json()
-
-    # new identifiers shouldn't have the same name as existing identifiers
-    for idf in identifiers:
-        if not idf["is_existing"]:
-            for idf_ex in existing_identifiers:
-                if idf["name"] == idf_ex["name"]:
-                    flash(
-                        f"An identifier with the name '{idf['name']}' already exists.",
-                        "error",
-                    )
-                    return new_location_schema(form_data=form_data)
-
     try:
         response = current_user.backend_call(
             "post", "/location/insert-location-schema", form_data
@@ -96,7 +63,9 @@ def submit_location_schema() -> Response:
         flash(f"Error communicating with the backend: {e}", "error")
         return redirect(url_for(".new_location_schema"))
 
-    if response.status_code != 201:
+    if response.status_code == 409:
+        flash(f"The schema '{name}' already exists.", "error")
+    elif response.status_code != 201:
         flash(
             f"An error occurred while adding the location schema: {response}", "error"
         )
@@ -108,14 +77,16 @@ def submit_location_schema() -> Response:
 
 @login_required
 @blueprint.route("/new-location", methods=["GET"])
-def new_location() -> Response:
+def new_location() -> str:
     try:
         response = current_user.backend_call("get", "/location/list-location-schemas")
     except ConnectionError:
         return redirect("/backend_not_found_error")
     schemas = response.json()
-    print(schemas)
-    return render_template("location_form.html", schemas=schemas)
+    selected_schema = request.args.get("schema_name")
+    return render_template(
+        "location_form.html", schemas=schemas, selected_schema=selected_schema
+    )
 
 
 @login_required
@@ -123,7 +94,8 @@ def new_location() -> Response:
 def submit_location() -> Response:
     # Retrieve the name of the schema
     schema_name = request.form.get("schema")
-    print(f"============={schema_name}================")
+    # Once all is said and done handling the POST request, we redirect the user here.
+    redirected_destination = redirect(url_for(".new_location", schema_name=schema_name))
     # Retrieve the identifiers and values based on the schema
     payload = {"schema_name": schema_name}
     response = current_user.backend_call("get", "/location/get-schema-details", payload)
@@ -133,7 +105,7 @@ def submit_location() -> Response:
         form_data = utils.convert_form_values(schema["identifiers"], request.form)
     except ValueError as e:
         flash(str(e), "error")
-        return redirect(url_for(".new_location"))
+        return redirected_destination
 
     try:
         # Send a POST request to the backend
@@ -144,16 +116,17 @@ def submit_location() -> Response:
         )
     except Exception as e:
         flash(f"Error communicating with the backend: {e}", "error")
-        return redirect(url_for(".new_location"))
+        return redirected_destination
 
-    if response.status_code != 201:
+    if response.status_code == 409:
+        flash("Location already exists", "error")
+    elif response.status_code != 201:
         flash(
             f"An error occurred while adding the location: {response.json()}", "error"
         )
-        return redirect(url_for(".new_location"))
-
-    flash("Location added successfully", "success")
-    return redirect(url_for(".new_location"))
+    else:
+        flash("Location added successfully", "success")
+    return redirected_destination
 
 
 @login_required
