@@ -11,7 +11,6 @@ from flask import (
 from flask_login import login_required, login_user, logout_user
 from werkzeug.wrappers import Response
 
-from dtbase.webapp.app import login_manager
 from dtbase.webapp.app.base import blueprint
 from dtbase.webapp.app.base.forms import LoginForm
 from dtbase.webapp.exc import AuthorizationError
@@ -80,26 +79,3 @@ def login() -> Union[Response, str]:
 def logout() -> Response:
     logout_user()
     return redirect(url_for("base_blueprint.login"))
-
-
-# Errors
-
-
-@login_manager.unauthorized_handler
-def unauthorized_callback() -> Response:
-    return redirect(url_for("base_blueprint.login"))
-
-
-@blueprint.errorhandler(403)
-def access_forbidden(error: Any) -> Response:
-    return redirect(url_for("base_blueprint.login"))
-
-
-@blueprint.errorhandler(404)
-def not_found_error(error: Any) -> str:
-    return render_template("errors/page_404.html"), 404
-
-
-@blueprint.errorhandler(500)
-def internal_error(error: Any) -> str:
-    return render_template("errors/page_500.html"), 500
