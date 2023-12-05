@@ -4,11 +4,19 @@ from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from os import path
 from typing import Any, Union
 
-from flask import Flask, url_for
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    url_for,
+)
 from flask_cors import CORS
 from flask_login import LoginManager
+from werkzeug.wrappers import Response
 
 from dtbase.webapp.config import Config
+from dtbase.webapp.exc import AuthorizationError
 from dtbase.webapp.user import User
 
 login_manager = LoginManager()
@@ -79,6 +87,29 @@ def apply_themes(app: Flask) -> None:
         return url_for(endpoint, **values)
 
 
+def register_error_handlers(app: Flask) -> None:
+    @login_manager.unauthorized_handler
+    def unauthorized_callback() -> Response:
+        return redirect(url_for("base_blueprint.login"))
+
+    @app.errorhandler(403)
+    def access_forbidden(error: Any) -> Response:
+        return redirect(url_for("base_blueprint.login"))
+
+    @app.errorhandler(404)
+    def not_found_error(error: Any) -> tuple[str, int]:
+        return render_template("errors/page_404.html"), 404
+
+    @app.errorhandler(500)
+    def internal_error(error: Any) -> tuple[str, int]:
+        return render_template("errors/page_500.html"), 500
+
+    @app.errorhandler(AuthorizationError)
+    def authorization_error(_: AuthorizationError) -> Response:
+        flash("Unable to authorize the user. Please try loging in again.", "error")
+        return redirect(url_for("base_blueprint.login"))
+
+
 def create_app(config: Config) -> Flask:
     if not config.SECRET_KEY:
         raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
@@ -87,6 +118,7 @@ def create_app(config: Config) -> Flask:
     register_extensions(app)
     register_blueprints(app)
     register_template_filters(app)
+    register_error_handlers(app)
     configure_logs(app)
     apply_themes(app)
     CORS(app)
