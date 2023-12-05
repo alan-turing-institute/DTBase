@@ -448,7 +448,7 @@ def get_schema_details(
     )
     if not schema:
         raise Exception("No such schema")
-    schema_result = dict(schema)
+    schema_result = dict(schema._mapping)
 
     identifiers = (
         session.query(
@@ -463,7 +463,7 @@ def get_schema_details(
         )  # schema.id from the fetched schema
         .all()
     )
-    identifiers_result = [dict(identifier) for identifier in identifiers]
+    identifiers_result = [dict(identifier._mapping) for identifier in identifiers]
 
     schema_result["identifiers"] = identifiers_result
     return schema_result
