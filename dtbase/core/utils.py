@@ -6,6 +6,7 @@ import io
 import json
 import logging
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Tuple
 
@@ -35,7 +36,7 @@ from dtbase.core.structure import (
 
 def get_db_session(
     return_engine: bool = False,
-) -> (Tuple[Session, Engine] | Session | None):
+) -> Tuple[Session, Engine] | Session | None:
     """
     Get an SQLAlchemy session on the database.
 
@@ -103,7 +104,7 @@ def query_result_to_array(
 
 def query_result_to_dict(
     query_result: List[ResultProxy], date_iso: bool = True
-) -> (Dict | ResultProxy):
+) -> Dict | ResultProxy:
     """
     If we have a single query result, return output as a dict rather than a list
     Args:
@@ -297,7 +298,7 @@ def check_datatype(value: str, datatype_name: str) -> bool:
     raise ValueError(f"Unrecognised datatype: {datatype_name}")
 
 
-def row_mappings_to_dicts(rows: List[RowMapping]) -> List[Dict]:
+def row_mappings_to_dicts(rows: Sequence[RowMapping]) -> List[Dict]:
     """Convert the list of RowMappings that SQLAlchemy's mappings() returns into plain
     dicts.
     """

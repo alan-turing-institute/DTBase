@@ -448,7 +448,7 @@ def get_schema_details(
         .first()
     )
     if not schema:
-        raise Exception("No such schema")
+        raise RowMissingError("No such schema")
     schema_result = dict(schema._mapping)
 
     identifiers = (

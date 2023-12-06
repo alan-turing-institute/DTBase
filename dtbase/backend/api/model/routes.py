@@ -102,6 +102,16 @@ def insert_model_scenario() -> Tuple[Response, int]:
 def list_model_scenarios() -> Tuple[Response, int]:
     """
     List all model scenarios in the database.
+
+    Returns JSON of the format
+    [
+        {
+            "id": <id:int>,
+            "model_id": <model_id:int>,
+            "description": <description:str|None|null>
+        },
+        ...
+    ]
     """
     result = models.list_model_scenarios(session=db.session)
     return jsonify(result), 200
@@ -111,9 +121,9 @@ def list_model_scenarios() -> Tuple[Response, int]:
 @jwt_required()
 def delete_model_scenario() -> Tuple[Response, int]:
     """
-    Delete a model scenario from the database
-    DELETE request should have json data (mimetype "application/json")
-    containing
+    Delete a model scenario from the database.
+
+    DELETE request should have json data (mimetype "application/json") containing
     {
         "model_name": <model_name:str>,
         "description": <description:str>

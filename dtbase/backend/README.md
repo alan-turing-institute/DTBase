@@ -617,7 +617,8 @@ API endpoints for the models is as follows.
     ```
 
 ### `/model/get-model-run-sensor-measure`
-* A GET request, will get the corresponding sensor_id and measure for a given model run.
+* A GET request, will get the corresponding sensor id and sensor measure for a given
+  model run.
     - Payload should have the form
     ```
     {
@@ -625,7 +626,6 @@ API endpoints for the models is as follows.
 
     }
     ```
-
     - returns status code 200, alongside result in the form:
     ```
     {
@@ -635,23 +635,25 @@ API endpoints for the models is as follows.
     ```
 
 ### `/model/get-model-run`
-* A GET request, will get the output of a model run for a given model measure.
+* A GET request, will get the output of a model run.
     - Payload should have the form
     ```
     {
         run_id: <run_id:int> (id of the model run),
-        measure_name: <measure_name:str>,
     }
     ```
 
     - returns status code 200, alongside result in the form:
     ```
-    [
-        {
-            "timestamp": <timestamp:str>,
-            "value": <value:integer|float|string|boolean>
-        },
-        ...
-    ]
+    {
+        measure1_name: [
+            {
+                "timestamp": <timestamp:str>,
+                "value": <value:integer|float|string|boolean>
+            },
+            ...
+        ]
+    }
     ```
-    timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
+    The returned dictionary will have as many key-value pairs as there are measures in
+    the model run. Timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S.

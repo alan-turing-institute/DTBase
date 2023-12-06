@@ -70,6 +70,23 @@ PRODUCT3 = {
     "values": [False, True, False],
     "timestamps": TIMESTAMPS2,
 }
+RUN1 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO1,
+    "measures_and_values": [PRODUCT1],
+}
+RUN2 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO2,
+    "measures_and_values": [PRODUCT2],
+    "time_created": (NOW - dt.timedelta(days=7)).isoformat(),
+}
+RUN3 = {
+    "model_name": MODEL_NAME2,
+    "scenario_description": SCENARIO3,
+    "measures_and_values": [PRODUCT3],
+    "create_scenario": True,
+}
 
 
 def insert_model(client: FlaskClient, name: str) -> None:
@@ -103,26 +120,9 @@ def insert_model_scenarios(client: FlaskClient) -> None:
 def insert_model_runs(client: FlaskClient) -> None:
     insert_model_measures(client)
     insert_model_scenarios(client)
-    run1 = {
-        "model_name": MODEL_NAME1,
-        "scenario_description": SCENARIO1,
-        "measures_and_values": [PRODUCT1],
-    }
-    run2 = {
-        "model_name": MODEL_NAME1,
-        "scenario_description": SCENARIO2,
-        "measures_and_values": [PRODUCT2],
-        "time_created": (NOW - dt.timedelta(days=7)).isoformat(),
-    }
-    run3 = {
-        "model_name": MODEL_NAME2,
-        "scenario_description": SCENARIO3,
-        "measures_and_values": [PRODUCT3],
-        "create_scenario": True,
-    }
-    response1 = client.post("/model/insert-model-run", json=run1)
-    response2 = client.post("/model/insert-model-run", json=run2)
-    response3 = client.post("/model/insert-model-run", json=run3)
+    response1 = client.post("/model/insert-model-run", json=RUN1)
+    response2 = client.post("/model/insert-model-run", json=RUN2)
+    response3 = client.post("/model/insert-model-run", json=RUN3)
     return response1, response2, response3
 
 
@@ -283,15 +283,24 @@ def test_get_model_run(auth_client: AuthenticatedClient) -> None:
             "scenario": SCENARIO1,
         }
         responses = client.get("/model/list-model-runs", json=runs)
+        assert responses.json is not None
         run_id = responses.json[0]["id"]
 
-        run = {
-            "run_id": run_id,
-            # "measure_name": MEASURE_NAME1,
-        }
-
-        responses = client.get("/model/get-model-run", json=run)
-        assert responses.status_code == 200
+        response = client.get("/model/get-model-run", json={"run_id": run_id})
+        assert response.status_code == 200
+        body = response.json
+        assert body is not None
+        assert len(body.keys()) == 1
+        key, value = next(iter(body.items()))
+        assert key in {MEASURE_NAME1, MEASURE_NAME2}
+        if key == MEASURE_NAME1:
+            expected_product = PRODUCT1
+        else:
+            expected_product = PRODUCT2
+        assert value == [
+            {"timestamp": t, "value": v}
+            for t, v in zip(expected_product["timestamps"], expected_product["values"])
+        ]
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

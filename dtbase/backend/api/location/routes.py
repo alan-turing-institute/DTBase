@@ -249,7 +249,7 @@ def get_schema_details() -> Tuple[Response, int]:
     schema_name = payload["schema_name"]
     try:
         result = locations.get_schema_details(schema_name, session=db.session)
-    except Exception:
+    except RowMissingError:
         return jsonify({"message": "No such schema"}), 400
     return jsonify(result), 200
 
