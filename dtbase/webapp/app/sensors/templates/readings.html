@@ -12,96 +12,94 @@
 {% endblock stylesheets %}
 
 {% block content %}
-  <div class="right_col" role="main">
-    <div class="">
-      <form method="post">
-      <div>
-        Time period
-        <input type="date" id="startDatePicker" name="startDate"  value={{dt_from}}>
-        &mdash;
-        <input type="date" id="endDatePicker" name="endDate" value={{dt_to}}>
-	<button onclick="this.form.submit()">submit</button>
-      </div>
-      {%if dt_to %}
-      <div class="row">
-	<div class="col-md-6">
-            <label for="sensor_type">Sensor Type:</label>
-            <select onchange="this.form.submit()" name="sensor_type" id="sensor_type">
-	      {% if not selected_sensor_type %}
-	      <option value="" selected disabled hidden>Choose sensor type</option>
-	      {% else %}
-	      <option value="{{ selected_sensor_type }}" selected>{{ selected_sensor_type }}</option>
-	      {% endif %}
-              {% for sensor_type in sensor_types %}
-              <option value="{{ sensor_type }}">{{ sensor_type }}</option>
-              {% endfor %}
-            </select>
-            <label for="sensor">Sensor:</label>
-            <select onchange="this.form.submit()" name="sensor" id="sensor">
-	      {% if not selected_sensor %}
-	      <option value="" selected disabled hidden>Choose sensor</option>
-	      {% else %}
-	      <option value="{{ selected_sensor }}" selected>{{ selected_sensor }}</option>
-	      {% endif %}
-              {% for sensor in sensor_ids %}
-              <option value="{{ sensor }}">{{ sensor }}</option>
-              {% endfor %}
-            </select>
-            <br>
-	</div>
-      </div>
-      {% endif %}
-      {% if selected_sensor %}
-      <div class="row">
-        <div class="col-md-12 col-sm-12 col-xs-12">
-          <div class="x_panel">
+<h3>Sensor readings</h3>
+<form method="post">
+<div>
+  Time period
+  <input type="date" id="startDatePicker" name="startDate"  value={{dt_from}}>
+  &mdash;
+  <input type="date" id="endDatePicker" name="endDate" value={{dt_to}}>
+<button onclick="this.form.submit()">submit</button>
+</div>
+{%if dt_to %}
+<div class="row">
+  <div class="col-md-6">
+    <label for="sensor_type">Sensor Type:</label>
+    <select onchange="this.form.submit()" name="sensor_type" id="sensor_type">
+    {% if not selected_sensor_type %}
+    <option value="" selected disabled hidden>Choose sensor type</option>
+    {% else %}
+    <option value="{{ selected_sensor_type }}" selected>{{ selected_sensor_type }}</option>
+    {% endif %}
+          {% for sensor_type in sensor_types %}
+          <option value="{{ sensor_type }}">{{ sensor_type }}</option>
+          {% endfor %}
+        </select>
+        <label for="sensor">Sensor:</label>
+        <select onchange="this.form.submit()" name="sensor" id="sensor">
+    {% if not selected_sensor %}
+    <option value="" selected disabled hidden>Choose sensor</option>
+    {% else %}
+    <option value="{{ selected_sensor }}" selected>{{ selected_sensor }}</option>
+    {% endif %}
+          {% for sensor in sensor_ids %}
+          <option value="{{ sensor }}">{{ sensor }}</option>
+          {% endfor %}
+        </select>
+        <br>
+  </div>
+</div>
+{% endif %}
 
-            <div class="x_content">
+{% if selected_sensor %}
+<div class="row">
+  <div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
 
-                <div class="row x_title">
-                    <div class="col-md-6">
-                        <h3>Uploaded {{selected_sensor_type}} Sensor Data for {{ selected_sensor }} <small>(showing max {{num_records}} records)</small></h3>
-                    </div>
+      <div class="x_content">
 
-                    <div class="col-md-6">
-                        <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
-                            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-                            <span></span>
-                            <b class="caret"></b>
-                        </div>
-                    </div>
-                </div>
-              <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-		    {%
-                    for m in measure_names:
-                    %}
-                    <th>{{m}}</th>
-		    {% endfor %}
-                  </tr>
-                </thead>
-                <tbody>
-		  {% for sd in sensor_data: %}
-		  <tr>
-		    <th>{{ sd['timestamp'] }}</th>
-		    {% for m in measure_names: %}
-		    <th>{{ '%0.2f' | format(sd[m]|float) }} </th>
-		    {% endfor %}
-		  </tr>
-		  {% endfor %}
-                </tbody>
-              </table>
-		<input type="submit" value="Download" name="download"/>
-            </div>
+          <div class="row x_title">
+              <div class="col-md-6">
+                  <h3>Uploaded {{selected_sensor_type}} Sensor Data for {{ selected_sensor }} <small>(showing max {{num_records}} records)</small></h3>
+              </div>
+
+              <div class="col-md-6">
+                  <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                      <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                      <span></span>
+                      <b class="caret"></b>
+                  </div>
+              </div>
           </div>
-        </div>
+        <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+  {%
+              for m in measure_names:
+              %}
+              <th>{{m}}</th>
+  {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+{% for sd in sensor_data: %}
+<tr>
+  <th>{{ sd['timestamp'] }}</th>
+  {% for m in measure_names: %}
+  <th>{{ '%0.2f' | format(sd[m]|float) }} </th>
+  {% endfor %}
+</tr>
+{% endfor %}
+          </tbody>
+        </table>
+<input type="submit" value="Download" name="download"/>
       </div>
-      {% endif %}
-      </form>
     </div>
   </div>
+</div>
+{% endif %}
+</form>
 {% endblock content %}
 
 {% block javascripts %}

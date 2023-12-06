@@ -18,15 +18,17 @@
             {{ login_form.hidden_tag() }}
             <h1>Login</h1>
             {% for field in login_form if field.widget.input_type != 'hidden'  %}
-              <div>
-                  {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
-                  {% if field.name == "password" %}
-                    <i class="fa fa-eye" id="show-password" onclick="passwordToggle()"></i>
-                  {% endif %}
-              </div>
+            <!-- The div is relatively positioned so that the password-toggle button sits
+              correctly within it. -->
+            <div style="position: relative">
+              {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
+              {% if field.name == "password" %}
+              <i class="fa fa-eye password-toggle" id="show-password" onclick="passwordToggle()"></i>
+              {% endif %}
+            </div>
             {% endfor %}
             <div>
-                <button type="submit" class="btn btn-default submit" name="login">Log in</button>
+                <button type="submit" class="btn btn-primary submit" name="login">Log in</button>
             </div>
           </form>
         </section>
