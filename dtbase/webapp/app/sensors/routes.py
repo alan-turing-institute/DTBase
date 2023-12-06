@@ -145,7 +145,7 @@ def time_series_plots() -> Response:
         dt_from = today - dt.timedelta(days=7)
         dt_to = today
         return render_template(
-            "sensors.html",
+            "time_series_plots.html",
             sensor_type=sensor_type_name,
             sensor_types=sensor_types,
             all_sensors=all_sensors,
@@ -179,7 +179,7 @@ def time_series_plots() -> Response:
         for k, v in sensor_data.items()
     }
     return render_template(
-        "sensors.html",
+        "time_series_plots.html",
         sensor_type=sensor_type_name,
         sensor_types=sensor_types,
         all_sensors=all_sensors,
