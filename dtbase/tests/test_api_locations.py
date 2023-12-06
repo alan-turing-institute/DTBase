@@ -34,6 +34,45 @@ def test_insert_location_schema(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_get_location_schema_details(auth_client: AuthenticatedClient) -> None:
+    with auth_client as client:
+        schema = {
+            "name": "building-floor-room",
+            "description": "Find something within a building",
+            "identifiers": [
+                {"name": "building", "units": None, "datatype": "string"},
+                {"name": "floor", "units": None, "datatype": "integer"},
+                {"name": "room", "units": None, "datatype": "string"},
+            ],
+        }
+        response = client.post("/location/insert-location-schema", json=schema)
+        assert response.status_code == 201
+        response = client.get(
+            "/location/get-schema-details", json={"schema_name": schema["name"]}
+        )
+        assert response.status_code == 200
+        body = response.get_json()
+        assert set(body.keys()) == {"name", "description", "id", "identifiers"}
+        assert set(body["identifiers"][0].keys()) == {
+            "name",
+            "units",
+            "id",
+            "datatype",
+        }
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_get_nonexistent_location_schema_details(
+    auth_client: AuthenticatedClient,
+) -> None:
+    with auth_client as client:
+        response = client.get(
+            "/location/get-schema-details", json={"schema_name": "nope"}
+        )
+        assert response.status_code == 400
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_location_no_schema(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         location = {
