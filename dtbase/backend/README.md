@@ -202,6 +202,33 @@ The schema name will be a concatenation of the identifier names.
     ]
     ```
 
+### `/location/get-schema-details`
+* A GET request to get all information, including identifiers, for a location schema:
+
+    - payload should be
+    ```
+    {
+      "schema_name": <schema_name:str>
+    }
+    ```
+    - returns 400 if schema name isn't valid, otherwise status code 200 with
+    ```
+    {
+      "id": <id:int>,
+      "name": <name:str>,
+      "description": <description:str>,
+      "identifiers": [
+        {
+	      "id": <id:int>,
+	      "name": <name:str>,
+	      "datatype": <datatype:str>,
+	      "units": <units:str>,
+        },
+        ...
+      ]
+    }
+    ```
+
 ### `/location/delete-location-schema`
 * A DELETE request will remove the schema with the specified name.
     - payload should contain:
