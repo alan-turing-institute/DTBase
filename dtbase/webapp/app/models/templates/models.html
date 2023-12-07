@@ -9,84 +9,93 @@
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="row">
-  <div class="col">
-    <h3>Choose predictive model</h3>
-    <form method="post">
-      <div>
-
-        <div>
-          Select a model:
-          <select
-              id="model_name"
-              class="selectpicker"
-              name="model_name"
-            onchange="this.form.submit()">
-{% if not selected_model_name %}
-<option value="" selected disabled hidden>Choose model</option>
-{% else %}
-<option value="{{ selected_model_name }}" selected>{{ selected_model_name }}</option>
-{% endif %}
-            {% for m in models %}
-            <option
-                value="{{ m.name }}"
-                {% if selected_model_name and m.name == selected_model_name %} selected {% endif %}
-                >
-                {{m.name}}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-</div>
-{% if selected_model_name %}
-<div>
-  Select a model run:
-  <select
-              id="run_id"
-              class="selectpicker"
-              name="run_id"
-          onchange="this.form.submit()">
-    {% if not run_id %}
-<option value="" selected disabled hidden>Choose run ID</option>
-{% else %}
-<option value="{{ run_id }}" selected>{{ run_id }}</option>
-{% endif %}
-            {% for r in run_ids %}
-            <option
-                value="{{ r }}"
-                {% if run_id and r == run_id %} selected {% endif %}
-                >
-                {{r}}
-            </option>
-            {% endfor %}
-          </select>
-</div>
-{% endif %}
-	</form>
-
-    {% if model_data %}
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="x_panel">
-          <div class="x_title">
-            <h2>Model predictions</h2>
-            <ul class="nav navbar-right panel_toolbox">
-              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-              </li>
-            </ul>
-            <div class="clearfix"></div>
-          </div>
-	  <div class="canvas_wrapper">
-            <canvas id="model_plot"></canvas>
-          </div>
-	</div>
-      </div>
+<h3>Filter modelling results</h3>
+<form method="post">
+  <div>
+    <div class="form-group">
+      Predictive model:
+      <select
+        id="model_name"
+        class="selectpicker"
+        name="model_name">
+        {% if not selected_model_name %}
+        <option value="" selected disabled hidden>Choose model</option>
+        {% endif %}
+        {% for m in models %}
+        <option
+        value="{{ m.name }}"
+        {% if selected_model_name and m.name == selected_model_name %} selected {% endif %}
+        >
+        {{m.name}}
+        </option>
+        {% endfor %}
+      </select>
     </div>
-    {% endif %}
 
+    <div class="form-group">
+      When was the model run:
+      <input type="date" id="startDatePicker" name="startDate"  value={{dt_from}}>
+      &mdash;
+      <input type="date" id="endDatePicker" name="endDate" value={{dt_to}}>
+    </div>
 
+    <div class="form-group">
+      Model scenario:
+      <select
+        id="model_name"
+        class="selectpicker"
+        name="model_name">
+        <option value=null>Any scenario</option>
+        {% for s in scenarios %}
+        <option
+        value="{{ s.description }}"
+        {% if selected_scenario_description
+        and s.description == selected_scenario_description %}
+        selected
+        {% endif %}
+        >
+        {{s.description}}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
   </div>
+
+  <button class="btn btn-primary" type="submit">Get model runs</button>
+
+  <div class="mt-2">
+  {% if runs != None and runs|length == 0 %}
+    <p>No model runs found.</p>
+  {% elif runs %}
+    Select model run to show:
+    <select
+      id="run_id"
+      class="selectpicker"
+      name="run_id"
+      onchange="this.form.submit()">
+      {% if not selected_run_id %}
+      <option value="" selected disabled hidden>Choose run</option>
+      {% endif %}
+      {% for r in runs %}
+      <option
+      value="{{ r.id }}"
+      {% if run_id and r.id == run_id %} selected {% endif %}
+      >
+      {{r.time_created}} - {{r.scenario_description}}
+      </option>
+      {% endfor %}
+    </select>
+  {% endif %}
+  </div>
+</form>
+
+{% if model_data %}
+<h3>Model predictions</h3>
+<div>
+  <canvas id="model_plot"></canvas>
 </div>
+{% endif %}
+
 {% endblock content %}
 
 {% block javascripts %}
@@ -103,33 +112,32 @@
 
 <script>
   function plot_predictions(model_data) {
-      const pred_data = model_data["pred_data"];
-      const sensor_data = model_data["sensor_data"];
-      const measure = sensor_data["measure_name"];
-      const sensor_id = sensor_data["sensor_uniq_id"];
-      const canvas_name = "model_plot";
-      //const canvas_name = measure + "_" + sensor_id;
-      const title = measure + " " + sensor_id;
-      document.getElementById(canvas_name).innerHTML = title;
-      // See static/javascript/predictions.js for the plot function.
-      const show_legend = true;
-      const axis_title = measure;
+    const pred_data = model_data["pred_data"];
+    const sensor_data = model_data["sensor_data"];
+    const measure = sensor_data["measure_name"];
+    const sensor_id = sensor_data["sensor_uniq_id"];
+    const canvas_name = "model_plot";
+    const title = measure + " " + sensor_id;
+    document.getElementById(canvas_name).innerHTML = title;
+    // See static/javascript/predictions.js for the plot function.
+    const show_legend = true;
+    const axis_title = measure;
 
-      plot(pred_data["Upper Bound "+measure],
-	   pred_data["Mean "+measure],
-	   pred_data["Lower Bound "+measure],
-	   sensor_data["readings"],
-	   measure,
-	   canvas_name,
-	   axis_title,
-	   show_legend
-      );
+    plot(pred_data["Upper Bound "+measure],
+      pred_data["Mean "+measure],
+      pred_data["Lower Bound "+measure],
+      sensor_data["readings"],
+      measure,
+      canvas_name,
+      axis_title,
+      show_legend
+    );
 
   }
 
-  const model_data = JSON.parse('{{model_data | safe}}');
+  const model_data = {{model_data | safe}};
   if (Object.keys(model_data).length > 0) {
-      plot_predictions(model_data);
+    plot_predictions(model_data);
   }
 
 </script>
