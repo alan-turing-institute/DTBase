@@ -1,6 +1,5 @@
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from requests.exceptions import ConnectionError
 from werkzeug.wrappers import Response
 
 from dtbase.webapp import utils
@@ -10,12 +9,9 @@ from dtbase.webapp.app.locations import blueprint
 @login_required
 @blueprint.route("/new-location-schema", methods=["GET"])
 def new_location_schema(form_data: str = None) -> Response:
-    try:
-        existing_identifiers_response = current_user.backend_call(
-            "get", "/location/list-location-identifiers"
-        )
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    existing_identifiers_response = current_user.backend_call(
+        "get", "/location/list-location-identifiers"
+    )
     existing_identifiers = existing_identifiers_response.json()
     return render_template(
         "location_schema_form.html",
@@ -109,10 +105,7 @@ def submit_location_schema() -> Response:
 @login_required
 @blueprint.route("/new-location", methods=["GET"])
 def new_location() -> Response:
-    try:
-        response = current_user.backend_call("get", "/location/list-location-schemas")
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    response = current_user.backend_call("get", "/location/list-location-schemas")
     schemas = response.json()
     print(schemas)
     return render_template("location_form.html", schemas=schemas)
@@ -159,25 +152,18 @@ def submit_location() -> Response:
 @login_required
 @blueprint.route("/locations-table", methods=["GET"])
 def locations_table() -> Response:
-    try:
-        schemas_response = current_user.backend_call(
-            "get", "/location/list-location-schemas"
-        )
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    schemas_response = current_user.backend_call(
+        "get", "/location/list-location-schemas"
+    )
 
     schemas = schemas_response.json()
     locations_for_each_schema = {}
 
     for schema in schemas:
-        try:
-            payload = {"schema_name": schema["name"]}
-            locations_response = current_user.backend_call(
-                "get", "/location/list-locations", payload
-            )
-        except ConnectionError:
-            return redirect("/backend_not_found_error")
-
+        payload = {"schema_name": schema["name"]}
+        locations_response = current_user.backend_call(
+            "get", "/location/list-locations", payload
+        )
         locations_for_each_schema[schema["name"]] = locations_response.json()
 
     return render_template(
