@@ -104,7 +104,7 @@ def fetch_sensor_data(
 
 
 @blueprint.route("/time-series-plots", methods=["GET", "POST"])
-# @login_required
+@login_required
 def time_series_plots() -> Response:
     """Time-series plots of sensor data"""
     # Parse the various parameters we may have been passed, and load some generally
@@ -189,7 +189,7 @@ def time_series_plots() -> Response:
 
 # Plot sensor readings in responsive datatables
 @blueprint.route("/readings", methods=["GET", "POST"])
-# @login_required
+@login_required
 def sensor_readings() -> Response | str:
     """
     Render tables of readings for a selected sensor type.
@@ -247,7 +247,7 @@ def sensor_readings() -> Response | str:
 
 
 @blueprint.route("/add-sensor-type", methods=["GET"])
-# @login_required
+@login_required
 def new_sensor_type(form_data: str = None) -> Response:
     """
     Form to add a new SensorType, with associated measures.
@@ -264,7 +264,7 @@ def new_sensor_type(form_data: str = None) -> Response:
 
 
 @blueprint.route("/add-sensor-type", methods=["POST"])
-# @login_required
+@login_required
 def submit_sensor_type() -> Response:
     """
     Send a POST request to add a new sensor type to the database.
