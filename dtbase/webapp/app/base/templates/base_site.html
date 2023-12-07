@@ -38,17 +38,19 @@
 
     {% block body %}
       <div class="container-fluid">
-        <div class="row flex-nowrap">
+        <div class="row align-items-start">
 
           {% block sidebar %}
-            <div class="col-auto {% block sidebar_class %} {% endblock sidebar_class %}">
+            <div class="col-auto">
               {% include "site_template/sidebar.html" %}
             </div>
           {% endblock sidebar %}
 
-          {% block content %}
-            <!-- {{ content }} -->
-          {% endblock content %}
+          <div class="col mt-3">
+            {% block content %}
+              <!-- {{ content }} -->
+            {% endblock content %}
+          </div>
 
         </div>
       </div>
