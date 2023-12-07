@@ -599,19 +599,25 @@ API endpoints for the models is as follows.
         "scenario": <scenario:str> (optional, by default all scenarios),
     }
     ```
-    datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
-
+    datetime in dt_from and dt_to should be specified in the ISO 8601 format:
+    '%Y-%m-%dT%H:%M:%S.
     - returns status code 200, alongside result in the form:
     ```
     [
         {
-            "id": <id:int>,
-            "model_id": <model_id:int>,
-            "model_name": <model_name:str>,
-            "scenario_description": <scenario_description:str>,
-            "scenario_id": <scenario_id:int>,
-            "time_created": <time_created:datetime_string>
-        },
+            "id": <database id of the model run:int>,
+            "model_id": <database id of the model:int>,
+            "model_name": <name of the model:str>,
+            "scenario_id": <database id of the scenario:int>,
+            "scenario_description": <description of the scenario:str>,
+            "time_created": <time when this run was created:str in ISO 8601>,
+            "sensor_unique_id": <unique identifier of the associated sensor:str or
+                null>,
+            "sensor_measure": {
+                "name": <name of the associated sensor measure:str or null>,
+                "units": <units of the associated sensor measure:str or null>
+            }
+        }
         ...
     ]
     ```
@@ -622,15 +628,17 @@ API endpoints for the models is as follows.
     - Payload should have the form
     ```
     {
-        run_id: <run_id:int> (id of the model run),
-
+        run_id: <id of the model run:int>
     }
     ```
     - returns status code 200, alongside result in the form:
     ```
     {
-       "sensor_unique_id": <sensor_unique_id:str>,
-       "measure_name": <measure_name:str>
+        "sensor_unique_id": <sensor unique id:str>,
+        "sensor_measure": {
+            "name": <sensor measure name:str>,
+            "units": <sensor measure units:str>
+        }
     }
     ```
 
