@@ -23,6 +23,7 @@ function updateTable() {
         tableContent += `<th scope='col'>${key}</th>`;
       }
     }
+    tableContent += "<th scope='col'></th>";
     tableContent += "</tr></thead>";
 
     // Construct the table body
@@ -35,6 +36,9 @@ function updateTable() {
           tableContent += `<td>${sensors[i][key]}</td>`;
         }
       }
+      tableContent += `<td>
+      <button type="button" class="btn btn-warning btn-margin edit-button" data-sensor-id="{{ sensor.id }}" onclick="openEditModal('{{sensor.id}}')"> Edit  </button>
+      </td> `;
       tableContent += "</tr>";
     }
     tableContent += "</tbody>";
@@ -57,4 +61,13 @@ function updateTable() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function openEditModal(sensorId) {
+  // open a new window with the content of edit_form.html
+  var editWindow = window.open(
+    "/sensor_edit_form",
+    "_blank",
+    "width=600,height=400"
+  );
 }

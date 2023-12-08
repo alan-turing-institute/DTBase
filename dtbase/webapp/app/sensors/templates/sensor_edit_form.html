@@ -1,0 +1,42 @@
+{% extends "base_site.html" %}
+
+{% block title %} DTBase {% endblock title %}
+
+{% block sidebar %} {# Omit the sidebar content #} {% endblock sidebar %}
+
+{% block content %}
+<div class="container">
+    <h3>Edit Sensor</h2>
+    <form id="edit-sensor-form" method="POST">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Notes" value="{{ form_data.name if form_data }}">
+            <label for="notes">Notes</label>
+            <input type="text" class="form-control custom-input" id="notes" name="notes" required placeholder="Notes" value="{{ form_data.notes if form_data }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-margin">Submit</button>
+        <button type="submit" class="btn btn-warning btn-margin" formnovalidate onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-danger btn-margin" formnovalidate onclick="deleteSensor()">Delete</button>
+    </form>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super() }}
+<script>
+    function closeEditModal() {
+        // close the popup window or perform any other close action
+        window.close();
+    }
+
+    function deleteSensor() {
+        // Perform the delete action, e.g., show a confirmation dialog
+        if (confirm("Are you sure you want to delete this sensor?")) {
+            // Delete the sensor
+        } else {
+            // Do nothing
+            alert("Sensor not deleted");
+        }
+    }
+</script>
+{% endblock javascripts %}

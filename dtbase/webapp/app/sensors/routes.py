@@ -457,3 +457,9 @@ def sensor_list_table() -> Response:
         sensor_types=sensor_types,
         sensors_for_each_type=sensors_for_each_type,
     )
+
+
+@login_required
+@blueprint.route("/sensor-edit-form", methods=["POST"])
+def sensor_edit_form() -> Response:
+    return render_template("sensor_edit_form.html")
