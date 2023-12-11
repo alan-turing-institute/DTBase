@@ -2,7 +2,9 @@
   <a href="/" class="d-flex mb-3 mb-md-0 me-md-auto link-dark text-decoration-none pb-3 border-bottom w-100">
     <span class="fs-3">DTBase</span>
   </a>
+
   <hr>
+
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
       <a href="/home/index"
@@ -13,7 +15,7 @@
       </a>
     </li>
 
-    <li class="mb-1">
+    <li class="nav-item">
       <button
         class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/sensors/index' else '' }}"
         data-bs-toggle="collapse" data-bs-target="#sensorsCollapse" aria-expanded="false">
@@ -23,13 +25,13 @@
       </button>
       <div class="collapse" id="sensorsCollapse">
         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-	  <li><a href="/sensors/add-sensor-type" class="link-dark rounded text-decoration-none ms-4 ">Add sensor type</a>
+          <li><a href="/sensors/add-sensor-type" class="link-dark rounded text-decoration-none ms-4 ">Add sensor type</a>
           </li>
-	  <li><a href="/sensors/add-sensor" class="link-dark rounded text-decoration-none ms-4 ">Add sensor</a>
+          <li><a href="/sensors/add-sensor" class="link-dark rounded text-decoration-none ms-4 ">Add sensor</a>
           </li>
-	  <li><a href="/sensors/sensor-list" class="link-dark rounded text-decoration-none ms-4 ">List sensors</a>
+          <li><a href="/sensors/sensor-list" class="link-dark rounded text-decoration-none ms-4 ">List sensors</a>
           </li>
-	  <li><a href="/sensors/time-series-plots" class="link-dark rounded text-decoration-none ms-4 ">Time-series plots</a>
+          <li><a href="/sensors/time-series-plots" class="link-dark rounded text-decoration-none ms-4 ">Time-series plots</a>
           </li>
           <li><a href="/sensors/readings" class="link-dark rounded text-decoration-none ms-4 ">Raw sensor readings</a>
           </li>
@@ -37,7 +39,8 @@
         </ul>
       </div>
     </li>
-    <li>
+
+    <li class="nav-item">
       <a href="/models/index"
         class="nav-link text-dark {{ 'active text-white' if request.path == '/models/index' else '' }}">
         <i class="fa fa-cogs me-2 fa-fw"></i>
@@ -45,8 +48,7 @@
       </a>
     </li>
 
-
-    <li class="mb-1">
+    <li class="nav-item">
       <button
         class="btn btn-toggle align-items-center rounded border-0 nav-link text-dark {{ 'active text-white' if request.path == '/locations/index' else '' }}"
         data-bs-toggle="collapse" data-bs-target="#locationsCollapse" aria-expanded="false">
@@ -68,7 +70,7 @@
     </li>
 
 
-    <li>
+    <li class="nav-item">
       <a href="/users/index"
         class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
         <i class="fa fa-users me-2 fa-fw"></i>
@@ -76,7 +78,7 @@
       </a>
     </li>
 
-    <li>
+    <li class="nav-item">
       <a href="/logout"
         class="nav-link text-dark {{ 'active text-white' if request.path == '/logout' else '' }}">
         <i class="fa fa-sign-out me-2 fa-fw"></i>

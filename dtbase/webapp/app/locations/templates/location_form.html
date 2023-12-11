@@ -3,22 +3,20 @@
 {% block title %} DTBase {% endblock title %}
 
 {% block content %}
-<div class="container">
-    <h3>Add New Location</h2>
-    <form id="location-form" method="POST">
-        <div class="form-group">
-            <label for="schema">Schema:</label>
-            <select class="form-control custom-select custom-input" id="schema" name="schema" onchange="updateForm()" required>
-                <option value="">-- Select a schema --</option>
-                {% for schema in schemas %}
-                    <option value="{{ schema.name }}">{{ schema.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div id="identifiers"></div>
-        <button type="submit" class="btn btn-primary btn-margin">Submit</button>
-    </form>
-</div>
+<h3>Add New Location</h2>
+<form id="location-form" method="POST">
+    <div class="form-group">
+        <label for="schema">Schema:</label>
+        <select class="form-control custom-select custom-input" id="schema" name="schema" onchange="updateForm()" required>
+            <option value="">-- Select a schema --</option>
+            {% for schema in schemas %}
+                <option value="{{ schema.name }}">{{ schema.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="identifiers"></div>
+    <button type="submit" class="btn btn-primary btn-margin">Submit</button>
+</form>
 {% endblock content %}
 
 {% block javascripts %}
