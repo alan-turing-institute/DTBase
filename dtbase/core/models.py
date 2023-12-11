@@ -403,7 +403,7 @@ def get_model_run_results(run_id: int, session: Optional[Session] = None) -> Any
     """
     measures = get_model_run_measures(run_id, session=session)
     results = {}
-    for (measure_name, measure_id) in measures:
+    for measure_name, measure_id in measures:
         results[measure_name] = get_model_run_results_for_measure(
             run_id=run_id, measure_name=measure_name, session=session
         )
@@ -596,8 +596,11 @@ def list_model_scenarios(session: Optional[Session] = None) -> List[dict]:
         List of all model scenarios.
     """
     query = sqla.select(
-        ModelScenario.id, ModelScenario.model_id, ModelScenario.description
-    )
+        ModelScenario.id,
+        ModelScenario.model_id,
+        ModelScenario.description,
+        Model.name.label("model_name"),
+    ).join(Model, Model.id == ModelScenario.model_id)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
     return result

@@ -17,7 +17,9 @@
       <select
         id="model_name"
         class="selectpicker"
-        name="model_name">
+        name="model_name"
+        onchange="updateScenarioSelectorNoArgs()"
+        required>
         {% if not selected_model_name %}
         <option value="" selected disabled hidden>Choose model</option>
         {% endif %}
@@ -42,21 +44,10 @@
     <div class="form-group">
       Model scenario:
       <select
-        id="model_name"
+        id="model_scenario"
         class="selectpicker"
-        name="model_name">
-        <option value=null>Any scenario</option>
-        {% for s in scenarios %}
-        <option
-        value="{{ s.description }}"
-        {% if selected_scenario_description
-        and s.description == selected_scenario_description %}
-        selected
-        {% endif %}
-        >
-        {{s.description}}
-        </option>
-        {% endfor %}
+        name="scenario_description">
+        <!-- This element is filled in Javascript, see updateScenarioSelectorNoArgs --!>
       </select>
     </div>
   </div>
@@ -64,7 +55,7 @@
   <button class="btn btn-primary" type="submit">Get model runs</button>
 
   <div class="mt-2">
-  {% if runs != None and runs|length == 0 %}
+  {% if runs != None and runs | length == 0 %}
     <p>No model runs found.</p>
   {% elif runs %}
     Select model run to show:
@@ -73,7 +64,7 @@
       class="selectpicker"
       name="run_id"
       onchange="this.form.submit()">
-      {% if not selected_run_id %}
+      {% if not run_id %}
       <option value="" selected disabled hidden>Choose run</option>
       {% endif %}
       {% for r in runs %}
@@ -135,11 +126,17 @@
 
   }
 
-  const model_data = {{model_data | safe}};
-  if (Object.keys(model_data).length > 0) {
+  const model_data = {{model_data | tojson | safe}};
+  if (model_data !== null && Object.keys(model_data).length > 0) {
     plot_predictions(model_data);
   }
 
+  scenarios = {{scenarios | tojson | safe}}
+  selectedScenarioDescription = {{selected_scenario_description | tojson | safe}}
+  function updateScenarioSelectorNoArgs() {
+    updateScenarioSelector(scenarios, selectedScenarioDescription);
+  }
+  updateScenarioSelectorNoArgs();
 </script>
 
 {% endblock javascripts %}

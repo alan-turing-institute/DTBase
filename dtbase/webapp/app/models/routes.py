@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 from dtbase.webapp.app.models import blueprint
 
 
-def fetch_all_models() -> List[dict]:
+def fetch_all_models() -> List[dict[str, Any]]:
     """Get all models from the database.
 
     Args:
@@ -25,7 +25,7 @@ def fetch_all_models() -> List[dict]:
     return models
 
 
-def fetch_all_scenarios() -> List[dict]:
+def fetch_all_scenarios() -> List[dict[str, Any]]:
     """Get all model scenarios from the database.
 
     Args:
@@ -57,28 +57,25 @@ def get_runs(
     Returns:
         run_id:int
     """
-    response = current_user.backend_call(
-        "get",
-        "/model/list-model-runs",
-        {
-            "model_name": model_name,
-            "dt_from": dt_from.isoformat(),
-            "dt_to": dt_to.isoformat(),
-            "scenario": scenario_description,
-        },
-    )
+    payload = {
+        "model_name": model_name,
+        "dt_from": dt_from.isoformat(),
+        "dt_to": dt_to.isoformat(),
+        "scenario": scenario_description,
+    }
+    response = current_user.backend_call("get", "/model/list-model-runs", payload)
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     runs = response.json()
     return runs
 
 
-def get_run_pred_data(run_id: int) -> Dict[str, Any]:
+def get_run_pred_data(run_id: int | str) -> Dict[str, Any]:
     """
     Get the predicted outputs of the specified run.
 
     Args:
-        run_id:int, database ID of the ModelRun
+        run_id:int | str, database ID of the ModelRun
     Returns:
         dict, keyed by ModelMeasure, containing list of dicts
         {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
@@ -92,12 +89,12 @@ def get_run_pred_data(run_id: int) -> Dict[str, Any]:
     return pred_data
 
 
-def get_run_sensor_data(run_id: int, earliest_timestamp: str) -> Dict[str, Any]:
+def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str, Any]:
     """
     Get the real data to which the prediction of a ModelRun should be compared
 
     Args:
-       run_id: int, database ID of the ModelRun
+       run_id: int | str, database ID of the ModelRun
        earliest_timestamp: str, ISO format timestamp of the earliest prediction point
 
     Returns:
@@ -133,12 +130,12 @@ def get_run_sensor_data(run_id: int, earliest_timestamp: str) -> Dict[str, Any]:
     }
 
 
-def fetch_run_data(run_id: int) -> Dict[str, Any]:
+def fetch_run_data(run_id: int | str) -> Dict[str, Any]:
     """
     Fetch all the info for the latest prediction run for a given model.
 
     Args:
-       run_id:int, identifier of the model run.
+       run_id:int | str, identifier of the model run.
     Returns:
        dict, with keys "pred_data", "sensor_data".
     """
@@ -158,6 +155,8 @@ def index() -> str:
 
     model_name = request.form.get("model_name", None)
     scenario_description = request.form.get("scenario_description", None)
+    if scenario_description == "ANY SCENARIO/NULL":
+        scenario_description = None
     run_id = request.form.get("run_id", None)
     dt_from = request.form.get("startDate", None)
     dt_to = request.form.get("endDate", None)
@@ -175,7 +174,6 @@ def index() -> str:
         and dt_to is not None
     ):
         runs = get_runs(model_name, dt_from, dt_to, scenario_description)
-        print(runs)
     else:
         runs = None
 
@@ -193,5 +191,6 @@ def index() -> str:
         dt_from=dt_from,
         dt_to=dt_to,
         runs=runs,
+        run_id=run_id,
         model_data=model_data,
     )

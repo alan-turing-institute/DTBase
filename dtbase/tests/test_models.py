@@ -204,10 +204,11 @@ def test_list_model_scenarios(session: Session) -> None:
     """Find the inserted model scenarios."""
     insert_scenarios(session)
     all_scenarios = models.list_model_scenarios(session=session)
-    expected_keys = {"id", "model_id", "description"}
+    expected_keys = {"id", "model_id", "model_name", "description"}
     assert len(all_scenarios) == 3
     assert set(all_scenarios[0].keys()) == expected_keys
     assert set(all_scenarios[1].keys()) == expected_keys
+    assert all_scenarios[0]["model_name"] == MODEL_NAME1
     assert all_scenarios[0]["description"] == SCENARIO1
 
 
