@@ -6,9 +6,10 @@ or executing them is the responsibility of the caller.
 from typing import Any
 
 import sqlalchemy as sqla
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.selectable import Select
 
+from dtbase.backend.utils import Session
 from dtbase.core import utils
 from dtbase.core.structure import (
     Location,

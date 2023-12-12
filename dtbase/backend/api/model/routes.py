@@ -43,7 +43,7 @@ def list_models() -> Tuple[Response, int]:
     List all models in the database.
     """
 
-    result = models.list_models(session=db.session)
+    result = models.list_models()
     return jsonify(result), 200
 
 
@@ -114,7 +114,7 @@ def list_model_scenarios() -> Tuple[Response, int]:
         ...
     ]
     """
-    result = models.list_model_scenarios(session=db.session)
+    result = models.list_model_scenarios()
     return jsonify(result), 200
 
 
@@ -181,7 +181,7 @@ def list_models_measures() -> Tuple[Response, int]:
     """
     List all model measures in the database.
     """
-    model_measures = models.list_model_measures(session=db.session)
+    model_measures = models.list_model_measures()
     return jsonify(model_measures), 200
 
 
@@ -320,9 +320,7 @@ def list_model_runs() -> Tuple[Response, int]:
             return dt_error, 400
     scenario = payload.get("scenario")
 
-    model_runs = models.list_model_runs(
-        model_name, dt_from, dt_to, scenario, session=db.session
-    )
+    model_runs = models.list_model_runs(model_name, dt_from, dt_to, scenario)
     for run in model_runs:
         run["time_created"] = run["time_created"].isoformat()
     return jsonify(model_runs), 200
@@ -348,7 +346,7 @@ def get_model_run() -> Tuple[Response, int]:
     if error_response:
         return error_response
 
-    model_run = models.get_model_run_results(**payload, session=db.session)
+    model_run = models.get_model_run_results(**payload)
     converted_results = {}
     for k, v in model_run.items():
         converted_results[k] = [

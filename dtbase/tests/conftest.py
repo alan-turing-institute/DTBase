@@ -108,6 +108,8 @@ class AuthenticatedClient(FlaskClient):
 def reset_tables() -> None:
     """Reset the database by dropping all tables and recreating them."""
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    if engine is None:
+        raise RuntimeError("Failed to connect to the database")
     drop_tables(engine)
     create_tables(engine)
 
@@ -119,6 +121,8 @@ def session() -> Generator[Session, None, None]:
     Handles clean-up of the database after tests finish.
     """
     status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    if engine is None:
+        raise RuntimeError("Failed to connect to the database")
     session = session_open(engine)
     yield session
     session.close()

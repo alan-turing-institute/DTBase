@@ -23,7 +23,7 @@ def list_users() -> Tuple[Response, int]:
 
     Returns 200.
     """
-    emails = users.list_users(session=db.session)
+    emails = users.list_users()
     return jsonify(emails), 200
 
 

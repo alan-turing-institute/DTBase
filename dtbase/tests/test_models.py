@@ -4,7 +4,7 @@ Test the functions for accessing the model tables.
 import datetime as dt
 
 import pytest
-import sqlalchemy as sqla
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.core import models
@@ -140,7 +140,7 @@ def test_insert_model_duplicate(session: Session) -> None:
     """Try to insert a model that already exists."""
     insert_models(session)
     error_msg = 'duplicate key value violates unique constraint "model_name_key"'
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         models.insert_model(MODEL_NAME1, session=session)
 
 
@@ -192,7 +192,7 @@ def test_insert_model_scenarios_duplicate(session: Session) -> None:
         "duplicate key value violates unique constraint "
         '"model_scenario_model_id_description_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         models.insert_model_scenario(
             model_name=MODEL_NAME1, description=SCENARIO1, session=session
         )
@@ -260,7 +260,7 @@ def test_insert_model_measure_duplicate(session: Session) -> None:
     error_msg = (
         'duplicate key value violates unique constraint "model_measure_name_units_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         models.insert_model_measure(
             name=MEASURE_NAME1, units="Kelvin", datatype="integer", session=session
         )
@@ -298,7 +298,7 @@ def test_delete_model_run_exists(session: Session) -> None:
         'update or delete on table "model" violates foreign key constraint '
         '"model_run_model_id_fkey" on table "model_run"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         models.delete_model(MODEL_NAME1, session=session)
 
 
@@ -318,7 +318,7 @@ def test_insert_model_runs_duplicate(session: Session) -> None:
         "duplicate key value violates unique constraint "
         '"model_run_model_id_scenario_id_time_created_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         models.insert_model_run(
             model_name=MODEL_NAME1,
             scenario_description=SCENARIO1,

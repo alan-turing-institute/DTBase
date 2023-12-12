@@ -187,10 +187,7 @@ def list_locations() -> Tuple[Response, int]:
     error_response = check_keys(payload, required_keys, "/list-locations")
     if error_response:
         return error_response
-    result = locations.list_locations(
-        **payload,
-        session=db.session,
-    )
+    result = locations.list_locations(**payload)
     return jsonify(result), 200
 
 
@@ -216,7 +213,7 @@ def list_location_schemas() -> Tuple[Response, int]:
     ]
     """
 
-    result = locations.list_location_schemas(session=db.session)
+    result = locations.list_location_schemas()
     return jsonify(result), 200
 
 
@@ -227,7 +224,7 @@ def list_location_identifiers() -> Tuple[Response, int]:
     List location identifiers in the database.
     """
 
-    result = locations.list_location_identifiers(session=db.session)
+    result = locations.list_location_identifiers()
     return jsonify(result), 200
 
 
@@ -248,7 +245,7 @@ def get_schema_details() -> Tuple[Response, int]:
     payload = request.get_json()
     schema_name = payload["schema_name"]
     try:
-        result = locations.get_schema_details(schema_name, session=db.session)
+        result = locations.get_schema_details(schema_name)
     except RowMissingError:
         return jsonify({"message": "No such schema"}), 400
     return jsonify(result), 200

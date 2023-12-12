@@ -4,9 +4,9 @@ Module (routes.py) to handle API endpoints related to sensors
 from datetime import datetime
 from typing import Tuple
 
-import sqlalchemy as sqla
 from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
@@ -46,7 +46,7 @@ def insert_sensor_type() -> Tuple[Response, int]:
                 datatype=measure["datatype"],
                 session=db.session,
             )
-        except sqla.exc.IntegrityError:
+        except IntegrityError:
             db.session.rollback()
     try:
         sensors.insert_sensor_type(
@@ -55,7 +55,7 @@ def insert_sensor_type() -> Tuple[Response, int]:
             measures=payload["measures"],
             session=db.session,
         )
-    except sqla.exc.IntegrityError:
+    except IntegrityError:
         db.session.rollback()
 
     db.session.commit()
@@ -87,7 +87,7 @@ def insert_sensor() -> Tuple[Response, int]:
         return error_response
     try:
         sensors.insert_sensor(**payload, session=db.session)
-    except sqla.exc.IntegrityError:
+    except IntegrityError:
         db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
@@ -149,7 +149,7 @@ def list_sensor_locations() -> Tuple[Response, int]:
     if error_response:
         return error_response
     result = sensor_locations.get_location_history(
-        sensor_uniq_id=payload["unique_identifier"], session=db.session
+        sensor_uniq_id=payload["unique_identifier"]
     )
     return jsonify(result), 200
 
@@ -229,11 +229,9 @@ def list_sensors() -> Tuple[Response, int]:
     """
     payload = request.get_json()
     if "type_name" in payload.keys():
-        result = sensors.list_sensors(
-            type_name=payload.get("type_name"), session=db.session
-        )
+        result = sensors.list_sensors(type_name=payload.get("type_name"))
     else:
-        result = sensors.list_sensors(session=db.session)
+        result = sensors.list_sensors()
     return jsonify(result), 200
 
 
@@ -256,7 +254,7 @@ def list_sensor_types() -> Tuple[Response, int]:
         ...
     ]
     """
-    result = sensors.list_sensor_types(session=db.session)
+    result = sensors.list_sensor_types()
     return jsonify(result), 200
 
 
@@ -276,7 +274,7 @@ def list_sensor_measures() -> Tuple[Response, int]:
     ...
     ]
     """
-    result = sensors.list_sensor_measures(session=db.session)
+    result = sensors.list_sensor_measures()
     return jsonify(result), 200
 
 
@@ -322,9 +320,7 @@ def get_sensor_readings() -> Tuple[Response, int]:
             400,
         )
 
-    readings = sensors.get_sensor_readings(
-        measure_name, sensor_uniq_id, dt_from, dt_to, session=db.session
-    )
+    readings = sensors.get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to)
 
     # Convert readings to JSON-friendly format
     readings_json = [
