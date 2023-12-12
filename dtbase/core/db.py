@@ -3,23 +3,22 @@ Module for the main functions to create a new database with SQLAlchemy and Postg
 drop database, and check its structure.
 """
 
-from typing import Literal, Tuple
 
 import sqlalchemy as sqla
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import RelationshipProperty, Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
 
 from dtbase.core.constants import SQL_DEFAULT_DBNAME
 from dtbase.core.exc import DatabaseConnectionError
-from dtbase.core.structure import BASE
+from dtbase.core.structure import FsqlaModel
 
 
 def create_tables(engine: Engine) -> None:
     """Create all the tables for the database."""
-    BASE.metadata.create_all(engine)
+    FsqlaModel.metadata.create_all(engine)
 
 
 def create_database(conn_string: str, db_name: str) -> None:
@@ -87,7 +86,7 @@ def connect_db(conn_string: str, db_name: str) -> Engine:
 
 def drop_tables(engine: Engine) -> None:
     """Drop all tables in the database."""
-    BASE.metadata.drop_all(engine)
+    FsqlaModel.metadata.drop_all(engine)
 
 
 def drop_db(conn_string: str, db_name: str) -> None:
@@ -126,73 +125,6 @@ def drop_db(conn_string: str, db_name: str) -> None:
 
         # Drops db
         drop_database(db_conn_string)
-
-
-def check_database_structure(
-    engine: Engine,
-) -> Tuple[Literal[False], str] | Tuple[Literal[True], None]:
-    """
-    Check whether the current database matches the models declared in model base.
-
-    Currently we check that all tables exist with all columns. What is not checked
-    * Column types are not verified
-    * Relationships are not verified
-
-    engine: The db engine
-
-    return: True, None if all declared models have corresponding tables and columns.
-    """
-
-    # Accesses sql db
-    iengine = sqla.inspect(engine)
-
-    # gets table names from sql server in python list
-    sql_tables = iengine.get_table_names()
-
-    if sql_tables:
-        # goes through the sqlalchemy classes
-        for _, sql_class in BASE.registry._class_registry.items():
-            try:
-                tablename = sql_class.__tablename__
-            except AttributeError:
-                # This mostly catches the case of _ModuleMarker, which isn't an actual
-                # class we are interested in.
-                continue
-
-            # checks if all tablenames in class exist in sql
-            if tablename in sql_tables:
-                # gets the column names of each table in sql
-                columns = [c["name"] for c in iengine.get_columns(tablename)]
-
-                # gets objects in each class in the form of:
-                # Readings_Advanticsys.sensor_relationship
-                mapper = sqla.inspect(sql_class)
-
-                for obj in mapper.attrs:
-                    # checks if the object is a relationship
-                    if isinstance(obj, RelationshipProperty):
-                        # To do add checks for relations
-                        pass
-                    else:
-                        # assume normal flat column
-                        if obj.key not in columns:
-                            return (
-                                False,
-                                "Model %s declares column %s which\
-                            does not exist"
-                                % (sql_class, columns.key),
-                            )
-            else:
-                return (
-                    False,
-                    "Model %s declares table %s which doesn't exist"
-                    % (sql_class, tablename),
-                )
-
-    else:
-        return False, "No tables found in the db"
-
-    return True, None
 
 
 def session_open(engine: Engine) -> Session:

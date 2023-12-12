@@ -7,7 +7,7 @@ from flask_sqlalchemy.session import Session as FlaskSqlaSession
 from sqlalchemy.orm import Session as SqlaSession
 from sqlalchemy.orm.scoping import scoped_session
 
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 # We may have to deal with various objects that represent a database connection session,
 # so make a union type of all of them.

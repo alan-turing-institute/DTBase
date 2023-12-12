@@ -13,7 +13,7 @@ from dtbase.backend.api.location import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import locations
 from dtbase.core.exc import RowExistsError, RowMissingError
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 logger = logging.getLogger(__name__)
 

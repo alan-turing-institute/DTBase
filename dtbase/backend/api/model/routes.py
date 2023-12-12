@@ -11,7 +11,7 @@ from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import models
 from dtbase.core.exc import RowMissingError
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 
 @blueprint.route("/insert-model", methods=["POST"])

@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import sensor_locations, sensors
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 
 @blueprint.route("/insert-sensor-type", methods=["POST"])
