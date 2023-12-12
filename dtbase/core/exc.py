@@ -8,3 +8,7 @@ class RowMissingError(Exception):
 
 class TooManyRowsError(Exception):
     pass
+
+
+class DatabaseConnectionError(Exception):
+    pass

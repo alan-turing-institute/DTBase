@@ -107,9 +107,7 @@ class AuthenticatedClient(FlaskClient):
 
 def reset_tables() -> None:
     """Reset the database by dropping all tables and recreating them."""
-    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    if engine is None:
-        raise RuntimeError("Failed to connect to the database")
+    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     drop_tables(engine)
     create_tables(engine)
 
@@ -120,9 +118,7 @@ def session() -> Generator[Session, None, None]:
 
     Handles clean-up of the database after tests finish.
     """
-    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    if engine is None:
-        raise RuntimeError("Failed to connect to the database")
+    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     session = session_open(engine)
     yield session
     session.close()
@@ -312,8 +308,7 @@ def pytest_unconfigure() -> None:
 
     print("pytest_unconfigure: start")
     # drops test db
-    success, log = drop_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    assert success, log
+    drop_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     # if we started a docker container in pytest_configure, kill it here.
     if DOCKER_CONTAINER_ID:
         stop_docker_postgres(DOCKER_CONTAINER_ID)

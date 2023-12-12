@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.db import connect_db, session_close, session_open
+from dtbase.core.exc import DatabaseConnectionError
 from dtbase.core.structure import (
     LocationBooleanValue,
     LocationFloatValue,
@@ -51,9 +52,10 @@ def get_db_session(
     session: SQLAlchemy session object
     engine (optional): SQLAlchemy engine
     """
-    success, log, engine = connect_db(SQL_CONNECTION_STRING, SQL_DBNAME)
-    if not success:
-        logging.error(log)
+    try:
+        engine = connect_db(SQL_CONNECTION_STRING, SQL_DBNAME)
+    except DatabaseConnectionError as e:
+        logging.error(e)
         return None
     session = session_open(engine)
     if return_engine:

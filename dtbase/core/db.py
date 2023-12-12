@@ -12,8 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import RelationshipProperty, Session, sessionmaker
 from sqlalchemy_utils import database_exists, drop_database
 
-from .constants import SQL_DEFAULT_DBNAME
-from .structure import BASE
+from dtbase.core.constants import SQL_DEFAULT_DBNAME
+from dtbase.core.exc import DatabaseConnectionError
+from dtbase.core.structure import BASE
 
 
 def create_tables(engine: Engine) -> None:
@@ -21,77 +22,67 @@ def create_tables(engine: Engine) -> None:
     BASE.metadata.create_all(engine)
 
 
-def create_database(conn_string: str, db_name: str) -> Tuple[Literal[True], None]:
+def create_database(conn_string: str, db_name: str) -> None:
     """
     Function to create a new database
     -sql_connection_string: a string that holds an address to the db
     -dbname: name of the db (string)
-    return: True, None if the db is created or is already created
+    return: None
+    raise: DatabaseConnectionError or SQLAlchemyError if creating the database fails
     """
 
     # Create connection string
     db_conn_string = "{}/{}".format(conn_string, db_name)
 
-    # Create a new database
-    if not database_exists(db_conn_string):
-        # try:
-        # On postgres, the postgres database is normally present by default.
-        # Connecting as a superuser (eg, postgres), allows to connect and create a new
-        # db.
-        def_engine = sqla.create_engine(
-            "{}/{}".format(conn_string, SQL_DEFAULT_DBNAME),
-            pool_size=20,
-            max_overflow=-1,
-        )
+    if database_exists(db_conn_string):
+        return
+    # Create a new database. On postgres, the postgres database is normally present by
+    # default. Connecting as a superuser (eg, postgres), allows to connect and create a
+    # new db.
+    def_engine = sqla.create_engine(
+        "{}/{}".format(conn_string, SQL_DEFAULT_DBNAME),
+        pool_size=20,
+        max_overflow=-1,
+    )
 
-        # You cannot use engine.execute() directly, because postgres does not allow to
-        # create databases inside transactions, inside which sqlalchemy always tries to
-        # run queries. To get around this, get the underlying connection from the
-        # engine:
-        conn = def_engine.connect()
-
-        # But the connection will still be inside a transaction, so you have to end the
-        # open transaction with a commit:
+    # You cannot use engine.execute() directly, because postgres does not allow to
+    # create databases inside transactions, inside which sqlalchemy always tries to
+    # run queries. To get around this, get the underlying connection from the
+    # engine:
+    with def_engine.connect() as conn:
+        # But the connection will still be inside a transaction, so you have to end
+        # the open transaction with a commit:
         conn.execute(sqla.text("commit"))
 
         # Then proceed to create the database using the PostgreSQL command.
         conn.execute(sqla.text("create database " + db_name))
 
         # Connects to the engine using the new database url
-        _, _, engine = connect_db(conn_string, db_name)
+        engine = connect_db(conn_string, db_name)
         # Adds the tables and columns from the classes in module structure
         create_tables(engine)
 
-        conn.close()
-        # except:
-        #     return False, "Error creating a new database"
-    return True, None
 
-
-def connect_db(
-    conn_string: str, db_name: str
-) -> (Tuple[Literal[False], str, None] | Tuple[Literal[True], None, Engine]):
+def connect_db(conn_string: str, db_name: str) -> Engine:
     """
     Function to connect to a database
     -conn_string: the string that holds the connection to postgres
     -dbname: name of the database
-    return: True, None: if connected to the database,
-            engine: returns the engine object
+    return: engine: returns the engine object
+    raises: DatabaseConnectionError if connecting fails
     """
 
     # Create connection string
     db_conn_string = "{}/{}".format(conn_string, db_name)
 
     # Connect to an engine
-    if database_exists(db_conn_string):
-        try:
-            engine = sqla.create_engine(db_conn_string, pool_size=20, max_overflow=-1)
-        except SQLAlchemyError:
-            return False, "Cannot connect to db: %s" % db_name, None
-    else:
-        return False, "Cannot find db: %s" % db_name, None
-
-    return True, None, engine
+    if not database_exists(db_conn_string):
+        raise DatabaseConnectionError("Cannot find db: %s")
+    try:
+        engine = sqla.create_engine(db_conn_string, pool_size=20, max_overflow=-1)
+    except SQLAlchemyError:
+        raise DatabaseConnectionError("Cannot connect to db: %s" % db_name)
+    return engine
 
 
 def drop_tables(engine: Engine) -> None:
@@ -99,15 +90,14 @@ def drop_tables(engine: Engine) -> None:
     BASE.metadata.drop_all(engine)
 
 
-def drop_db(
-    conn_string: str, db_name: str
-) -> (Tuple[Literal[False], str] | Tuple[Literal[True], None]):
+def drop_db(conn_string: str, db_name: str) -> None:
     """
     Function to drop db
     *What it doesnt do: drop individual table/column/values
     -conn_string: the string that holds the connection to postgres
     -dbname: name of the database
-    return: True, None if the db is dropped.
+    return: None
+    raise: SQLAlchemyError if dropping the database fails
     """
 
     # Connection string
@@ -115,37 +105,32 @@ def drop_db(
 
     if database_exists(db_conn_string):
         # Connect to the db
-        _, _, engine = connect_db(conn_string, db_name)
+        engine = connect_db(conn_string, db_name)
 
         # Disconnects all users from the db we want to drop
-        try:
-            connection = engine.connect()
-            connection.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        connection = engine.connect()
+        connection.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
-            version = connection.dialect.server_version_info
-            pid_column = "pid" if (version >= (9, 2)) else "procpid"
-            text = """
-            SELECT pg_terminate_backend(pg_stat_activity.%(pid_column)s)
-            FROM pg_stat_activity
-            WHERE pg_stat_activity.datname = '%(database)s'
-              AND %(pid_column)s <> pg_backend_pid();
-            """ % {
-                "pid_column": pid_column,
-                "database": db_name,
-            }
-            connection.execute(sqla.text(text))
+        version = connection.dialect.server_version_info
+        pid_column = "pid" if (version >= (9, 2)) else "procpid"
+        text = """
+        SELECT pg_terminate_backend(pg_stat_activity.%(pid_column)s)
+        FROM pg_stat_activity
+        WHERE pg_stat_activity.datname = '%(database)s'
+          AND %(pid_column)s <> pg_backend_pid();
+        """ % {
+            "pid_column": pid_column,
+            "database": db_name,
+        }
+        connection.execute(sqla.text(text))
 
-            # Drops db
-            drop_database(db_conn_string)
-
-        except SQLAlchemyError:
-            return False, "cannot drop db %s" % db_name
-    return True, None
+        # Drops db
+        drop_database(db_conn_string)
 
 
 def check_database_structure(
     engine: Engine,
-) -> (Tuple[Literal[False], str] | Tuple[Literal[True], None]):
+) -> Tuple[Literal[False], str] | Tuple[Literal[True], None]:
     """
     Check whether the current database matches the models declared in model base.
 
