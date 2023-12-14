@@ -107,3 +107,32 @@ function plot(
   const ctx = document.getElementById(canvas_name);
   return new Chart(ctx, config);
 }
+
+function updateScenarioSelector(scenarios, selectedScenarioDescription) {
+  const modelName = document.getElementById("model_name").value;
+  const scenarioSelector = document.getElementById("model_scenario");
+
+  // Clear existing options
+  scenarioSelector.innerHTML = "";
+
+  // Add "Any scenario" option
+  const defaultOption = document.createElement("option");
+  defaultOption.text = "Any scenario";
+  defaultOption.value = "ANY SCENARIO/NULL";
+  scenarioSelector.add(defaultOption);
+
+  // Filter scenarios for the selected model
+  const filteredScenarios = scenarios.filter(function (scenario) {
+    return scenario.model_name === modelName;
+  });
+
+  // Add filtered scenarios to the selector
+  filteredScenarios.forEach(function (scenario) {
+    const option = document.createElement("option");
+    option.text = scenario.description;
+    option.value = scenario.description;
+    if (scenario.description == selectedScenarioDescription)
+      option.selected = true;
+    scenarioSelector.add(option);
+  });
+}

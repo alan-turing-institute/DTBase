@@ -24,5 +24,9 @@ function updateForm() {
 }
 
 window.onload = function () {
-  document.getElementById("schema").addEventListener("change", updateForm);
+  const schema = document.getElementById("schema");
+  schema.addEventListener("change", updateForm);
+  if (schema.value != "") {
+    updateForm();
+  }
 };

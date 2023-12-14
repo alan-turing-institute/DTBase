@@ -1,22 +1,28 @@
 import typing as ty
 from collections.abc import Container, Mapping
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 from flask import Response, jsonify
-from sqlalchemy.orm import Session
+from flask_sqlalchemy.session import Session as FlaskSqlaSession
+from sqlalchemy.orm import Session as SqlaSession
+from sqlalchemy.orm.scoping import scoped_session
 
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
+
+# We may have to deal with various objects that represent a database connection session,
+# so make a union type of all of them. This is used for type annotations around the
+# codebase.
+Session = (
+    scoped_session[SqlaSession]
+    | scoped_session[FlaskSqlaSession]
+    | FlaskSqlaSession
+    | SqlaSession
+)
 
 
-def add_default_session(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator for adding a default value of db.session for the `session` argument."""
-
-    def new_func(*args: Any, session: Optional[Session] = None, **kwargs: Any) -> Any:
-        if session is None:
-            session = db.session
-        return func(*args, session=session, **kwargs)
-
-    return new_func
+def set_session_if_unset(session: Optional[Session]) -> Session:
+    """Returns a default value for a `session` argument if it isn't set."""
+    return session if session is not None else db.session
 
 
 T = ty.TypeVar("T")

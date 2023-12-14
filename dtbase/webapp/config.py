@@ -39,13 +39,13 @@ class DebugConfig(Config):
     DISABLE_REGISTER = True
 
 
-class NoLoginConfig(DebugConfig):
-    LOGIN_DISABLED = True
+class AutoLoginConfig(DebugConfig):
+    pass
 
 
 config_dict = {
     "Production": ProductionConfig,
     "Test": TestConfig,
     "Debug": DebugConfig,
-    "No-login": NoLoginConfig,
+    "Auto-login": AutoLoginConfig,
 }

@@ -30,7 +30,7 @@ def get_sqlalchemy_session(
         connection_string = SQL_CONNECTION_STRING
     if not dbname:
         dbname = SQL_DBNAME
-    status, log, engine = connect_db(connection_string, dbname)
+    engine = connect_db(connection_string, dbname)
     session = session_open(engine)
     return session
 

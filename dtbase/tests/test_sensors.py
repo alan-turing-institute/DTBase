@@ -4,7 +4,7 @@ Test the functions for accessing the sensor tables.
 import datetime as dt
 
 import pytest
-import sqlalchemy as sqla
+from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from dtbase.core import sensors
@@ -111,7 +111,7 @@ def test_insert_sensor_measure_duplicate(session: Session) -> None:
         "duplicate key value violates unique constraint "
         '"sensor_measure_name_units_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         sensors.insert_sensor_measure(
             name="temperature",
             units="Kelvin",
@@ -134,7 +134,7 @@ def test_insert_sensor_types_duplicate(session: Session) -> None:
     insert_types(session)
 
     error_msg = 'duplicate key value violates unique constraint "sensor_type_name_key"'
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         sensors.insert_sensor_type(
             name="weather",
             description="The description can be different.",
@@ -174,7 +174,7 @@ def test_insert_sensor_duplicate(session: Session) -> None:
     error_msg = (
         'duplicate key value violates unique constraint "sensor_unique_identifier_key"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         sensors.insert_sensor("weather", SENSOR_ID1, session=session)
 
 
@@ -279,7 +279,7 @@ def test_insert_sensor_readings_wrong_type(session: Session) -> None:
         'column "timestamp" is of type timestamp with time zone but '
         "expression is of type boolean"
     )
-    with pytest.raises(sqla.exc.ProgrammingError, match=error_msg):
+    with pytest.raises(ProgrammingError, match=error_msg):
         sensors.insert_sensor_readings(
             "temperature",
             SENSOR_ID1,
@@ -386,7 +386,7 @@ def test_delete_sensor_measure_type_exists(session: Session) -> None:
         '"sensor_type_measure_relation_measure_id_fkey" on table '
         '"sensor_type_measure_relation"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         sensors.delete_sensor_measure("temperature", session=session)
 
 
@@ -410,7 +410,7 @@ def test_delete_sensor_type_sensor_exists(session: Session) -> None:
         'update or delete on table "sensor_type" violates foreign key '
         'constraint "sensor_type_id_fkey" on table "sensor"'
     )
-    with pytest.raises(sqla.exc.IntegrityError, match=error_msg):
+    with pytest.raises(IntegrityError, match=error_msg):
         sensors.delete_sensor_type("weather", session=session)
 
 

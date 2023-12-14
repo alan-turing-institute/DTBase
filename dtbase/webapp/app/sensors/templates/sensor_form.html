@@ -3,27 +3,25 @@
 {% block title %} DTBase {% endblock title %}
 
 {% block content %}
-<div class="container">
-    <h3>Add New Sensor</h2>
-    <form id="sensor-form" method="POST">
-        <div class="form-group">
-            <label for="sensor_type">Sensor Type:</label>
-            <select class="form-control custom-select custom-input" id="sensor_type" name="sensor_type" onchange="updateForm()" required>
-                <option value="">-- Select a sensor type --</option>
-                {% for sensor_type in sensor_types %}
-                    <option value="{{ sensor_type.name }}">{{ sensor_type.name }}</option>
-                {% endfor %}
-            </select>
-            <label for="unique_identifier">Unique ID:</label>
-            <input type="text" class="form-control custom-input" id="unique_identifier" name="unique_identifier" required placeholder="Sensor Unique ID" value="{{ form_data.unique_identifier if form_data }}">
-            <label for="name">Name:</label>
-            <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Notes" value="{{ form_data.name if form_data }}">
-            <label for="notes">Notes</label>
-            <input type="text" class="form-control custom-input" id="notes" name="notes" required placeholder="Notes" value="{{ form_data.notes if form_data }}">
-        </div>
-        <button type="submit" class="btn btn-primary btn-margin">Submit</button>
-    </form>
-</div>
+<h3>Add New Sensor</h2>
+<form id="sensor-form" method="POST">
+    <div class="form-group">
+        <label for="sensor_type">Sensor Type:</label>
+        <select class="form-control custom-select custom-input" id="sensor_type" name="sensor_type" onchange="updateForm()" required>
+            <option value="">-- Select a sensor type --</option>
+            {% for sensor_type in sensor_types %}
+                <option value="{{ sensor_type.name }}">{{ sensor_type.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="unique_identifier">Unique ID:</label>
+        <input type="text" class="form-control custom-input" id="unique_identifier" name="unique_identifier" required placeholder="Sensor Unique ID" value="{{ form_data.unique_identifier if form_data }}">
+        <label for="name">Name:</label>
+        <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Notes" value="{{ form_data.name if form_data }}">
+        <label for="notes">Notes</label>
+        <input type="text" class="form-control custom-input" id="notes" name="notes" required placeholder="Notes" value="{{ form_data.notes if form_data }}">
+    </div>
+    <button type="submit" class="btn btn-primary btn-margin">Submit</button>
+</form>
 {% endblock content %}
 
 {% block javascripts %}

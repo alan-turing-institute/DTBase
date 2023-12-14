@@ -6,25 +6,18 @@
   {{ super() }}
 {% endblock stylesheets %}
 
-{% block sidebar %}{% endblock sidebar %}
-
-{% block top_navigation %}{% endblock top_navigation %}
-
-{% block content %}
+{% block body %}
   <div class="col-md-12">
     <div class="col-middle">
       <div class="text-center text-center">
         <h1 class="error-number">404</h1>
         <h2>Backend API not found</h2>
-        <p>No response was received from the DTBase backend <a href="#">Report this?</a>
-        </p>
-        <div class="mid_center">
-
-        </div>
+        <p>No response was received from the DTBase backend.</p>
+        <p><a href="{{ url_for('base_blueprint.login')}}">Try logging in again?</a></p>
       </div>
     </div>
   </div>
-{% endblock content %}
+{% endblock body %}
 
 {% block footer %}{% endblock footer %}
 

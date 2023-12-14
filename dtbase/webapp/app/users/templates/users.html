@@ -6,13 +6,12 @@
   {{ super() }}
 {% endblock stylesheets %}
 
-
 {% block content %}
-<div class="container">
+<div class="col-4">
   <h3>List of all users</h3>
 
   <div class='table-responsive'>
-    <table class='table location-table table-striped table-hover'>
+    <table class='table table-striped table-hover'>
       <thead>
         <tr>
           <th scope='col'>Email</th>
@@ -36,26 +35,30 @@
         {% endfor %}
       </tbody>
     </table>
-
-    <div>
-      <form method="post">
-        {{ new_user_form.hidden_tag() }}
-        <h3>Create a user</h3>
-        {% for field in new_user_form if field.widget.input_type != 'hidden'  %}
-        <div>
-          {{ field.label }}
-          {{ field(class="form-control required", placeholder=field.label.text) }}
-          {% if field.name == "password" %}
-            <i class="fa fa-eye" id="show-password" onclick="passwordToggle()" style="z-index: 10; color: lightgray; cursor: pointer;"></i>
-          {% endif %}
-        </div>
-        {% endfor %}
-        <div>
-          <button type="submit" class="btn btn-default submit" name="submitNewUser">Create</button>
-        </div>
-      </form>
-    </div>
   </div>
+
+  <div>
+    <h3>Create a user</h3>
+
+    <form method="post">
+      {{ new_user_form.hidden_tag() }}
+      {% for field in new_user_form if field.widget.input_type != 'hidden'  %}
+      <!-- The div is relatively positioned so that the password-toggle button sits
+        correctly within it. -->
+      <div style="position: relative;">
+        {{ field(class="form-control required", placeholder=field.label.text) }}
+        {% if field.name == "password" %}
+        <i class="fa fa-eye password-toggle" id="show-password" onclick="passwordToggle()"></i>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div>
+        <button type="submit" class="btn btn-primary submit" name="submitNewUser">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock content %}
 
 {% block javascripts %}
