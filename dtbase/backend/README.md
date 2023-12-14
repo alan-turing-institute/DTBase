@@ -124,7 +124,9 @@ The following endpoints are implemented:
     }
     ```
     where "datatype" must be one of "string", "integer", "float", "boolean".
-    - returns the payload, with status code 201
+    - returns status code
+        - 201 on success
+        - 409 if a schema with this name exists already
 
 
 ### `/location/insert-location`
@@ -141,14 +143,10 @@ The schema name will be a concatenation of the identifier names.
     }
     ```
     (where the values should be in the same order as the identifiers) and "datatype" must be one of "string", "integer", "float", "boolean".
-    - returns status code 201, along with json:
-    ```
-    {
-      "schema_name": <concatenation_of_identifier_names>,
-      <identifier_name>: <value>,
-      ...
-    }
-    ```
+    - returns status code
+        - 201 on success
+        - 409 if the location exists already
+    - on success the return payload will also include a `schema_name` field.
 
 
 ### `/location/insert-location-for-schema`
@@ -162,7 +160,10 @@ The schema name will be a concatenation of the identifier names.
     }
     ```
     with an identifier name and value for every identifier in the schema.
-    - returns status code 201, along with the payload.
+    - returns status code
+        - 201 on success
+        - 400 if the location schema does not exist
+        - 409 if the location exists already
 
 
 ### `/location/list-locations`
@@ -181,7 +182,6 @@ The schema name will be a concatenation of the identifier names.
 
 ### `/location/list-location-schemas`
 * A GET request will list all schemas:
-
     - returns
     ```
     [{"id": <id:int>, "name": <name:str>, "description":<description:str>,}, ...]
@@ -189,7 +189,6 @@ The schema name will be a concatenation of the identifier names.
 
 ### `/location/list-location-identifiers`
 * A GET request will list all identifiers:
-
     - returns
     ```
     [
@@ -209,33 +208,23 @@ The schema name will be a concatenation of the identifier names.
     ```
     {"schema_name": <schema_name:str>}
     ```
-    - returns
-    ```
-      {
-	"status": "success",
-	"message": "Location schema <schema_name> has been deleted"
-      }
-     ```
+    - returns status code
+        - 200 on success
+        - 400 if schema does not exist
 
 ### `/location/delete-location`
 * A DELETE request will remove the location with the specified schema name and values specified in the payload:
-
     - payload:
     ```
     {
        "schema_name" : <schema_name:str>,
         <identifier_name:str>: <value:float|int|str|bool>,
-	...
+        ...
     }
     ```
-
-    - returns
-    ```
-      {
-	"status": "success",
-	"message": "Location deleted successfully"
-      }
-     ```
+    - returns status code
+        - 200 on success
+        - 400 if schema does not exist
 
 
 ## Sensors

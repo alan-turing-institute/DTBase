@@ -10,7 +10,14 @@
         <select class="form-control custom-select custom-input" id="schema" name="schema" onchange="updateForm()" required>
             <option value="">-- Select a schema --</option>
             {% for schema in schemas %}
-                <option value="{{ schema.name }}">{{ schema.name }}</option>
+                <option
+                    {% if selected_schema and schema.name == selected_schema %}
+                    selected
+                    {% endif %}
+                    value="{{ schema.name }}"
+                >
+                {{ schema.name }}
+                </option>
             {% endfor %}
         </select>
     </div>
