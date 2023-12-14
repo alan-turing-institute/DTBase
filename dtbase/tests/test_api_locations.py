@@ -51,6 +51,7 @@ def test_insert_location_schema_duplicate(auth_client: AuthenticatedClient) -> N
         assert response.status_code == 409
 
 
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_get_location_schema_details(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         schema = {

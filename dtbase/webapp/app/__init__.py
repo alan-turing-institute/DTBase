@@ -14,6 +14,7 @@ from flask import (
 )
 from flask_cors import CORS
 from flask_login import LoginManager, login_user
+from requests.exceptions import ConnectionError
 from werkzeug.wrappers import Response
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
@@ -110,6 +111,11 @@ def register_error_handlers(app: Flask) -> None:
     def authorization_error(_: AuthorizationError) -> Response:
         flash("Unable to authorize the user. Please try loging in again.", "error")
         return redirect(url_for("base_blueprint.login"))
+
+    @app.errorhandler(ConnectionError)
+    def connection_error(_: ConnectionError) -> Response:
+        flash("Unable to authorize the user. Please try loging in again.", "error")
+        return redirect(url_for("base_blueprint.route_backend_not_found"))
 
 
 def set_autologin(app: Flask) -> None:

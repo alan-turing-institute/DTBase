@@ -648,8 +648,11 @@ def list_model_scenarios(session: Optional[Session] = None) -> List[dict]:
         List of all model scenarios.
     """
     query = sqla.select(
-        ModelScenario.id, ModelScenario.model_id, ModelScenario.description
-    )
+        ModelScenario.id,
+        ModelScenario.model_id,
+        ModelScenario.description,
+        Model.name.label("model_name"),
+    ).join(Model, Model.id == ModelScenario.model_id)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
     return result
