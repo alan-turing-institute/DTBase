@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from dtbase.backend.api.user import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import users
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 
 @blueprint.route("/list-users", methods=["GET"])
@@ -23,7 +23,7 @@ def list_users() -> Tuple[Response, int]:
 
     Returns 200.
     """
-    emails = users.list_users(session=db.session)
+    emails = users.list_users()
     return jsonify(emails), 200
 
 

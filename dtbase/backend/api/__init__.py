@@ -14,7 +14,7 @@ from dtbase.core.constants import (
     JWT_ACCESS_TOKEN_EXPIRES,
     JWT_REFRESH_TOKEN_EXPIRES,
 )
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 from dtbase.core.users import change_password, delete_user, insert_user
 
 

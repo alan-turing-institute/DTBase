@@ -3,9 +3,6 @@ Module to define the structure of the database. Each Class, defines a table in t
 database.
     __tablename__: creates the table with the name given
     __table_args__: table arguments eg: __table_args__ = {'sqlite_autoincrement': True}
-    BASE: the declarative_base() callable returns a new base class from which all mapped
-    classes should inherit. When the class definition is completed, a new Table and
-    mapper() is generated.
 """
 
 import re
@@ -26,12 +23,16 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.sql import func
 
-SQLA = SQLAlchemy()
-BASE = SQLA.Model
 
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(model_class=Base)
+FsqlaModel = db.Model
 
 datatype_name = Enum("string", "float", "integer", "boolean", name="value_datatype")
 
@@ -40,7 +41,7 @@ datatype_name = Enum("string", "float", "integer", "boolean", name="value_dataty
 # Locations
 
 
-class Location(BASE):
+class Location(FsqlaModel):
     """
     This class describes all the physical locations in the digital twin.
     """
@@ -67,7 +68,7 @@ class Location(BASE):
     __table_args__ = (UniqueConstraint("id"),)
 
 
-class LocationIdentifier(BASE):
+class LocationIdentifier(FsqlaModel):
     """
     Variables that can be used to identify locations in the digital twin.
     """
@@ -85,7 +86,7 @@ class LocationIdentifier(BASE):
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
-class LocationSchema(BASE):
+class LocationSchema(FsqlaModel):
     """Types of locations."""
 
     __tablename__ = "location_schema"
@@ -99,7 +100,7 @@ class LocationSchema(BASE):
     __table_args__ = (UniqueConstraint("name"),)
 
 
-class LocationSchemaIdentifierRelation(BASE):
+class LocationSchemaIdentifierRelation(FsqlaModel):
     """Relations on which location identifiers can and should be specified for which
     location schemas.
     """
@@ -127,7 +128,7 @@ class LocationSchemaIdentifierRelation(BASE):
     __table_args__ = (UniqueConstraint("schema_id", "identifier_id"),)
 
 
-class LocationStringValue(BASE):
+class LocationStringValue(FsqlaModel):
     """
     The value of a string variable that can be used to identify locations in the digital
     twin.
@@ -154,7 +155,7 @@ class LocationStringValue(BASE):
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationIntegerValue(BASE):
+class LocationIntegerValue(FsqlaModel):
     """
     The value of an integer variable that can be used to identify locations in the
     digital twin.
@@ -181,7 +182,7 @@ class LocationIntegerValue(BASE):
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationFloatValue(BASE):
+class LocationFloatValue(FsqlaModel):
     """
     The value of a floating point number variable that can be used to identify locations
     in the digital twin.
@@ -208,7 +209,7 @@ class LocationFloatValue(BASE):
     __table_args__ = (UniqueConstraint("identifier_id", "location_id"),)
 
 
-class LocationBooleanValue(BASE):
+class LocationBooleanValue(FsqlaModel):
     """
     The value of a boolean variable that can be used to identify locations in the
     digital twin.
@@ -239,7 +240,7 @@ class LocationBooleanValue(BASE):
 # Sensors
 
 
-class Sensor(BASE):
+class Sensor(FsqlaModel):
     """
     Class for sensors.
     """
@@ -265,7 +266,7 @@ class Sensor(BASE):
     __table_args__ = (UniqueConstraint("unique_identifier"),)
 
 
-class SensorMeasure(BASE):
+class SensorMeasure(FsqlaModel):
     """
     Variables measured by sensors, e.g. temperature, pressure, electricity consumption.
     """
@@ -283,7 +284,7 @@ class SensorMeasure(BASE):
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
-class SensorType(BASE):
+class SensorType(FsqlaModel):
     """Types of sensors."""
 
     __tablename__ = "sensor_type"
@@ -297,7 +298,7 @@ class SensorType(BASE):
     __table_args__ = (UniqueConstraint("name"),)
 
 
-class SensorTypeMeasureRelation(BASE):
+class SensorTypeMeasureRelation(FsqlaModel):
     """Relations on which sensor measures can and should have readings for which
     sensor types.
     """
@@ -321,7 +322,7 @@ class SensorTypeMeasureRelation(BASE):
     __table_args__ = (UniqueConstraint("type_id", "measure_id"),)
 
 
-class SensorStringReading(BASE):
+class SensorStringReading(FsqlaModel):
     """
     Sensor reading of a string variable.
     """
@@ -348,7 +349,7 @@ class SensorStringReading(BASE):
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
-class SensorIntegerReading(BASE):
+class SensorIntegerReading(FsqlaModel):
     """
     Sensor reading of a integer variable.
     """
@@ -375,7 +376,7 @@ class SensorIntegerReading(BASE):
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
-class SensorFloatReading(BASE):
+class SensorFloatReading(FsqlaModel):
     """
     Sensor reading of a float variable.
     """
@@ -402,7 +403,7 @@ class SensorFloatReading(BASE):
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
-class SensorBooleanReading(BASE):
+class SensorBooleanReading(FsqlaModel):
     """
     Sensor reading of a boolean variable.
     """
@@ -429,7 +430,7 @@ class SensorBooleanReading(BASE):
     __table_args__ = (UniqueConstraint("measure_id", "sensor_id", "timestamp"),)
 
 
-class SensorLocation(BASE):
+class SensorLocation(FsqlaModel):
     """
     Location history of a sensor.
     """
@@ -457,7 +458,7 @@ class SensorLocation(BASE):
 # Model data
 
 
-class Model(BASE):
+class Model(FsqlaModel):
     """
     Predictive models used in the digital twin.
     """
@@ -471,7 +472,7 @@ class Model(BASE):
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
 
-class ModelScenario(BASE):
+class ModelScenario(FsqlaModel):
     """
     Scenarios distinguish between different ways of running a model, e.g. varying some
     parameters in the model. Each row in this table corresponds to one scenario for how
@@ -499,7 +500,7 @@ class ModelScenario(BASE):
     __table_args__ = (UniqueConstraint("model_id", "description"),)
 
 
-class ModelMeasure(BASE):
+class ModelMeasure(FsqlaModel):
     """
     Measures that models can predict values for.
 
@@ -521,7 +522,7 @@ class ModelMeasure(BASE):
     __table_args__ = (UniqueConstraint("name", "units"),)
 
 
-class ModelRun(BASE):
+class ModelRun(FsqlaModel):
     """
     A ModelRun is a single instance of running a model at a particular time with a
     particular scenario.
@@ -544,7 +545,7 @@ class ModelRun(BASE):
     __table_args__ = (UniqueConstraint("model_id", "scenario_id", "time_created"),)
 
 
-class ModelProduct(BASE):
+class ModelProduct(FsqlaModel):
     """
     A ModelProduct is a combination of a ModelRun and a ModelMeasure that is (one of)
     the output(s) of that run.
@@ -567,7 +568,7 @@ class ModelProduct(BASE):
     __table_args__ = (UniqueConstraint("run_id", "measure_id"),)
 
 
-class ModelStringValue(BASE):
+class ModelStringValue(FsqlaModel):
     """
     Predicted values from a model product, that are strings.
     """
@@ -590,7 +591,7 @@ class ModelStringValue(BASE):
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
 
 
-class ModelIntegerValue(BASE):
+class ModelIntegerValue(FsqlaModel):
     """
     Predicted values from a model product, that are integers.
     """
@@ -613,7 +614,7 @@ class ModelIntegerValue(BASE):
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
 
 
-class ModelFloatValue(BASE):
+class ModelFloatValue(FsqlaModel):
     """
     Predicted values from a model product, that are floats.
     """
@@ -632,7 +633,7 @@ class ModelFloatValue(BASE):
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
 
 
-class ModelBooleanValue(BASE):
+class ModelBooleanValue(FsqlaModel):
     """
     Predicted values from a model product, that are booleans.
     """
@@ -669,7 +670,7 @@ def is_email(candidate: str) -> bool:
     return re.fullmatch(regex, candidate) is not None
 
 
-class User(BASE):
+class User(FsqlaModel):
     """
     Class for user credentials.
     """
