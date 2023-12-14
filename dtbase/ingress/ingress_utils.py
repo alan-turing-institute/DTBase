@@ -10,82 +10,136 @@ from flask import Response
 from dtbase.core.constants import CONST_BACKEND_URL
 
 
-def backend_call(
-    request_type: str,
-    end_point_path: str,
-    payload: Dict[str, Any],
-    access_token: Optional[str] = None,
-) -> Response:
-    """Call the given DTBase backend endpoint, return the response."""
-    request_func = getattr(requests, request_type)
-    url = f"{CONST_BACKEND_URL}{end_point_path}"
-    headers = {"content-type": "application/json"}
-    if access_token:
-        headers["Authorization"] = f"Bearer {access_token}"
-    response = request_func(url, headers=headers, json=payload)
-    return response
-
-
-def log_rest_response(response: Response) -> None:
-    msg = f"Got response {response.status_code}: {response.text}"
-    if 300 > response.status_code:
-        logging.info(msg)
-    else:
-        logging.warning(msg)
-
-
-def backend_login(username: str, password: str) -> str:
-    response = backend_call(
-        "post", "/auth/login", payload={"email": username, "password": password}
-    )
-    if response.status_code != 200:
-        raise RuntimeError(f"Failed to authenticate with the backend: {response}")
-    assert response.json is not None
-    return response.json()["access_token"]
-
-
-def add_sensor_types(sensor_types: List[dict], access_token: str) -> None:
+class BaseIngress:
     """
-    Add sensor types to the database
-    Args:
-        sensor_types: list of dicts, format:
+    Class to be inherited for specific Ingress examples.
+    Provides boilerplate for interacting with the backend.
+    TODO: Potentially Include boilerplate for Azure Functions
+    """
+
+    def __init__(self) -> None:
+        pass
+
+    def get_data():
+        """
+        Method for getting data from source and returning Backend API Endpoints names
+        and payload pairs.
+        The method should return a list of tuples. A tuple should
+        be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
+        its a single tuple.
+
+        Below is an example for inserting a sensor type and a sensor.
+        Please look at backend readme for list of backend endpoints
+        and their repsective payload formats.
+
+        [
+            (
+                "/sensor/insert-sensor-type",
+                {
+                    "name": "Weather",
+                    "description": (
+                        "Weather sensors and sensor-like data sources, "
+                        "such as weather forecast sources."
+                    ),
+                    "measures": [
+                        {
+                            "name": "temperature",
+                            "units": "degrees Celsius",
+                            "datatype": "float",
+                        },
+                        {"name": "relative humidity", "units": "percent", "datatype": "float"},
+                    ],
+                },
+            ),
+            (
+                "/sensor/insert-sensor",
+                {
+                    "unique_identifier": "OpenWeatherMapHistory",
+                    "type_name": "Weather",
+                    "name": "OpenWeatherMap Historical Data",
+                },
+            ),
+        ]
+
+        """
+        raise NotImplementedError()
+
+    def backend_call(
+        self,
+        request_type: str,
+        end_point_path: str,
+        payload: Dict[str, Any],
+        access_token: Optional[str] = None,
+    ) -> Response:
+        """Call the given DTBase backend endpoint, return the response."""
+        request_func = getattr(requests, request_type)
+        url = f"{CONST_BACKEND_URL}{end_point_path}"
+        headers = {"content-type": "application/json"}
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+        response = request_func(url, headers=headers, json=payload)
+        return response
+
+    def log_rest_response(self, response: Response) -> None:
+        msg = f"Got response {response.status_code}: {response.text}"
+        if 300 > response.status_code:
+            logging.info(msg)
+        else:
+            logging.warning(msg)
+
+    def backend_login(self, username: str, password: str) -> str:
+        response = self.backend_call(
+            "post", "/auth/login", payload={"email": username, "password": password}
+        )
+        if response.status_code != 200:
+            raise RuntimeError(f"Failed to authenticate with the backend: {response}")
+        assert response.json is not None
+        return response.json()["access_token"]
+
+    def add_sensor_types(self, sensor_types: List[dict], access_token: str) -> None:
+        """
+        Add sensor types to the database
+        Args:
+            sensor_types: list of dicts, format:
+                [
+                { "name": <sensor_type_name:str>,
+                "description": <description:str>,
+                "measures": [
+                                { "name": <measure_name:str>,
+                                "units": <measure_units:str>,
+                                "datatype": <"float"|"integer"|"string"|"boolean">
+                                }, ...
+                            ],
+                }, ...
+            ]
+            access_token: str, access token for the backend
+        """
+        for sensor_type in sensor_types:
+            logging.info(f"Inserting sensor type {sensor_type['name']}")
+            response = self.backend_call(
+                "post",
+                "/sensor/insert-sensor-type",
+                sensor_type,
+                access_token=access_token,
+            )
+            self.log_rest_response(response)
+
+    def add_sensors(self, sensors: List[dict], access_token: str) -> None:
+        """
+        Add sensors to the database.
+        Args:
+            sensors: list of dicts, of format:
             [
-             { "name": <sensor_type_name:str>,
-               "description": <description:str>,
-               "measures": [
-                            { "name": <measure_name:str>,
-                              "units": <measure_units:str>,
-                              "datatype": <"float"|"integer"|"string"|"boolean">
-                            }, ...
-                           ],
-             }, ...
-           ]
-        access_token: str, access token for the backend
-    """
-    for sensor_type in sensor_types:
-        logging.info(f"Inserting sensor type {sensor_type['name']}")
-        response = backend_call(
-            "post", "/sensor/insert-sensor-type", sensor_type, access_token=access_token
-        )
-        log_rest_response(response)
-
-
-def add_sensors(sensors: List[dict], access_token: str) -> None:
-    """
-    Add sensors to the database.
-    Args:
-        sensors: list of dicts, of format:
-           [
-            { "unique_identifier": <sensor_uniq_id:str>,
-              "type_name":<sensor_type:str>
-            }, ...
-           ]
-        access_token: str, access token for the backend
-    """
-    for sensor_info in sensors:
-        logging.info(f"Inserting sensor {sensor_info['unique_identifier']}")
-        payload = sensor_info
-        response = backend_call(
-            "post", "/sensor/insert-sensor", payload, access_token=access_token
-        )
-        log_rest_response(response)
+                { "unique_identifier": <sensor_uniq_id:str>,
+                "type_name":<sensor_type:str>
+                }, ...
+            ]
+            access_token: str, access token for the backend
+        """
+        for sensor_info in sensors:
+            logging.info(f"Inserting sensor {sensor_info['unique_identifier']}")
+            payload = sensor_info
+            response = self.backend_call(
+                "post", "/sensor/insert-sensor", payload, access_token=access_token
+            )
+            self.log_rest_response(response)

@@ -13,6 +13,7 @@ from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
 )
 from dtbase.ingress.ingress_utils import (
+    BaseIngress,
     add_sensor_types,
     add_sensors,
     backend_call,
@@ -86,6 +87,52 @@ SENSORS = [
         "name": "OpenWeatherMap Forecasts",
     },
 ]
+
+
+class OpenWeatherDataIngress(BaseIngress):
+    def get_data():
+        """
+        Method for getting data from source and returning Backend API Endpoints names
+        and payload pairs.
+        The method should return a list of tuples. A tuple should
+        be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
+        its a single tuple.
+
+        Below is an example for inserting a sensor type and a sensor.
+        Please look at backend readme for list of backend endpoints
+        and their repsective payload formats.
+
+        [
+            (
+                "/sensor/insert-sensor-type",
+                {
+                    "name": "Weather",
+                    "description": (
+                        "Weather sensors and sensor-like data sources, "
+                        "such as weather forecast sources."
+                    ),
+                    "measures": [
+                        {
+                            "name": "temperature",
+                            "units": "degrees Celsius",
+                            "datatype": "float",
+                        },
+                        {"name": "relative humidity", "units": "percent", "datatype": "float"},
+                    ],
+                },
+            ),
+            (
+                "/sensor/insert-sensor",
+                {
+                    "unique_identifier": "OpenWeatherMapHistory",
+                    "type_name": "Weather",
+                    "name": "OpenWeatherMap Historical Data",
+                },
+            ),
+        ]
+
+        """
+        raise NotImplementedError()
 
 
 def query_openweathermap_api(
