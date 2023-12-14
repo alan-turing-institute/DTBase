@@ -4,7 +4,6 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 export FLASK_APP=dtbase_app.py
-export FLASK_ENV=development
 
 if test -f "../../.secrets/dtenv.sh"; then
     source ../../.secrets/dtenv.sh

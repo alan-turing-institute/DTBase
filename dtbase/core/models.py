@@ -6,7 +6,8 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import Session
 
 from dtbase.backend.utils import add_default_session
-from dtbase.core import utils
+from dtbase.core import sensors, utils
+from dtbase.core.exc import RowMissingError, TooManyRowsError
 from dtbase.core.structure import (
     Model,
     ModelMeasure,
@@ -16,6 +17,25 @@ from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
 )
+
+
+def _collect_sensor_measure_results(row: dict) -> None:
+    """Collect data related to a sensor measure for a row.
+
+    If the input `row` has "sensor_measure_name" or "sensor_measure_units" that are not
+    `None`, collect them into an entry row["sensor_measure"] with keys "name" and
+    "units". Otherwise set row["sensor_measure"] to `None`. Remove the original entries.
+
+    Modifies the input in place, returns `None`.
+    """
+    row["sensor_measure"] = {
+        "name": row.get("sensor_measure_name", None),
+        "units": row.get("sensor_measure_units", None),
+    }
+    del row["sensor_measure_name"]
+    del row["sensor_measure_units"]
+    if set(row["sensor_measure"].values()) == {None}:
+        row["sensor_measure"] = None
 
 
 @add_default_session
@@ -39,7 +59,9 @@ def scenario_id_from_description(
     )
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model scenario '{description}' for model '{model_name}'.")
+        raise RowMissingError(
+            f"No model scenario '{description}' for model '{model_name}'."
+        )
     return result[0][0]
 
 
@@ -57,7 +79,7 @@ def measure_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     query = sqla.select(ModelMeasure.id).where(ModelMeasure.name == name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model measure '{name}'.")
+        raise RowMissingError(f"No model measure '{name}'.")
     return result[0][0]
 
 
@@ -75,7 +97,7 @@ def measure_name_from_id(measure_id: int, session: Optional[Session] = None) -> 
     query = sqla.select(ModelMeasure.name).where(ModelMeasure.id == measure_id)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model measure '{measure_id}'.")
+        raise RowMissingError(f"No model measure '{measure_id}'.")
     return result[0][0]
 
 
@@ -93,7 +115,7 @@ def model_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     query = sqla.select(Model.id).where(Model.name == name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
-        raise ValueError(f"No model named '{name}'")
+        raise RowMissingError(f"No model named '{name}'")
     return result[0][0]
 
 
@@ -211,10 +233,10 @@ def insert_model_product(
     measure_result = session.execute(measure_query).fetchall()
     if measure_result is None:
         msg = f"Unknown model measure '{measure_name}'"
-        raise ValueError(msg)
+        raise RowMissingError(msg)
     if len(measure_result) > 1:
         msg = f"Multiple model measures called '{measure_name}'"
-        raise ValueError(msg)
+        raise TooManyRowsError(msg)
     expected_datatype = measure_result[0][0]
 
     # Check that the data type is correct
@@ -255,8 +277,8 @@ def insert_model_run(
     model_name: str,
     scenario_description: str,
     measures_and_values: str,
-    sensor_id: Optional[int] = None,
-    sensor_measure_id: Optional[int] = None,
+    sensor_unique_id: Optional[str] = None,
+    sensor_measure: Optional[dict[str, str]] = None,
     time_created: dt.datetime = dt.datetime.now(dt.timezone.utc),
     create_scenario: bool = False,
     session: Optional[Session] = None,
@@ -273,9 +295,10 @@ def insert_model_run(
                 values: Values that the model outputs as an iterable.
                 timestamps: Timestamps associated with the values, an iterable of the
                     same length.
-        sensor_id:int (optional) - database ID of sensor against which results should be
-                     compared.
-        sensor_measure_id: int (optional) - measure (e.g. "temperature") to compare to.
+        sensor_unique_id:str (optional) - unique ID of the sensor against which results
+            should be compared.
+        sensor_measure: dict[str,str] (optional) - measure (e.g. "temperature") to
+            compare to. Dictionary with keys "name" and "units".
         time_created: Time when this run was run. Optional, `now` by default.
         create_scenario: Whether to create the scenario if it doesn't already exist.
             Optional, False by default.
@@ -290,13 +313,26 @@ def insert_model_run(
         scenario_id = scenario_id_from_description(
             model_name, scenario_description, session=session
         )
-    except ValueError:
+    except RowMissingError:
         if create_scenario:
             scenario_id = insert_model_scenario(
                 model_name, scenario_description, session=session
             ).id
         else:
             raise
+
+    sensor_id = (
+        sensors.sensor_id_from_unique_identifier(sensor_unique_id, session=session)
+        if sensor_unique_id is not None
+        else None
+    )
+    sensor_measure_id = (
+        sensors.measure_id_from_name_and_units(
+            sensor_measure["name"], sensor_measure["units"], session=session
+        )
+        if sensor_measure is not None
+        else None
+    )
 
     # Create the ModelRun
     model_id = model_id_from_name(model_name, session=session)
@@ -342,7 +378,7 @@ def list_model_runs(
     Returns:
         List of model runs, each being a dict with keys:
          "id","model_id", "model_name", "scenario_id", "scenario_description",
-         "time_created"
+         "time_created", "sensor_unique_id", "sensor_measure",
     """
     query = (
         sqla.select(
@@ -350,11 +386,16 @@ def list_model_runs(
             ModelRun.model_id,
             Model.name.label("model_name"),
             ModelRun.scenario_id,
+            Sensor.unique_identifier.label("sensor_unique_id"),
+            SensorMeasure.name.label("sensor_measure_name"),
+            SensorMeasure.units.label("sensor_measure_units"),
             ModelScenario.description.label("scenario_description"),
             ModelRun.time_created,
         )
         .join(Model, Model.id == ModelRun.model_id)
         .join(ModelScenario, ModelScenario.id == ModelRun.scenario_id)
+        .outerjoin(Sensor, Sensor.id == ModelRun.sensor_id)
+        .outerjoin(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
         .where(Model.name == model_name)
     )
     if dt_from is not None:
@@ -365,6 +406,8 @@ def list_model_runs(
         query = query.where(ModelScenario.description == scenario)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
+    for row in result:
+        _collect_sensor_measure_results(row)
     return result
 
 
@@ -463,9 +506,7 @@ def get_model_run_measures(
 
 
 @add_default_session
-def get_model_run_sensor_measures(
-    run_id: int, session: Optional[Session] = None
-) -> Any:
+def get_model_run_sensor_measure(run_id: int, session: Optional[Session] = None) -> Any:
     """
     Get the info about what sensor/measure can be compared to a given ModelRun.
 
@@ -473,16 +514,25 @@ def get_model_run_sensor_measures(
         run_id:int Database ID of the model run
         session: SQLAlchemy session. Optional
     Returns:
-        tuple (<sensor_unique_id:str>, <measure_name:str>)
+        tuple (<sensor unique id:str>, <measure name:str>, <measure units:str>)
     """
     query = (
-        sqla.select(ModelRun.sensor_id, Sensor.unique_identifier, SensorMeasure.name)
-        .join(Sensor, Sensor.id == ModelRun.sensor_id)
-        .join(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
+        sqla.select(
+            ModelRun.sensor_id,
+            Sensor.unique_identifier.label("sensor_unique_id"),
+            SensorMeasure.name.label("sensor_measure_name"),
+            SensorMeasure.units.label("sensor_measure_units"),
+        )
+        .outerjoin(Sensor, Sensor.id == ModelRun.sensor_id)
+        .outerjoin(SensorMeasure, SensorMeasure.id == ModelRun.sensor_measure_id)
         .where((ModelRun.id == run_id))
     )
-    result = session.execute(query).fetchall()
-    return result[0][1:]
+    result = session.execute(query).mappings().all()
+    if len(result) == 0:
+        raise RowMissingError(f"No model run with id {run_id}")
+    result = utils.row_mappings_to_dicts(result)[0]
+    _collect_sensor_measure_results(result)
+    return result
 
 
 @add_default_session
@@ -500,7 +550,7 @@ def delete_model(model_name: str, session: Optional[Session] = None) -> None:
     """
     result = session.execute(sqla.delete(Model).where(Model.name == model_name))
     if result.rowcount == 0:
-        raise ValueError(f"No model named '{model_name}'.")
+        raise RowMissingError(f"No model named '{model_name}'.")
 
 
 @add_default_session
@@ -527,7 +577,9 @@ def delete_model_scenario(
         )
     )
     if result.rowcount == 0:
-        raise ValueError(f"No model scenario '{description}' for model '{model_name}'.")
+        raise RowMissingError(
+            f"No model scenario '{description}' for model '{model_name}'."
+        )
 
 
 @add_default_session
@@ -545,7 +597,7 @@ def delete_model_measure(name: str, session: Optional[Session] = None) -> None:
     """
     result = session.execute(sqla.delete(ModelMeasure).where(ModelMeasure.name == name))
     if result.rowcount == 0:
-        raise ValueError(f"No model measure named '{name}'.")
+        raise RowMissingError(f"No model measure named '{name}'.")
 
 
 @add_default_session
@@ -561,7 +613,7 @@ def delete_model_run(run_id: int, session: Optional[Session] = None) -> None:
     """
     result = session.execute(sqla.delete(ModelRun).where(ModelRun.id == run_id))
     if result.rowcount == 0:
-        raise ValueError(f"No model run with ID {run_id}")
+        raise RowMissingError(f"No model run with ID {run_id}")
 
 
 @add_default_session
