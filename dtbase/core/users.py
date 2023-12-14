@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, default_session
+from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core.structure import User
 
 
@@ -17,7 +17,7 @@ def list_users(session: Optional[Session] = None) -> List[str]:
     Returns:
         A list of user emails.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     rows = session.execute(sqla.select(User.email)).fetchall()
     emails = [r[0] for r in rows]
     return emails
@@ -35,7 +35,7 @@ def insert_user(email: str, password: str, session: Optional[Session] = None) ->
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     new_user = User(password=password, email=email)
     session.add(new_user)
     session.flush()
@@ -52,7 +52,7 @@ def delete_user(email: str, session: Optional[Session] = None) -> None:
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(sqla.delete(User).where(User.email == email))
     if result.rowcount == 0:
         raise ValueError(f"No user '{email}'")
@@ -72,7 +72,7 @@ def check_password(
     Returns:
         True if the user exists and the password is correct False otherwise
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     user = session.execute(sqla.select(User).where(User.email == email)).scalar()
     if not user:
         # This user does not exist.
@@ -93,7 +93,7 @@ def change_password(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     user = session.execute(sqla.select(User).where(User.email == email)).one()[0]
     user.password = password
     session.flush()

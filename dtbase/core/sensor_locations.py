@@ -4,7 +4,7 @@ from typing import Optional
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, default_session
+from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core import queries, sensors, utils
 from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocation
 
@@ -30,7 +30,7 @@ def insert_sensor_location(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     sensor_id = sensors.sensor_id_from_unique_identifier(
         sensor_uniq_id, session=session
     )
@@ -68,7 +68,7 @@ def get_location_history(
         A list of dictionaries, naming the coordinates where this sensor was installed
         at different times.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = (
         sqla.select(
             SensorLocation.installation_datetime,

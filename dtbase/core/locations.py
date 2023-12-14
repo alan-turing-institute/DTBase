@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, default_session
+from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core import queries, utils
 from dtbase.core.exc import RowExistsError, RowMissingError, TooManyRowsError
 from dtbase.core.structure import (
@@ -31,7 +31,7 @@ def insert_location_value(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     value_type = type(value)
     if value_type not in utils.location_value_class_dict:
         msg = f"Don't know how to insert location values of type {value_type}."
@@ -55,7 +55,7 @@ def identifier_id_from_name(
     Returns:
         Database id of the location identifier.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(LocationIdentifier.id).where(
         LocationIdentifier.name == identifier_name
     )
@@ -77,7 +77,7 @@ def schema_id_from_name(schema_name: str, session: Optional[Session] = None) -> 
     Returns:
         Database id of the location schema.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(LocationSchema.id).where(LocationSchema.name == schema_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -103,7 +103,7 @@ def insert_location(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     schema_id = schema_id_from_name(schema_name, session=session)
     # Check that all the right identifiers are specified for this schema.
     identifiers_sq = queries.location_identifiers_by_schema().subquery()
@@ -171,7 +171,7 @@ def insert_location_identifier(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
 
@@ -214,7 +214,7 @@ def insert_location_schema(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     new_schema = LocationSchema(name=name, description=description)
     session.add(new_schema)
     session.flush()
@@ -240,7 +240,7 @@ def delete_location_by_id(location_id: str, session: Optional[Session] = None) -
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(sqla.delete(Location).where(Location.id == location_id))
     if result.rowcount == 0:
         raise RowMissingError(f"No location with ID {location_id}")
@@ -262,7 +262,7 @@ def delete_location_by_coordinates(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     location_query = queries.select_location_by_coordinates(
         schema_name, session, **kwargs
     )
@@ -286,7 +286,7 @@ def delete_location_identifier(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(
         sqla.delete(LocationIdentifier).where(
             LocationIdentifier.name == identifier_name
@@ -308,7 +308,7 @@ def delete_location_schema(schema_name: str, session: Optional[Session] = None) 
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(
         sqla.delete(LocationSchema).where(LocationSchema.name == schema_name)
     )
@@ -325,7 +325,7 @@ def list_location_identifiers(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all location identifiers
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = (
         session.execute(
             sqla.select(
@@ -351,7 +351,7 @@ def list_location_schemas(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all location schemas with their identifiers
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = (
         session.query(
             LocationSchema.id,
@@ -416,7 +416,7 @@ def list_locations(
         specified schema and have the coordinate values specified in the keyword
         arguments.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = queries.select_location_by_coordinates(schema_name, session, **kwargs)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
@@ -438,7 +438,7 @@ def get_schema_details(
         'identifiers' is a list of identifiers
         (dictionaries with keys 'id', 'name', 'unit', 'datatype').
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     schema = (
         session.query(
             LocationSchema.id, LocationSchema.name, LocationSchema.description

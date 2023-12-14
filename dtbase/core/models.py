@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Tuple
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, default_session
+from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core import sensors, utils
 from dtbase.core.exc import RowMissingError, TooManyRowsError
 from dtbase.core.structure import (
@@ -50,7 +50,7 @@ def scenario_id_from_description(
     Returns:
         Database id of the model scenario.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = (
         sqla.select(ModelScenario.id)
         .join(Model, Model.id == ModelScenario.model_id)
@@ -74,7 +74,7 @@ def measure_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     Returns:
         Database id of the model measure.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(ModelMeasure.id).where(ModelMeasure.name == name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -92,7 +92,7 @@ def measure_name_from_id(measure_id: int, session: Optional[Session] = None) -> 
     Returns:
         Name of the model measure.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(ModelMeasure.name).where(ModelMeasure.id == measure_id)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -110,7 +110,7 @@ def model_id_from_name(name: str, session: Optional[Session] = None) -> Any:
     Returns:
         Database id of the model.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(Model.id).where(Model.name == name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -128,7 +128,7 @@ def insert_model(name: str, session: Optional[Session] = None) -> Model:
     Returns:
         The new Model
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     new_model = Model(name=name)
     session.add(new_model)
     session.flush()
@@ -152,7 +152,7 @@ def insert_model_scenario(
     Returns:
         The new ModelScenario
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     model_id = model_id_from_name(model_name, session=session)
     new_scenario = ModelScenario(model_id=model_id, description=description)
     session.add(new_scenario)
@@ -181,7 +181,7 @@ def insert_model_measure(
     Returns:
         The new ModelMeasure
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     new_measure = ModelMeasure(name=name, units=units, datatype=datatype)
@@ -210,7 +210,7 @@ def insert_model_product(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
 
     if len(values) != len(timestamps):
         raise ValueError(
@@ -305,7 +305,7 @@ def insert_model_run(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
 
     # Find/insert the scenario
     try:
@@ -378,7 +378,7 @@ def list_model_runs(
          "id","model_id", "model_name", "scenario_id", "scenario_description",
          "time_created", "sensor_unique_id", "sensor_measure",
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = (
         sqla.select(
             ModelRun.id,
@@ -422,7 +422,7 @@ def get_datatype_by_measure_name(
     Return:
         Name of the datatype, as a string.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(ModelMeasure.datatype).where(ModelMeasure.name == measure_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -442,7 +442,7 @@ def get_model_run_results(run_id: int, session: Optional[Session] = None) -> Any
         Dict {<measure_name>: list of tuples (values, timestamp), ...}
 
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     measures = get_model_run_measures(run_id, session=session)
     results = {}
     for measure_name, measure_id in measures:
@@ -466,7 +466,7 @@ def get_model_run_results_for_measure(
         A list of tuples (values, timestamp) that are the results of the model run for
         that measure
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
 
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.model_value_class_dict[datatype_name]
@@ -494,7 +494,7 @@ def get_model_run_measures(
     Returns:
         List of tuples [(<measure_name:str>, <measure_id:int>),...]
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = (
         sqla.select(ModelMeasure.name, ModelMeasure.id)
         .join(ModelProduct, ModelProduct.measure_id == ModelMeasure.id)
@@ -514,7 +514,7 @@ def get_model_run_sensor_measure(run_id: int, session: Optional[Session] = None)
     Returns:
         tuple (<sensor unique id:str>, <measure name:str>, <measure units:str>)
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = (
         sqla.select(
             ModelRun.sensor_id,
@@ -546,7 +546,7 @@ def delete_model(model_name: str, session: Optional[Session] = None) -> None:
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(sqla.delete(Model).where(Model.name == model_name))
     if result.rowcount == 0:
         raise RowMissingError(f"No model named '{model_name}'.")
@@ -567,7 +567,7 @@ def delete_model_scenario(
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     model_id = model_id_from_name(model_name, session=session)
     result = session.execute(
         sqla.delete(ModelScenario).where(
@@ -593,7 +593,7 @@ def delete_model_measure(name: str, session: Optional[Session] = None) -> None:
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(sqla.delete(ModelMeasure).where(ModelMeasure.name == name))
     if result.rowcount == 0:
         raise RowMissingError(f"No model measure named '{name}'.")
@@ -609,7 +609,7 @@ def delete_model_run(run_id: int, session: Optional[Session] = None) -> None:
     Returns:
         None
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     result = session.execute(sqla.delete(ModelRun).where(ModelRun.id == run_id))
     if result.rowcount == 0:
         raise RowMissingError(f"No model run with ID {run_id}")
@@ -624,7 +624,7 @@ def list_model_measures(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all model measures.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(
         ModelMeasure.id,
         ModelMeasure.name,
@@ -645,7 +645,7 @@ def list_model_scenarios(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all model scenarios.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(
         ModelScenario.id, ModelScenario.model_id, ModelScenario.description
     )
@@ -663,7 +663,7 @@ def list_models(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all models.
     """
-    session = default_session(session)
+    session = set_session_if_unset(session)
     query = sqla.select(Model.id, Model.name)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)

@@ -10,7 +10,8 @@ from sqlalchemy.orm.scoping import scoped_session
 from dtbase.core.structure import db
 
 # We may have to deal with various objects that represent a database connection session,
-# so make a union type of all of them.
+# so make a union type of all of them. This is used for type annotations around the
+# codebase.
 Session = (
     scoped_session[SqlaSession]
     | scoped_session[FlaskSqlaSession]
@@ -19,10 +20,8 @@ Session = (
 )
 
 
-def default_session(
-    session: Optional[Session],
-) -> Session:
-    """Utility function that returns a default value for a `session` argument."""
+def set_session_if_unset(session: Optional[Session]) -> Session:
+    """Returns a default value for a `session` argument if it isn't set."""
     return session if session is not None else db.session
 
 
