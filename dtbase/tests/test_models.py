@@ -8,6 +8,8 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import Session
 
 from dtbase.core import models
+from dtbase.core.exc import RowMissingError
+from dtbase.tests.test_sensors import SENSOR_ID1, insert_sensors
 
 # We use this in many places, and I don't want to type out the whole thing every time.
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -54,6 +56,29 @@ PRODUCT3 = {
         NOW + dt.timedelta(weeks=3),
     ],
 }
+RUN1 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO1,
+    "measures_and_values": [PRODUCT1, PRODUCT2],
+    "time_created": NOW,
+}
+RUN2 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO2,
+    "sensor_unique_id": SENSOR_ID1,
+    "sensor_measure": {
+        "name": "temperature",
+        "units": "Kelvin",
+    },
+    "measures_and_values": [PRODUCT1, PRODUCT2],
+    "time_created": NOW + dt.timedelta(days=1),
+}
+RUN3 = {
+    "model_name": MODEL_NAME2,
+    "scenario_description": SCENARIO3,
+    "measures_and_values": [PRODUCT3],
+    "time_created": NOW,
+}
 
 
 def insert_models(session: Session) -> None:
@@ -96,27 +121,10 @@ def insert_runs(session: Session) -> None:
     """Insert some model runs into the database."""
     insert_scenarios(session)
     insert_measures(session)
-    models.insert_model_run(
-        model_name=MODEL_NAME1,
-        scenario_description=SCENARIO1,
-        measures_and_values=[PRODUCT1, PRODUCT2],
-        time_created=NOW,
-        session=session,
-    )
-    models.insert_model_run(
-        model_name=MODEL_NAME1,
-        scenario_description=SCENARIO2,
-        measures_and_values=[PRODUCT1, PRODUCT2],
-        time_created=NOW + dt.timedelta(days=1),
-        session=session,
-    )
-    models.insert_model_run(
-        model_name=MODEL_NAME2,
-        scenario_description=SCENARIO3,
-        measures_and_values=[PRODUCT3],
-        time_created=NOW,
-        session=session,
-    )
+    insert_sensors(session)
+    models.insert_model_run(**RUN1, session=session)
+    models.insert_model_run(**RUN2, session=session)
+    models.insert_model_run(**RUN3, session=session)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -156,7 +164,7 @@ def test_delete_model(session: Session) -> None:
 
     # Doing the same deletion again should fail, since that row is gone.
     error_msg = f"No model named '{MODEL_NAME1}'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.delete_model(MODEL_NAME1, session=session)
 
 
@@ -164,7 +172,7 @@ def test_delete_model_nonexistent(session: Session) -> None:
     """Try to delete a non-existent model."""
     insert_models(session)
     error_msg = "No model named 'BLAHBLAH'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.delete_model("BLAHBLAH", session=session)
 
 
@@ -194,7 +202,7 @@ def test_insert_model_scenarios_no_model(session: Session) -> None:
     """Try to insert a model scenario that uses measures that don't exist."""
     insert_scenarios(session)
     error_msg = "No model named 'Flip A Coin'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.insert_model_scenario(
             model_name="Flip A Coin", description="A fair coin", session=session
         )
@@ -220,7 +228,7 @@ def test_delete_model_scenario(session: Session) -> None:
 
     # Doing the same deletion again should fail, since that row is gone.
     error_msg = f"No model scenario '{SCENARIO1}' for model '{MODEL_NAME1}'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
 
 
@@ -228,7 +236,7 @@ def test_delete_model_scenario_model_exists(session: Session) -> None:
     """Try to delete a model scenario for which a model exists."""
     insert_models(session)
     error_msg = f"No model scenario '{SCENARIO1}' for model '{MODEL_NAME1}'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.delete_model_scenario(MODEL_NAME1, SCENARIO1, session=session)
 
 
@@ -279,7 +287,7 @@ def test_delete_model_measure(session: Session) -> None:
 
     # Doing the same deletion again should fail, since that row is gone.
     error_msg = f"No model measure named '{MEASURE_NAME1}'"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.delete_model_measure(MEASURE_NAME1, session=session)
 
 
@@ -332,21 +340,21 @@ def test_list_model_runs(session: Session) -> None:
         "scenario_id",
         "scenario_description",
         "time_created",
+        "sensor_unique_id",
+        "sensor_measure",
     }
     assert len(runs) == 2
     for run in runs:
         assert set(run.keys()) == expected_keys
+        if run["scenario_description"] == SCENARIO2:
+            assert run["sensor_unique_id"] == SENSOR_ID1
+            assert run["sensor_measure"] == {"name": "temperature", "units": "Kelvin"}
+        else:
+            assert run["sensor_unique_id"] is None
+            assert run["sensor_measure"] is None
 
     # Similarly for MODEL_NAME2
     runs = models.list_model_runs(MODEL_NAME2, session=session)
-    expected_keys = {
-        "id",
-        "model_id",
-        "model_name",
-        "scenario_id",
-        "scenario_description",
-        "time_created",
-    }
     assert len(runs) == 1
     for run in runs:
         assert set(run.keys()) == expected_keys
@@ -363,6 +371,8 @@ def test_list_model_runs_by_scenario(session: Session) -> None:
         "scenario_id",
         "scenario_description",
         "time_created",
+        "sensor_unique_id",
+        "sensor_measure",
     }
     assert len(runs) == 1
     for run in runs:
@@ -383,6 +393,8 @@ def test_list_model_runs_by_time(session: Session) -> None:
         "scenario_id",
         "scenario_description",
         "time_created",
+        "sensor_unique_id",
+        "sensor_measure",
     }
     assert len(runs) == 1
     for run in runs:
@@ -392,14 +404,6 @@ def test_list_model_runs_by_time(session: Session) -> None:
     runs = models.list_model_runs(
         MODEL_NAME1, dt_to=NOW + dt.timedelta(hours=12), session=session
     )
-    expected_keys = {
-        "id",
-        "model_id",
-        "model_name",
-        "scenario_id",
-        "scenario_description",
-        "time_created",
-    }
     assert len(runs) == 1
     for run in runs:
         assert set(run.keys()) == expected_keys
@@ -414,7 +418,6 @@ def test_get_model_run(session: Session) -> None:
     )
     run_id = next(r["id"] for r in runs if r["scenario_description"] == SCENARIO1)
     # Get the run
-    # values = models.get_model_run(run_id, MEASURE_NAME1, session=session)
     values = models.get_model_run_results_for_measure(
         run_id, MEASURE_NAME1, session=session
     )
@@ -427,7 +430,7 @@ def test_insert_model_run_no_scenario(session: Session) -> None:
     insert_measures(session)
     scenario_description = "A best case scenario"
     error_msg = f"No model scenario '{scenario_description}' for model '{MODEL_NAME1}'."
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(RowMissingError, match=error_msg):
         models.insert_model_run(
             model_name=MODEL_NAME1,
             scenario_description=scenario_description,
@@ -501,3 +504,41 @@ def test_insert_model_run_wrong_type(session: Session) -> None:
             time_created=NOW,
             session=session,
         )
+
+
+def test_get_model_run_sensor_measure(session: Session) -> None:
+    """Test getting sensor measure information for a model run."""
+    insert_runs(session)
+    # Find the ID of one of the runs
+    runs = models.list_model_runs(
+        MODEL_NAME1, dt_to=NOW + dt.timedelta(days=2), session=session
+    )
+    run_id = next(r["id"] for r in runs if r["scenario_description"] == SCENARIO2)
+    result = models.get_model_run_sensor_measure(run_id, session=session)
+    assert set(result.keys()) == {"sensor_id", "sensor_unique_id", "sensor_measure"}
+    assert result["sensor_unique_id"] == SENSOR_ID1
+    assert result["sensor_measure"] == {"name": "temperature", "units": "Kelvin"}
+
+
+def test_get_model_run_sensor_measure_nomeasure(session: Session) -> None:
+    """Test getting sensor measure information for a model run that doesn't have it."""
+    insert_runs(session)
+    # Find the ID of one of the runs
+    runs = models.list_model_runs(
+        MODEL_NAME1, dt_to=NOW + dt.timedelta(days=2), session=session
+    )
+    run_id = next(r["id"] for r in runs if r["scenario_description"] == SCENARIO1)
+    result = models.get_model_run_sensor_measure(run_id, session=session)
+    expected_keys = {"sensor_id", "sensor_unique_id", "sensor_measure"}
+    assert set(result.keys()) == expected_keys
+    for key in expected_keys:
+        assert result[key] is None
+
+
+def test_get_model_run_sensor_measure_nonexistent(session: Session) -> None:
+    """Try getting sensor measure information for a model run that doesn't exist."""
+    insert_runs(session)
+    run_id = 23
+    error_msg = f"No model run with id {run_id}"
+    with pytest.raises(RowMissingError, match=error_msg):
+        models.get_model_run_sensor_measure(run_id, session=session)

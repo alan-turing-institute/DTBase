@@ -202,6 +202,33 @@ The schema name will be a concatenation of the identifier names.
     ]
     ```
 
+### `/location/get-schema-details`
+* A GET request to get all information, including identifiers, for a location schema:
+
+    - payload should be
+    ```
+    {
+      "schema_name": <schema_name:str>
+    }
+    ```
+    - returns 400 if schema name isn't valid, otherwise status code 200 with
+    ```
+    {
+      "id": <id:int>,
+      "name": <name:str>,
+      "description": <description:str>,
+      "identifiers": [
+        {
+	      "id": <id:int>,
+	      "name": <name:str>,
+	      "datatype": <datatype:str>,
+	      "units": <units:str>,
+        },
+        ...
+      ]
+    }
+    ```
+
 ### `/location/delete-location-schema`
 * A DELETE request will remove the schema with the specified name.
     - payload should contain:
@@ -572,59 +599,69 @@ API endpoints for the models is as follows.
         "scenario": <scenario:str> (optional, by default all scenarios),
     }
     ```
-    datetime in dt_from and dt_to should be specified in the ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
-
+    datetime in dt_from and dt_to should be specified in the ISO 8601 format:
+    '%Y-%m-%dT%H:%M:%S.
     - returns status code 200, alongside result in the form:
     ```
     [
         {
-            "id": <id:int>,
-            "model_id": <model_id:int>,
-            "model_name": <model_name:str>,
-            "scenario_description": <scenario_description:str>,
-            "scenario_id": <scenario_id:int>,
-            "time_created": <time_created:datetime_string>
-        },
+            "id": <database id of the model run:int>,
+            "model_id": <database id of the model:int>,
+            "model_name": <name of the model:str>,
+            "scenario_id": <database id of the scenario:int>,
+            "scenario_description": <description of the scenario:str>,
+            "time_created": <time when this run was created:str in ISO 8601>,
+            "sensor_unique_id": <unique identifier of the associated sensor:str or
+                null>,
+            "sensor_measure": {
+                "name": <name of the associated sensor measure:str or null>,
+                "units": <units of the associated sensor measure:str or null>
+            }
+        }
         ...
     ]
     ```
 
 ### `/model/get-model-run-sensor-measure`
-* A GET request, will get the corresponding sensor_id and measure for a given model run.
+* A GET request, will get the corresponding sensor id and sensor measure for a given
+  model run.
     - Payload should have the form
     ```
     {
-        run_id: <run_id:int> (id of the model run),
-
+        run_id: <id of the model run:int>
     }
     ```
-
     - returns status code 200, alongside result in the form:
     ```
     {
-       "sensor_unique_id": <sensor_unique_id:str>,
-       "measure_name": <measure_name:str>
+        "sensor_unique_id": <sensor unique id:str>,
+        "sensor_measure": {
+            "name": <sensor measure name:str>,
+            "units": <sensor measure units:str>
+        }
     }
     ```
 
 ### `/model/get-model-run`
-* A GET request, will get the output of a model run for a given model measure.
+* A GET request, will get the output of a model run.
     - Payload should have the form
     ```
     {
         run_id: <run_id:int> (id of the model run),
-        measure_name: <measure_name:str>,
     }
     ```
 
     - returns status code 200, alongside result in the form:
     ```
-    [
-        {
-            "timestamp": <timestamp:str>,
-            "value": <value:integer|float|string|boolean>
-        },
-        ...
-    ]
+    {
+        measure1_name: [
+            {
+                "timestamp": <timestamp:str>,
+                "value": <value:integer|float|string|boolean>
+            },
+            ...
+        ]
+    }
     ```
-    timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
+    The returned dictionary will have as many key-value pairs as there are measures in
+    the model run. Timestamp string is specified in ISO 8601 format: '%Y-%m-%dT%H:%M:%S.
