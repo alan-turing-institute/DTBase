@@ -33,7 +33,7 @@ MOCK_SENSOR_DATA = {
 
 MOCK_RUN_SENSOR_MEASURE_DATA = {
     "sensor_unique_id": "TRH1",
-    "measure_name": "temperature",
+    "sensor_measure": {"name": "temperature", "units": "degrees Celsius"},
 }
 
 
