@@ -106,7 +106,7 @@ def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str,
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
-    measure_name = response.json()["measure_name"]
+    measure_name = response.json()["sensor_measure"]["name"]
     sensor_uniq_id = response.json()["sensor_unique_id"]
     dt_from = earliest_timestamp
     dt_to = dt.datetime.now().isoformat()
