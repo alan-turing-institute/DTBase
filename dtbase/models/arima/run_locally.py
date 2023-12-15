@@ -17,7 +17,6 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def main() -> None:
-
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
@@ -44,9 +43,9 @@ def main() -> None:
     # loop through every sensor/measure
 
     for sensor in sensor_ids:
-        for measure in measures:
-            key = sensor + "_" + measure
-            values = prep_data[sensor][measure]
+        for measure_name, measure_units in measures:
+            key = sensor + "_" + measure_name
+            values = prep_data[sensor][measure_name]
             # save 10% of the data for testing
             n_samples = len(values)
             values = values.iloc[: int(0.9 * n_samples)]
@@ -57,7 +56,7 @@ def main() -> None:
             # save to disk
             conf_int["mean_forecast"] = mean_forecast
             conf_int["sensor"] = sensor
-            conf_int["measure"] = measure
+            conf_int["measure"] = measure_name
             conf_int.to_csv(os.path.join(OUTPUT_DIR, f"{key}.csv"))
 
 

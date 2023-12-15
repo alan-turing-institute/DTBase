@@ -54,8 +54,8 @@ def insert_trh_readings(
     session: Session, sensor_unique_id: str = "TRH1", insert_sensor: bool = True
 ) -> None:
     """
-    Insert a set of temperature and humidity readings for a sensor
-    with unique_identifier 'TRH1'
+    Insert a set of temperature and humidity readings for a sensor with
+    unique_identifier 'TRH1'
     """
     if insert_sensor:
         try:
@@ -88,6 +88,7 @@ def insert_trh_readings(
     )
     try:
         session.commit()
+        print(f"Inserted {len(temps)} temperature values")
     except Exception:
         session.rollback()
-    print(f"Inserted {len(temps)} temperature values")
+        print(f"Failed to insert {len(temps)} temperature values")
