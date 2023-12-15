@@ -274,7 +274,7 @@ def insert_model_product(
 def insert_model_run(
     model_name: str,
     scenario_description: str,
-    measures_and_values: str,
+    measures_and_values: list[dict[str, Any]],
     sensor_unique_id: Optional[str] = None,
     sensor_measure: Optional[dict[str, str]] = None,
     time_created: dt.datetime = dt.datetime.now(dt.timezone.utc),
