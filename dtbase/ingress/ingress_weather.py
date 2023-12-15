@@ -12,10 +12,10 @@ from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
 )
+from dtbase.core.utils import backend_call
 from dtbase.ingress.ingress_utils import (
     add_sensor_types,
     add_sensors,
-    backend_call,
     log_rest_response,
 )
 

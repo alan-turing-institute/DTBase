@@ -2,22 +2,11 @@
 Utility functions for e.g. uploading ingressed data to the db.
 """
 import logging
-from typing import Any, Dict, List
+from typing import List
 
-import requests
 from flask import Response
 
-from dtbase.core.constants import CONST_BACKEND_URL
-
-
-def backend_call(
-    request_type: str, end_point_path: str, payload: Dict[str, Any]
-) -> Response:
-    request_func = getattr(requests, request_type)
-    url = f"{CONST_BACKEND_URL}{end_point_path}"
-    headers = {"content-type": "application/json"}
-    response = request_func(url, headers=headers, json=payload)
-    return response
+from dtbase.core.utils import backend_call
 
 
 def log_rest_response(response: Response) -> None:

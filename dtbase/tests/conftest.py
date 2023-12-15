@@ -252,7 +252,7 @@ def conn_frontend_app(
         mock_method = mock_request_method_builder(client, method_name)
         setattr(mock_requests, method_name, mock_method)
 
-    with mock.patch("dtbase.webapp.utils.requests", wraps=mock_requests):
+    with mock.patch("dtbase.core.utils.requests", wraps=mock_requests):
         config = frontend_config["Test"]
         frontend_app = create_frontend_app(config)
         yield frontend_app

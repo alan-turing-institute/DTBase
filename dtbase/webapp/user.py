@@ -4,7 +4,7 @@ from flask_login import UserMixin
 from requests.models import Response
 
 import dtbase.webapp.exc as exc
-import dtbase.webapp.utils as utils
+from dtbase.core.utils import backend_call
 
 ALL_USERS = {}
 
@@ -34,7 +34,7 @@ class User(UserMixin):
         return user
 
     def authenticate(self: "User", password: str) -> None:
-        response = utils.backend_call(
+        response = backend_call(
             "post", "/auth/login", payload={"email": self.email, "password": password}
         )
         if response.status_code != 200:
@@ -46,7 +46,7 @@ class User(UserMixin):
             raise exc.BackendApiError("Malformed response from /auth/login")
 
     def refresh(self: "User") -> None:
-        response = utils.backend_call(
+        response = backend_call(
             "post",
             "/auth/refresh",
             headers={"Authorization": f"Bearer {self.refresh_token}"},
@@ -78,7 +78,7 @@ class User(UserMixin):
                 "An unautheticated user tried to make a backend call to "
                 f"{end_point_path}"
             )
-        response = utils.backend_call(
+        response = backend_call(
             request_type,
             end_point_path,
             payload=payload,
@@ -89,7 +89,7 @@ class User(UserMixin):
             "msg": "Token has expired"
         }:
             self.refresh()
-            response = utils.backend_call(
+            response = backend_call(
                 request_type,
                 end_point_path,
                 payload=payload,
