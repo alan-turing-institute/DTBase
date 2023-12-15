@@ -6,6 +6,7 @@ from typing import Tuple
 
 from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
@@ -25,15 +26,16 @@ def insert_model() -> Tuple[Response, int]:
         "name": <model_name:str>
     }
     """
-
     payload = request.get_json()
     error_response = check_keys(payload, ["name"], "/insert-model")
     if error_response:
         return error_response
-
-    models.insert_model(name=payload["name"], session=db.session)
+    try:
+        models.insert_model(name=payload["name"], session=db.session)
+    except IntegrityError:
+        return jsonify({"message": "Model exists already"}), 409
     db.session.commit()
-    return jsonify(payload), 201
+    return jsonify({"message": "Model inserted"}), 201
 
 
 @blueprint.route("/list-models", methods=["GET"])
