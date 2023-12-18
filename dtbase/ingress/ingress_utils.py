@@ -2,12 +2,16 @@
 Utility functions for e.g. uploading ingressed data to the db.
 """
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import requests
 from flask import Response
 
-from dtbase.core.constants import CONST_BACKEND_URL
+from dtbase.core.constants import (
+    CONST_BACKEND_URL,
+    DEFAULT_USER_EMAIL,
+    DEFAULT_USER_PASS,
+)
 
 
 class BaseIngress:
@@ -18,12 +22,13 @@ class BaseIngress:
     """
 
     def __init__(self) -> None:
-        pass
+        self.access_token = None
 
-    def get_data():
+    def get_data() -> NotImplementedError:
         """
         Method for getting data from source and returning Backend API Endpoints names
-        and payload pairs.
+        and payload pairs. This method should be implemented when inheriting from this
+        class.
         The method should return a list of tuples. A tuple should
         be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
         its a single tuple.
@@ -47,7 +52,8 @@ class BaseIngress:
                             "units": "degrees Celsius",
                             "datatype": "float",
                         },
-                        {"name": "relative humidity", "units": "percent", "datatype": "float"},
+                        {"name": "relative humidity", "units": "percent",
+                        "datatype": "float"},
                     ],
                 },
             ),
@@ -64,19 +70,30 @@ class BaseIngress:
         """
         raise NotImplementedError()
 
+    def backend_login(self, username: str, password: str) -> None:
+        """
+        Sets the access token using login credentials
+        """
+        response = self.backend_call(
+            "post", "/auth/login", payload={"email": username, "password": password}
+        )
+        if response.status_code != 200:
+            raise RuntimeError(f"Failed to authenticate with the backend: {response}")
+        assert response.json is not None
+        self.access_token = response.json()["access_token"]
+
     def backend_call(
         self,
         request_type: str,
         end_point_path: str,
         payload: Dict[str, Any],
-        access_token: Optional[str] = None,
     ) -> Response:
         """Call the given DTBase backend endpoint, return the response."""
         request_func = getattr(requests, request_type)
         url = f"{CONST_BACKEND_URL}{end_point_path}"
         headers = {"content-type": "application/json"}
-        if access_token:
-            headers["Authorization"] = f"Bearer {access_token}"
+        if self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
         response = request_func(url, headers=headers, json=payload)
         return response
 
@@ -87,16 +104,7 @@ class BaseIngress:
         else:
             logging.warning(msg)
 
-    def backend_login(self, username: str, password: str) -> str:
-        response = self.backend_call(
-            "post", "/auth/login", payload={"email": username, "password": password}
-        )
-        if response.status_code != 200:
-            raise RuntimeError(f"Failed to authenticate with the backend: {response}")
-        assert response.json is not None
-        return response.json()["access_token"]
-
-    def add_sensor_types(self, sensor_types: List[dict], access_token: str) -> None:
+    def add_sensor_types(self, sensor_types: List[dict]) -> None:
         """
         Add sensor types to the database
         Args:
@@ -120,11 +128,11 @@ class BaseIngress:
                 "post",
                 "/sensor/insert-sensor-type",
                 sensor_type,
-                access_token=access_token,
+                access_token=self.access_token,
             )
             self.log_rest_response(response)
 
-    def add_sensors(self, sensors: List[dict], access_token: str) -> None:
+    def add_sensors(self, sensors: List[dict]) -> None:
         """
         Add sensors to the database.
         Args:
@@ -140,6 +148,19 @@ class BaseIngress:
             logging.info(f"Inserting sensor {sensor_info['unique_identifier']}")
             payload = sensor_info
             response = self.backend_call(
-                "post", "/sensor/insert-sensor", payload, access_token=access_token
+                "post", "/sensor/insert-sensor", payload, access_token=self.access_token
             )
             self.log_rest_response(response)
+
+    def ingress_data(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Get data from API and upload to the database via the backend.
+        Takes any argument available to the get_data method.
+
+        """
+        api_responses = self.get_data(*args, **kwargs)
+        self.backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
+        for api_response in api_responses:
+            endpoint, payload = api_response
+            backend_response = self.backend_call("post", endpoint, payload)
+            self.log_rest_response(backend_response)

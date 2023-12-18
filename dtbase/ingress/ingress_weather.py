@@ -3,7 +3,7 @@ Python module to import data using the Openweathermap API
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Tuple
 
 import pandas as pd
 import requests
@@ -43,8 +43,8 @@ METRICS_TO_MEASURES = {
     "icon": {"name": "icon", "units": "", "datatype": "string"},
 }
 
-# Sensor types that Hyper reports data for
-SENSOR_TYPES = {
+# Type of sensor for OpenWeatherMap
+SENSOR_TYPE = {
     "name": "Weather",
     "description": (
         "Weather sensors and sensor-like data sources, "
@@ -61,7 +61,7 @@ SENSOR_TYPES = {
     ],
 }
 
-# Mapping of sensor IDs to their types
+# Two different Sensor depending on whether its forecast or historical
 SENSOR_OPENWEATHERMAPHISTORICAL = {
     "unique_identifier": "OpenWeatherMapHistory",
     "type_name": "Weather",
@@ -76,27 +76,39 @@ SENSOR_OPENWEATHERMAPFORECAST = {
 
 
 class OpenWeatherDataIngress(BaseIngress):
-    def __init__(self):
+    """
+    Custom class inheriting from the BaseIngress class for interacting with the
+    OpenWeatherData API.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
         self.present = datetime.now()
 
-    def _set_now(self, dt: [datetime, str]):
+    def _set_now(self, dt: [datetime, str]) -> datetime:
         """
         Method to set the present time. If dt is a datetime object, then it is returned.
-        If dt is the string 'present', then the present time is returned. Otherwise, an error is raised.
+        If dt is the string 'present', then the present time is returned.
+        Otherwise, an error is raised.
         The reason this is required is for the following scenario:
 
-        If datetime.now() is used to set dt_from from outside the Class, then problems start occuring when
-        comparing these times to the present time. THis is because time has continued to happen whilst initiating the class.
+        If datetime.now() is used to set dt_from from outside the Class, then problems
+        start occuring when comparing these times to the present time. THis is because
+        time has continued to happen whilst initiating the class.
 
         For example:
 
         1. The user sets dt_from = datetime.now() outside the class.
-        2. To determine whether to call the historical or forecast API, the class compares dt_from to the present time using datetime.now().
-        3. However, time has occured between the two datetime.now() calls, meaning they are not the same although the user
+        2. To determine whether to call the historical or forecast API,
+        the class compares dt_from to the present time using datetime.now().
+        3. However, time has occured between the two datetime.now() calls,
+        meaning they are not the same although the user
         clearly means them to be.
 
-        To avoid this, the user can set dt_from = 'present' and the class will use the present time. All times the class
-        requires the present time, it can use the class constant self.present. This is set when the class is initiated.
+        To avoid this, the user can set dt_from = 'present' and the class will
+        use the present time. All times the class requires the present time,
+        it can use the class constant self.present.
+        This is set when the class is initiated.
         """
         if isinstance(dt, datetime):
             return dt
@@ -104,13 +116,16 @@ class OpenWeatherDataIngress(BaseIngress):
             return self.present
         else:
             raise ValueError(
-                f"now must be either a datetime object or the string 'present'."
+                "now must be either a datetime object or the string 'present'."
             )
 
-    def _determine_if_historic_or_forecast(self, from_dt: datetime, to_dt: datetime):
+    def _determine_if_historic_or_forecast(
+        self, from_dt: datetime, to_dt: datetime
+    ) -> Tuple[str, str]:
         """
-        Determine whether to call the historical or forecast API. This is determined by comparing the present time
-        to the from_dt and to_dt. This method combined with _handling_datetime_range() should ensure the correct
+        Determine whether to call the historical or forecast API.
+        This is determined by comparing the present time to the from_dt and to_dt.
+        This method combined with _handling_datetime_range() should ensure the correct
         API is called or the correct error is raised.
         """
         if self.present >= to_dt:
@@ -119,39 +134,57 @@ class OpenWeatherDataIngress(BaseIngress):
             return CONST_OPENWEATHERMAP_FORECAST_URL, SENSOR_OPENWEATHERMAPFORECAST
         else:
             raise ValueError(
-                f"Something went wrong. To help debug, the present time is {self.present}, from_dt: {from_dt} and to_dt: {to_dt}"
+                f"Some unforeseen combinations of from_dt and to_dt has been given. \
+                To help debug, the present time is {self.present}, from_dt: {from_dt} \
+                and to_dt: {to_dt}"
             )
 
-    def _handling_datetime_range(self, from_dt: datetime, to_dt: datetime):
+    def _handling_datetime_range(self, from_dt: datetime, to_dt: datetime) -> None:
         """
-        Performs simple checks on the datetime range to ensure it is valid. This method combined with
-        _determine_if_historic_or_forecast() should ensure the correct API is called or the correct error is raised.
+        Performs simple checks on the datetime range to ensure it is valid.
+        This method combined with _determine_if_historic_or_forecast() should ensure
+        the correct API is called or the correct error is raised.
         """
         if from_dt > to_dt:
             raise ValueError("from_date must be before to_date")
-        elif (
-            from_dt < (datetime.now() - timedelta(minutes=1)) and to_dt > datetime.now()
-        ):
+        elif from_dt < self.present and to_dt > self.present:
             raise ValueError(
-                "This call spans both historical and forecast data. Please make two separate calls."
+                "This call spans both historical and forecast data. \
+                Please make two separate calls."
+            )
+        elif from_dt < (self.present - timedelta(days=5)):
+            raise ValueError(
+                f"from_dt cannot be more than 5 days in the past. \
+                    Current value is: {from_dt}"
+            )
+        elif to_dt > self.present + timedelta(days=2):
+            raise ValueError(
+                f"to_dt cannot be more than 2 days in the future.\
+                      Current value is: {to_dt}"
             )
         else:
             pass
 
-    def get_data(self, from_dt: [datetime, str], to_dt: [datetime, str]):
+    def get_data(self, from_dt: [datetime, str], to_dt: [datetime, str]) -> list:
         """
-        Please read the docstring for BaseIngress.get_data() for more information on this method.
+        Please read the docstring for BaseIngress.get_data()
+        for more information on this method.
 
-        This specific implementation of get_data() calls the Openweathermap API and returns the data in the format
-        required by the backend API.
+        This specific implementation of get_data() calls the Openweathermap API
+        and returns the data in the format required by the backend API.
+        Note the georgraphical location is defined by the
+        two environment variables DT_LAT and DT_LONG.
 
         --------------------------------
         Arguments:
-            from_dt: datetime, The start date range. Inclusive. If 'present' is passed, then the present time is used.
-            to_dt: datetime, The end date range. Inclusive. If 'present' is passed, then the present time is used.
+            from_dt: datetime, The start date range. Inclusive.
+            If 'present' is passed, then the present time is used.
+            to_dt: datetime, The end date range. Inclusive.
+            If 'present' is passed, then the present time is used.
         Returns:
-            List of tuples. A tuple should be in the format [(<endpoint_name>, <payload>)].
-            It gives Sensor type, Sensor and Sensor readings.
+            List of tuples. A tuple should be in the format
+            [(<endpoint_name>, <payload>)].
+            It gives Sensor type, Sensor and Sensor measurements.
         """
         from_dt = self._set_now(from_dt)
         to_dt = self._set_now(to_dt)
@@ -207,11 +240,12 @@ class OpenWeatherDataIngress(BaseIngress):
         weather_df.set_index("timestamp", inplace=True)
 
         # Limit weather_df to data between dt_from and dt_to. This is necessary because
-        # the API call returns data for the whole day, not just the requested time period.
-        # We could just leave all the data but I think its clearer to limit it to the
-        # requested time period.
-        weather_df = weather_df.loc[from_dt:to_dt]
-        weather_df.to_csv(f"weather_{from_dt}_{to_dt}.csv")
+        # the API call returns data for the whole day, not just the requested time
+        # period. We could just leave all the data but I think its clearer
+        # to limit it to the requested time period.
+        weather_df = weather_df[
+            (weather_df.index >= from_dt) & (weather_df.index <= to_dt)
+        ]
 
         # Convert dataframe into list of dicts to match expected output format.
         # This format is required by the backend API and can be found in the readme
@@ -236,7 +270,7 @@ class OpenWeatherDataIngress(BaseIngress):
             )
 
         # Define outputs in the format (endpoint, payload)
-        sensor_type_output = [("/sensor/insert-sensor-type", SENSOR_TYPES)]
+        sensor_type_output = [("/sensor/insert-sensor-type", SENSOR_TYPE)]
         sensor_output = [("/sensor/insert-sensor", sensor_payload)]
         sensor_readings_output = [
             ("/sensor/insert-sensor-readings", payload) for payload in measure_payloads
@@ -245,85 +279,7 @@ class OpenWeatherDataIngress(BaseIngress):
         return sensor_type_output + sensor_output + sensor_readings_output
 
 
-def import_openweathermap_data(
-    dt_to: datetime,
-    sensor_uniq_id: str,
-    backend_user: str,
-    backend_password: str,
-    create_sensors: bool = False,
-    **timedelta_kwargs: int,
-) -> Tuple[bool, str]:
-    """
-    This is the main function for this module.
-    Uploads data to the DTBase database, for various metrics, from the
-    Openweathermap API.  If dt_to is in the past, this will be historical
-    data, while if it is in the future, it will be forecast data.
-
-    Arguments:
-        dt_to:datetime date range to
-        sensor_uniq_id: str, either "OpenWeatherMapHistory" or "OpenWeatherMapForecast"
-        backend_user: str, email of the user to login to the backend
-        backend_password: str, password for that user
-        create_sensors: Create new sensors in the database if they don't exist. False by
-            default.
-    Returns:
-        success, error
-    """
-
-    # Check that the sensor_uniq_id is in valid options defined in SENSORS
-    if sensor_uniq_id not in [sensor["unique_identifier"] for sensor in SENSORS]:
-        error = f"Invalid sensor_uniq_id: {sensor_uniq_id}"
-        logging.error(error)
-        return False, error
-
-    access_token = backend_login(backend_user, backend_password)
-    success, error, df = query_openweathermap_api(dt_to, **timedelta_kwargs)
-    if not success:
-        logging.error(error)
-        return success, error
-    assert df is not None
-
-    all_timestamps = [ts.isoformat() for ts in df.index]
-
-    if create_sensors:
-        # Filter out the sensor we want to create based on sensor_uniq_id
-        add_sensors(
-            [
-                sensor
-                for sensor in SENSORS
-                if sensor["unique_identifier"] == sensor_uniq_id
-            ],
-            access_token=access_token,
-        )
-
-        add_sensor_types(SENSOR_TYPES, access_token=access_token)
-
-    for metric in df.columns:
-        values = df[metric]
-        # Some values may be None, filter those out.
-        timestamps, values = zip(
-            *((t, v) for t, v in zip(all_timestamps, values) if v is not None)
-        )
-        logging.info(f"Uploading data for sensor {sensor_uniq_id}.")
-
-        payload = {
-            "measure_name": METRICS_TO_MEASURES[metric]["name"],
-            "unique_identifier": sensor_uniq_id,
-            "readings": values,
-            "timestamps": timestamps,
-        }
-
-        response = backend_call(
-            "post", "/sensor/insert-sensor-readings", payload, access_token=access_token
-        )
-        log_rest_response(response)
-    logging.info("Done uploading data.")
-    error = ""
-    success = True
-    return success, error
-
-
-if __name__ == "__main__":
+def weather_api_tests() -> None:
     # # Example 1: Get historical weather data for the last 2 hours
     print("----------- Test 1 ---------------")
     dt_from = datetime.now() - timedelta(hours=36)
@@ -364,3 +320,47 @@ if __name__ == "__main__":
         output = ingress.get_data(dt_from, dt_to)
     except ValueError as e:
         print(e)
+
+    # Example 5: Try to get weather data where dt_from is more than 5 days into the past
+    print("----------- Test 4 ---------------")
+    dt_from = datetime.now() - timedelta(days=7)
+    dt_to = "present"
+    ingress = OpenWeatherDataIngress()
+    try:
+        output = ingress.get_data(dt_from, dt_to)
+    except ValueError as e:
+        print(e)
+
+    # Example 6: Try to get weather data where dt_to is more than 2 days into the future
+    print("----------- Test 4 ---------------")
+    dt_from = datetime.now() - timedelta(days=7)
+    dt_to = "present"
+    ingress = OpenWeatherDataIngress()
+    try:
+        output = ingress.get_data(dt_from, dt_to)
+    except ValueError as e:
+        print(e)
+
+
+def example_weather_ingress() -> None:
+    """
+    Ingress weather data from 60 hours before today and 2 days after.
+    As there are two different APIs used for past and future, we need to make two
+    seperate calls. Its a little cumbersome.
+    """
+
+    # First do calls from before now
+    dt_from = datetime.now() - timedelta(hours=60)
+    dt_to = "present"
+    weather_ingress = OpenWeatherDataIngress()
+    weather_ingress.ingress_data(dt_from, dt_to)
+
+    # Now repeat for after
+    dt_from = "present"
+    dt_to = datetime.now() + timedelta(days=2)
+    weather_ingress = OpenWeatherDataIngress()
+    weather_ingress.ingress_data(dt_from, dt_to)
+
+
+if __name__ == "__main__":
+    example_weather_ingress()
