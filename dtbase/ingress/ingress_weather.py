@@ -12,7 +12,7 @@ from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
 )
-from dtbase.ingress.ingress_utils import (
+from dtbase.ingress.base import (
     BaseIngress,
 )
 
