@@ -162,8 +162,25 @@ class OpenWeatherDataIngress(BaseIngress):
                 f"to_dt cannot be more than 2 days in the future.\
                       Current value is: {to_dt}"
             )
+        # Check from_dt and to_dt are at least an hour apart
+        elif (to_dt - from_dt) < timedelta(hours=1):
+            raise ValueError(
+                f"from_dt and to_dt must be at least an hour apart. \
+                    Current values are: {from_dt} and {to_dt}"
+            )
         else:
             pass
+
+    def get_api_base_url_and_sensor(
+        self, from_dt: [datetime, str], to_dt: [datetime, str]
+    ) -> Tuple[str, str]:
+        from_dt = self._set_now(from_dt)
+        to_dt = self._set_now(to_dt)
+        self._handling_datetime_range(from_dt, to_dt)
+        base_url, sensor_payload = self._determine_if_historic_or_forecast(
+            from_dt, to_dt
+        )
+        return base_url, sensor_payload
 
     def get_data(self, from_dt: [datetime, str], to_dt: [datetime, str]) -> list:
         """
@@ -190,12 +207,8 @@ class OpenWeatherDataIngress(BaseIngress):
             [(<endpoint_name>, <payload>)].
             It gives Sensor type, Sensor and Sensor measurements.
         """
-        from_dt = self._set_now(from_dt)
-        to_dt = self._set_now(to_dt)
-        self._handling_datetime_range(from_dt, to_dt)
-        base_url, sensor_payload = self._determine_if_historic_or_forecast(
-            from_dt, to_dt
-        )
+
+        base_url, sensor_payload = self.get_api_base_url_and_sensor(from_dt, to_dt)
 
         logging.info(
             f"Calling Openweathermap historical API from {from_dt} to {to_dt}."
