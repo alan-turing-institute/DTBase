@@ -68,7 +68,11 @@ class BaseIngress:
         ]
 
         """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "The user should implement this method \
+                                   by inhering from the BaseIngress class \
+                                  and overwriting the get_data method."
+        )
 
     def backend_login(self, username: str, password: str) -> None:
         """
@@ -98,6 +102,9 @@ class BaseIngress:
         return response
 
     def log_rest_response(self, response: Response) -> None:
+        """
+        Logging the response from the backend API
+        """
         msg = f"Got response {response.status_code}: {response.text}"
         if 300 > response.status_code:
             logging.info(msg)
@@ -156,6 +163,8 @@ class BaseIngress:
         """
         Get data from API and upload to the database via the backend.
         Takes any argument available to the get_data method.
+
+        Args: *args, **kwargs: arguments to be passed to get_data method
 
         """
         api_responses = self.get_data(*args, **kwargs)

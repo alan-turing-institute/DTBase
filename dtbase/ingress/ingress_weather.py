@@ -178,9 +178,13 @@ class OpenWeatherDataIngress(BaseIngress):
         --------------------------------
         Arguments:
             from_dt: datetime, The start date range. Inclusive.
+            Max 5 days in the past.
             If 'present' is passed, then the present time is used.
+            DON'T USE datetime.now() as this will cause problems.
             to_dt: datetime, The end date range. Inclusive.
+            Max 2 days in the future.
             If 'present' is passed, then the present time is used.
+            DON'T USE datetime.now() as this will cause problems.
         Returns:
             List of tuples. A tuple should be in the format
             [(<endpoint_name>, <payload>)].
@@ -197,7 +201,7 @@ class OpenWeatherDataIngress(BaseIngress):
             f"Calling Openweathermap historical API from {from_dt} to {to_dt}."
         )
 
-        # build list of timestamps to query
+        # build list of timestamps to query for each day in the range
         timestamps = [
             int(dt.timestamp())
             for dt in list(pd.date_range(from_dt, to_dt, freq="d").to_pydatetime())
@@ -346,7 +350,8 @@ def example_weather_ingress() -> None:
     """
     Ingress weather data from 60 hours before today and 2 days after.
     As there are two different APIs used for past and future, we need to make two
-    seperate calls. Its a little cumbersome.
+    seperate calls. This is likely to be specific to the weather ingress. Other
+    ingress methods may not need to do this.
     """
 
     # First do calls from before now
