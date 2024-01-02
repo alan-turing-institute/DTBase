@@ -286,7 +286,7 @@ def conn_models_backend(client: AuthenticatedClient) -> Generator[None, None, No
     This works by mocking dtbase.models.utils.backend_call.requests with an object that
     reroutes all calls to a test backend client.
 
-    Since this fixture only sets up the mocking, it yields `None`.
+    `yields` the backend client.
     """
     mock_requests = mock.MagicMock()
     for method_name in ("get", "post", "put", "delete"):
