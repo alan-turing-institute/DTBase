@@ -20,9 +20,8 @@ def main() -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
-    field_styles["levelname"][
-        "color"
-    ] = "yellow"  # change the default levelname color from black to yellow
+    # change the default levelname color from black to yellow
+    field_styles["levelname"]["color"] = "yellow"
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 

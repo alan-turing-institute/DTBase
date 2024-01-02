@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 import logging
 import sys
-from typing import Optional
 
 import coloredlogs
-from sqlalchemy.orm import Session
 
 from dtbase.core.exc import BackendCallError
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
@@ -17,7 +15,7 @@ from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 logger = logging.getLogger(__name__)
 
 
-def run_pipeline(session: Optional[Session] = None) -> None:
+def run_pipeline() -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
@@ -29,15 +27,20 @@ def run_pipeline(session: Optional[Session] = None) -> None:
     # Log into the backend
     token = login()
 
+    sensors_config = config(section="sensors")
+    sensors_list = sensors_config["include_sensors"]
+    base_measures_list = sensors_config["include_measures"]
+    scenario = "Business as usual"
+
     # fetch training data from the database
-    sensor_data = get_training_data(token=token)
+    sensor_data = get_training_data(
+        sensors_list=sensors_list, measures_list=base_measures_list, token=token
+    )
     if not sensor_data:
         raise ValueError("No training data")
 
     # clean the training data
     cleaned_data = clean_data_list(sensor_data)
-
-    # prepare the clean data for the ARIMA model
     prep_data = prepare_data(cleaned_data)
 
     # ensure we have the Model in the db, or insert if not
@@ -51,28 +54,27 @@ def run_pipeline(session: Optional[Session] = None) -> None:
     response = auth_backend_call(
         "post",
         "/model/insert-model-scenario",
-        {"model_name": "Arima", "description": "Business as usual"},
+        {"model_name": "Arima", "description": scenario},
         token=token,
     )
+    if response.status_code not in {201, 409}:
+        raise BackendCallError(response)
 
     # Ensure that we have all measures in the database, or insert if not.
     # We should have mean, upper bound, and lower bound for each of the measures that
     # the sensor we are trying to forecast for reports.
-    base_measures_list = config(section="sensors")["include_measures"]
     logging.info(f"measures to use: {base_measures_list}")
-    # base_measures_list will be a list of tuples (measure_name, units)
-    for base_measure in base_measures_list:
+    # base_measures_list is a list of tuples (measure_name, units)
+    for base_measure_name, base_measure_units in base_measures_list:
         for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
-            measure = m + base_measure[0]
+            measure = m + base_measure_name
+            logging.info(f"Inserting measure {measure} to db")
             response = auth_backend_call(
                 "post",
                 "/model/insert-model-measure",
-                # TODO Fix the units and datatype to be the same as the sensor
-                # measure's.
-                {"name": measure, "units": "", "datatype": "float"},
+                {"name": measure, "units": base_measure_units, "datatype": "float"},
                 token=token,
             )
-            logging.info(f"Inserting measure {measure} to db")
 
     # run the ARIMA pipeline for every sensor
     sensor_unique_ids = list(prep_data.keys())
