@@ -1,10 +1,4 @@
-window.addEventListener("DOMContentLoaded", (event) => {
-  var schemaSelector = document.getElementById("schema");
-  schemaSelector.addEventListener("change", updateTable);
-  updateTable();
-});
-
-function updateTable() {
+export function updateTable(locations_for_each_schema) {
   try {
     var selectedSchema = document.getElementById("schema").value;
     if (!selectedSchema) {
@@ -12,7 +6,7 @@ function updateTable() {
       return;
     }
 
-    var locations = window.locations_for_each_schema[selectedSchema];
+    var locations = locations_for_each_schema[selectedSchema];
     var tableContent = "";
 
     // Construct the table headers

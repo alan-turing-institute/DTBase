@@ -1,10 +1,4 @@
-window.addEventListener("DOMContentLoaded", (event) => {
-  var sensorTypeSelector = document.getElementById("sensor_type");
-  sensorTypeSelector.addEventListener("change", updateTable);
-  updateTable();
-});
-
-function updateTable() {
+export function updateTable(sensors_for_each_type) {
   try {
     var selectedSensorType = document.getElementById("sensor_type").value;
     if (!selectedSensorType) {
@@ -12,7 +6,7 @@ function updateTable() {
       return;
     }
 
-    var sensors = window.sensors_for_each_type[selectedSensorType];
+    var sensors = sensors_for_each_type[selectedSensorType];
     var tableContent = "";
 
     // Construct the table headers

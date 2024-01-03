@@ -1,4 +1,4 @@
-function updateForm() {
+export function updateForm() {
   const schemaId = document.getElementById("schema").value;
   const identifiersDiv = document.getElementById("identifiers");
   identifiersDiv.innerHTML = "";
@@ -22,11 +22,3 @@ function updateForm() {
     identifiersDiv.appendChild(identifierDiv);
   }
 }
-
-window.onload = function () {
-  const schema = document.getElementById("schema");
-  schema.addEventListener("change", updateForm);
-  if (schema.value != "") {
-    updateForm();
-  }
-};

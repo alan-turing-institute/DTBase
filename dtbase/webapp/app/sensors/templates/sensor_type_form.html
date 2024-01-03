@@ -37,9 +37,10 @@
 {% block javascripts %}
 {{ super()}}
 
-<script>
-    const existing_measures = {{ existing_measures|tojson }};
+<script type="module">
+  import { onPageLoad } from '/static/javascript/sensor_type.js';
+  const existing_measures = {{ existing_measures|tojson }};
+  document.addEventListener("DOMContentLoaded", () => onPageLoad(existing_measures));
 </script>
-<script src="{{ url_for('static', filename='javascript/sensor_type.js') }}"></script>
 
 {% endblock javascripts %}

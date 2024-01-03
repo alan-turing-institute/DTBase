@@ -1,4 +1,6 @@
-function plot(
+import { dictionary_scatter } from "./utility.js";
+
+export function plot(
   top_json,
   mid_json,
   bot_json,
@@ -8,7 +10,7 @@ function plot(
   y_label,
   show_legend
 ) {
-  datasets = [];
+  const datasets = [];
   if (top_json !== null) {
     const values_top = top_json.map((e) => parseFloat(e["value"]));
     const times_top = top_json.map((e) => new Date(e["timestamp"]));
@@ -114,7 +116,7 @@ function plot(
   return new Chart(ctx, config);
 }
 
-function updateScenarioSelector(scenarios, selectedScenarioDescription) {
+export function updateScenarioSelector(scenarios, selectedScenarioDescription) {
   const modelName = document.getElementById("model_name").value;
   const scenarioSelector = document.getElementById("model_scenario");
 

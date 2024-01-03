@@ -23,7 +23,7 @@
             <div style="position: relative">
               {{ field(class="form-control required", size=20, placeholder=field.label.text) }}
               {% if field.name == "password" %}
-              <i class="fa fa-eye password-toggle" id="show-password" onclick="passwordToggle()"></i>
+              <i class="fa fa-eye password-toggle" id="show-password"></i>
               {% endif %}
             </div>
             {% endfor %}
@@ -35,9 +35,12 @@
       </div>
     </div>
   </div>
+
   {% block javascripts %}
   {{ super() }}
-    <!-- Utility -->
-    <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
+  <script type="module">
+    import { passwordToggle } from '/static/javascript/utility.js';
+    document.getElementById("show-password").addEventListener("click", passwordToggle);
+  </script>
   {% endblock javascripts %}
 {% endblock body %}

@@ -37,9 +37,10 @@
 {% block javascripts %}
 {{ super()}}
 
-<script>
-    const existing_identifiers = {{ existing_identifiers|tojson }};
+<script type="module">
+  import { onPageLoad } from '/static/javascript/location_schema.js';
+  const existing_identifiers = {{ existing_identifiers|tojson }};
+  document.addEventListener("DOMContentLoaded", () => onPageLoad(existing_identifiers));
 </script>
-<script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
 
 {% endblock javascripts %}
