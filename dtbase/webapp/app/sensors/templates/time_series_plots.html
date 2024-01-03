@@ -21,8 +21,7 @@
             <select
                 id="sensorTypeSelector"
                 class="selectpicker"
-                name="sensorTypeSelector"
-                onchange="changeSensorType()">
+                name="sensorTypeSelector">
               {% for s in sensor_types %}
               <option
                   value="{{ s.name }}"
@@ -67,8 +66,8 @@
         </div>
 
       </div>
-      <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/time-series-plots',false)">Plot</button>
-      <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/time-series-plots',true)">Download</button>
+      <button id="plotButton" style="margin-top: 5px" type="button">Plot</button>
+      <button id="downloadButton" style="margin-top: 5px" type="button">Download</button>
     </form>
   </div>
 </div>
@@ -99,12 +98,21 @@
 <!-- Utility functions -->
 <script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
 <script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
 <!-- Chart.js -->
 <script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-<script>
+<script type="module">
+  import { changeSensorType, requestTimeSeries, makePlot } from '/static/javascript/timeseries_dashboard.js';
+  document.getElementById('sensorTypeSelector').addEventListener('change', changeSensorType);
+  document.getElementById('plotButton').addEventListener('click', function() {
+    requestTimeSeries('/sensors/time-series-plots', false);
+  });
+
+  document.getElementById('downloadButton').addEventListener('click', function() {
+    requestTimeSeries('/sensors/time-series-plots', true);
+  });
+
   const data = {{data | safe}};
   Object.keys(data).forEach((sensorId) => {
       $(`#datatable-responsive-${sensorId}`).DataTable( {

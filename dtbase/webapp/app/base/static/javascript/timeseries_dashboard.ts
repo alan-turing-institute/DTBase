@@ -16,14 +16,14 @@ function getSelectedSensorTypeStr() {
   return sensorTypeStr;
 }
 
-function changeSensorType() {
+export function changeSensorType() {
   const sensorTypeStr = encodeURIComponent(getSelectedSensorTypeStr());
   const url = "/sensors/time-series-plots";
   const params = "sensorType=" + sensorTypeStr;
   location.replace(url + "?" + params);
 }
 
-function requestTimeSeries(url, download) {
+export function requestTimeSeries(url, download) {
   const sensorIds = getCheckedSensorIds();
   const startDatePicker = document.getElementById("startDatePicker");
   const endDatePicker = document.getElementById("endDatePicker");
@@ -112,7 +112,7 @@ const colouramp_blue = [
   "rgba(141,245,252,1)",
 ];
 
-function makePlot(data, allSensors, yDataName, yLabel, canvasName) {
+export function makePlot(data, allSensors, yDataName, yLabel, canvasName) {
   const datasets = [];
   const sensorIds = Object.keys(data);
   const numSensors = sensorIds.length;

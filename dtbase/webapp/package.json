@@ -25,7 +25,8 @@
     "datatables.net-scroller-bs": "^2.1.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.6.4",
-    "moment": "^2.29.4"
+    "moment": "^2.29.4",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "eslint": "^8.25.0",
