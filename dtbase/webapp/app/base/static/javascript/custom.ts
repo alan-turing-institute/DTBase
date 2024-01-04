@@ -1,3 +1,7 @@
+//import { DataTable } from '/static/node_modules/datatables.net-bs5/js/dataTables.bootstrap5.min.js';
+//import DataTable from '/app/base/static/node_modules/datatables.net-bs5';
+//import { DataTable } from '../node_modules/datatables.net-bs5/js';
+import  DataTable  from 'https://cdn.skypack.dev/datatables.net-bs5';
 /* DATA TABLES */
 
 function init_DataTables() {
@@ -76,5 +80,6 @@ function init_DataTables() {
 }
 
 $(document).ready(function () {
-  init_DataTables();
+  //init_DataTables();
+  new DataTable("#datatable")
 });
