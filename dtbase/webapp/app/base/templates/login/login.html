@@ -38,9 +38,9 @@
 
   {% block javascripts %}
   {{ super() }}
-  <script type="module">
-    import { passwordToggle } from '/static/javascript/utility.js';
-    document.getElementById("show-password").addEventListener("click", passwordToggle);
+  <script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
+  <script>
+    document.getElementById("show-password").addEventListener("click", window.passwordToggle);
   </script>
   {% endblock javascripts %}
 {% endblock body %}

@@ -1,4 +1,4 @@
-export function updateTable(locations_for_each_schema) {
+function updateTable(locations_for_each_schema) {
   try {
     var selectedSchema = document.getElementById("schema").value;
     if (!selectedSchema) {
@@ -52,3 +52,5 @@ export function updateTable(locations_for_each_schema) {
     console.error(error);
   }
 }
+
+window.updateTable = updateTable;

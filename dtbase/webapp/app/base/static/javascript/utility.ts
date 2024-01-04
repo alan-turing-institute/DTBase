@@ -11,7 +11,7 @@ export function dictionary_scatter(x, y) {
 }
 
 // function used to toggle the visibility of the password field
-export function passwordToggle() {
+function passwordToggle() {
   const passwordField = document.getElementById("pwd_login");
   const passwordFieldType = passwordField.getAttribute("type");
   if (passwordFieldType === "password") {
@@ -20,3 +20,5 @@ export function passwordToggle() {
     passwordField.setAttribute("type", "password");
   }
 }
+
+window.passwordToggle = passwordToggle;

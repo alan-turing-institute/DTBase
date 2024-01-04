@@ -1,4 +1,4 @@
-export function updateTable(sensors_for_each_type) {
+function updateTable(sensors_for_each_type) {
   try {
     var selectedSensorType = document.getElementById("sensor_type").value;
     if (!selectedSensorType) {
@@ -52,3 +52,5 @@ export function updateTable(sensors_for_each_type) {
     console.error(error);
   }
 }
+
+window.updateTable = updateTable;

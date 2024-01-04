@@ -1,12 +1,10 @@
-export function updateForm() {
+function updateForm(schemas) {
   const schemaId = document.getElementById("schema").value;
   const identifiersDiv = document.getElementById("identifiers");
   identifiersDiv.innerHTML = "";
 
   // find the selected schema
-  const selectedSchema = window.schemas.find(
-    (schema) => schema.name == schemaId
-  );
+  const selectedSchema = schemas.find((schema) => schema.name == schemaId);
 
   // If there's no selected schema or it has no identifiers, then return.
   if (!selectedSchema || !selectedSchema.identifiers) return;
@@ -22,3 +20,5 @@ export function updateForm() {
     identifiersDiv.appendChild(identifierDiv);
   }
 }
+
+window.updateForm = updateForm;

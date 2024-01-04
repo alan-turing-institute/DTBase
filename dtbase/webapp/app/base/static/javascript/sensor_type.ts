@@ -1,4 +1,4 @@
-export function onPageLoad(existing_measures) {
+function onPageLoad(existing_measures) {
   const addButton = document.querySelector(".btn-add-measure");
   const measureGroup = document.querySelector(".form-group:nth-of-type(3)");
   const existingMeasureSelect = document.querySelector(
@@ -68,3 +68,5 @@ export function onPageLoad(existing_measures) {
     }
   });
 }
+
+window.onPageLoad = onPageLoad;

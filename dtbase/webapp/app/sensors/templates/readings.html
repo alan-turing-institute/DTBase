@@ -109,20 +109,19 @@
   <script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
   <script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
   <script src="{{ url_for('static', filename='node_modules/datatables.net-scroller/js/dataTables.scroller.js') }}"></script>
-  <!-- Set the correct options for the sensor selector --!>
-  <script type="module">
-    import { updateSensorSelector } from '/static/javascript/readings.js';
+  <script src={{ url_for('static', filename='javascript/readings.js') }}></script>
+  <script>
     const sensorsIdsByType = {{sensor_ids_by_type | safe}}
     const selectedSensor = {{selected_sensor | tojson | safe}}
 
     function updateSensorSelectorNoArgs() {
-      updateSensorSelector(sensorsIdsByType, null);
+      window.updateSensorSelector(sensorsIdsByType, null);
     }
 
     document.getElementById("sensorTypeSelector").addEventListener(
       "change", updateSensorSelectorNoArgs
     );
-    updateSensorSelector(sensorsIdsByType, selectedSensor);
+    window.updateSensorSelector(sensorsIdsByType, selectedSensor);
   </script>
 
 {% endblock javascripts %}

@@ -19,15 +19,15 @@
 
 {% block javascripts %}
 {{ super() }}
-<script type="module">
-  import { updateTable } from '/static/javascript/sensor_list_table.js';
+<script src="{{ url_for('static', filename='javascript/sensor_list_table.js') }}"></script>
+<script>
   const sensors_for_each_type = {{ sensors_for_each_type | tojson | safe }};
   window.addEventListener("DOMContentLoaded", (event) => {
     const sensorTypeSelector = document.getElementById("sensor_type");
     sensorTypeSelector.addEventListener(
-      "change", () => updateTable(sensors_for_each_type)
+      "change", () => window.updateTable(sensors_for_each_type)
     );
-    updateTable(sensors_for_each_type);
+    window.updateTable(sensors_for_each_type);
   });
 </script>
 {% endblock javascripts %}

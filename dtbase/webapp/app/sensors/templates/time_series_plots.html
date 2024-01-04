@@ -99,15 +99,16 @@
 <script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-<script type="module">
-  import { changeSensorType, requestTimeSeries, makePlot } from '/static/javascript/timeseries_dashboard.js';
-  document.getElementById('sensorTypeSelector').addEventListener('change', changeSensorType);
+<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js')
+  }}"></script>
+<script>
+  document.getElementById('sensorTypeSelector').addEventListener('change', window.changeSensorType);
   document.getElementById('plotButton').addEventListener('click', function() {
-    requestTimeSeries('/sensors/time-series-plots', false);
+    window.requestTimeSeries('/sensors/time-series-plots', false);
   });
 
   document.getElementById('downloadButton').addEventListener('click', function() {
-    requestTimeSeries('/sensors/time-series-plots', true);
+    window.requestTimeSeries('/sensors/time-series-plots', true);
   });
 
   const data = {{data | safe}};
@@ -118,7 +119,7 @@
     });
   const allSensors = "{{all_sensors}}"
   {% for m in measures %}
-  makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
+  window.makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
   {% endfor %}
 </script>
 {% endblock javascripts %}

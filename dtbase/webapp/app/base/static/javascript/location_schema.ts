@@ -1,4 +1,4 @@
-export function onPageLoad(existing_identifiers) {
+function onPageLoad(existing_identifiers) {
   const addButton = document.querySelector(".btn-add-identifier");
   const identifierGroup = document.querySelector(".form-group:nth-of-type(3)");
   const existingIdentifierSelect = document.querySelector(
@@ -68,3 +68,5 @@ function createIdentifierRow(identifierGroup, identifier = {}) {
 
   identifierGroup.appendChild(newRow);
 }
+
+window.onPageLoad = onPageLoad;

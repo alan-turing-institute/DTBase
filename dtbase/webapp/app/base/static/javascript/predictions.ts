@@ -1,6 +1,6 @@
-import { dictionary_scatter } from "./utility.js";
+import { dictionary_scatter } from "./utility";
 
-export function plot(
+function plot(
   top_json,
   mid_json,
   bot_json,
@@ -116,7 +116,7 @@ export function plot(
   return new Chart(ctx, config);
 }
 
-export function updateScenarioSelector(scenarios, selectedScenarioDescription) {
+function updateScenarioSelector(scenarios, selectedScenarioDescription) {
   const modelName = document.getElementById("model_name").value;
   const scenarioSelector = document.getElementById("model_scenario");
 
@@ -144,3 +144,6 @@ export function updateScenarioSelector(scenarios, selectedScenarioDescription) {
     scenarioSelector.add(option);
   });
 }
+
+window.plot = plot;
+window.updateScenarioSelector = updateScenarioSelector;

@@ -26,11 +26,11 @@ fi
 
 npm install
 if [ "$debug" == "false" ]; then
-  npx tsc
+  npx webpack --mode=production
   flask run --host=0.0.0.0 --port $bport
 else
-  # This runs tsc to transpile typescript into javascript and the flask app concurrently.
-  # This only matters when in development/debug mode, in which case we run tsc with
-  # --watch, to have it retranspile every time a source file is changed.
-  npx concurrently --kill-others -n tsc,flask "npx tsc --watch" "flask run --host=0.0.0.0 --port $bport"
+  # This runs webpack and the flask app concurrently.
+  # This only matters when in development/debug mode, in which case we run webpack with
+  # --watch, to have it retranspile and bundle every time a source file is changed.
+  npx concurrently --kill-others -n webpack,flask "npx webpack --mode=development --watch" "flask run --host=0.0.0.0 --port $bport"
 fi

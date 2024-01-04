@@ -1,4 +1,4 @@
-export function updateSensorSelector(sensorIdsByType, selectedSensor) {
+function updateSensorSelector(sensorIdsByType, selectedSensor) {
   const sensorSelector = document.getElementById("sensorSelector");
   const sensorTypeSelector = document.getElementById("sensorTypeSelector");
   const selectedSensorType = sensorTypeSelector.value;
@@ -36,3 +36,5 @@ export function updateSensorSelector(sensorIdsByType, selectedSensor) {
     }
   }
 }
+
+window.updateSensorSelector = updateSensorSelector;

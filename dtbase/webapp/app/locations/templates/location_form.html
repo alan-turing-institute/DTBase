@@ -28,14 +28,14 @@
 
 {% block javascripts %}
 {{ super() }}
-<script type="module">
-  import { updateForm } from '/static/javascript/location.js'
-  window.schemas = {{ schemas|tojson|safe }};
+<script src="{{ url_for('static', filename='javascript/location.js') }}"></script>
+<script>
+  const schemas = {{ schemas|tojson|safe }};
   window.onload = function () {
     const schema = document.getElementById("schema");
-    schema.addEventListener("change", updateForm);
+    schema.addEventListener("change", () => window.updateForm(schemas));
     if (schema.value != "") {
-      updateForm();
+      window.updateForm(schemas);
     }
   };
 </script>
