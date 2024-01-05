@@ -296,69 +296,6 @@ class OpenWeatherDataIngress(BaseIngress):
         return sensor_type_output + sensor_output + sensor_readings_output
 
 
-def weather_api_tests() -> None:
-    # # Example 1: Get historical weather data for the last 2 hours
-    print("----------- Test 1 ---------------")
-    dt_from = datetime.now() - timedelta(hours=36)
-    dt_to = "present"
-    ingress = OpenWeatherDataIngress()
-    output = ingress.get_data(dt_from, dt_to)
-    print(output)
-    print("\n")
-
-    # Example 2: Get forecast weather data for the next 2 hours.
-
-    print("----------- Test 2 ---------------")
-    dt_from = "present"
-    dt_to = datetime.now() + timedelta(hours=11)
-    ingress = OpenWeatherDataIngress()
-    output = ingress.get_data(dt_from, dt_to)
-
-    print(output)
-    print("\n")
-
-    # Example 3: Try to get weather data for the last 2 hours and the next 2 hours
-    print("----------- Test 3 ---------------")
-    dt_from = datetime.now() - timedelta(hours=2)
-    dt_to = datetime.now() + timedelta(hours=2)
-    ingress = OpenWeatherDataIngress()
-    try:
-        output = ingress.get_data(dt_from, dt_to)
-    except ValueError as e:
-        print(e)
-    print("\n")
-
-    # Example 4: Try to get weather data where dt_from is after dt_to
-    print("----------- Test 4 ---------------")
-    dt_from = datetime.now() + timedelta(hours=2)
-    dt_to = "present"
-    ingress = OpenWeatherDataIngress()
-    try:
-        output = ingress.get_data(dt_from, dt_to)
-    except ValueError as e:
-        print(e)
-
-    # Example 5: Try to get weather data where dt_from is more than 5 days into the past
-    print("----------- Test 4 ---------------")
-    dt_from = datetime.now() - timedelta(days=7)
-    dt_to = "present"
-    ingress = OpenWeatherDataIngress()
-    try:
-        output = ingress.get_data(dt_from, dt_to)
-    except ValueError as e:
-        print(e)
-
-    # Example 6: Try to get weather data where dt_to is more than 2 days into the future
-    print("----------- Test 4 ---------------")
-    dt_from = datetime.now() - timedelta(days=7)
-    dt_to = "present"
-    ingress = OpenWeatherDataIngress()
-    try:
-        output = ingress.get_data(dt_from, dt_to)
-    except ValueError as e:
-        print(e)
-
-
 def example_weather_ingress() -> None:
     """
     Ingress weather data from 60 hours before today and 2 days after.
