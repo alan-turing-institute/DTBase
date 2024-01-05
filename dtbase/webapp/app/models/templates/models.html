@@ -2,12 +2,6 @@
 
 {% block title %} Predictive models {% endblock title %}
 
-{% block stylesheets %}
-{{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
-{% endblock stylesheets %}
-
 {% block content %}
 <h3>Filter modelling results</h3>
 <form method="post">

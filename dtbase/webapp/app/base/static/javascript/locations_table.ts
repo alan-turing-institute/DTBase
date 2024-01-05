@@ -1,8 +1,10 @@
+import { initialiseDataTable } from "./datatables";
+
 function updateTable(locations_for_each_schema) {
   try {
     var selectedSchema = document.getElementById("schema").value;
     if (!selectedSchema) {
-      document.getElementById("locationTable").innerHTML = "";
+      document.getElementById("locationTableWrapper").innerHTML = "";
       return;
     }
 
@@ -34,20 +36,10 @@ function updateTable(locations_for_each_schema) {
     tableContent += "</tbody>";
 
     // Construct the full table and inject it into the DOM
-    var fullTable = `<div class='table-responsive'><table class='table location-table table-striped table-hover'>${tableContent}</table></div>`;
-    document.getElementById("locationTable").innerHTML = fullTable;
+    const fullTable = `<table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">${tableContent}</table>`;
 
-    // Get the number of columns
-    var numOfColumns = Object.keys(locations[0]).length;
-
-    // Calculate table width based on number of columns.
-    var tableWidth = 120 * numOfColumns;
-
-    // Set a maximum table width if required
-    tableWidth = Math.min(tableWidth, 1000);
-
-    var tableElement = document.querySelector(".location-table");
-    tableElement.style.width = tableWidth + "px";
+    document.getElementById("locationTableWrapper").innerHTML = fullTable;
+    initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);
   }

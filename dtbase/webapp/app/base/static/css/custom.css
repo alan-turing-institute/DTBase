@@ -47,12 +47,12 @@ body {
   width: 50%;
 }
 
-.location-table {
-  max-width: 50%;
-  table-layout: fixed;
-  overflow: hidden; /* Hide content that is wider than the max-width */
-  text-overflow: ellipsis; /* Add ... at the end of the content if it is too wide */
-  white-space: nowrap; /* Prevent the content from wrapping to the next line */
+#locationTableWrapper {
+  max-width: 800px;
+}
+
+#sensorTableWrapper {
+  max-width: 800px;
 }
 
 .num-column {

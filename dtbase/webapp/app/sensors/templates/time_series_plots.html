@@ -2,12 +2,6 @@
 
 {% block title %} DTBase {% endblock title %}
 
-{% block stylesheets %}
-{{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
-{% endblock stylesheets %}
-
 {% block content %}
 <div class="row">
   <div class="col">
@@ -90,12 +84,6 @@
 
 {% block javascripts %}
 {{ super()}}
-<!-- Datatables -->
-<script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
-<!-- Chart.js -->
 <script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
 <script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
@@ -112,11 +100,6 @@
   });
 
   const data = {{data | safe}};
-  Object.keys(data).forEach((sensorId) => {
-      $(`#datatable-responsive-${sensorId}`).DataTable( {
-          responsive: true
-        });
-    });
   const allSensors = "{{all_sensors}}"
   {% for m in measures %}
   window.makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");

@@ -2,12 +2,6 @@
 
 {% block title %} DTBase {% endblock title %}
 
-{% block stylesheets %}
-{{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
-{% endblock stylesheets %}
-
 {% block content %}
   <div class="row d-flex align-items-center justify-content-center" style="min-height: 80vh;">
     <div class="col-md-10 text-left">

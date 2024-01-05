@@ -1,5 +1,13 @@
 {% extends "base_site.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs5/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs5/css/buttons.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
 {% block title %} Locations {% endblock title %}
 
 {% block content %}
@@ -14,7 +22,7 @@
     </select>
 </div>
 
-<div id="locationTable"></div>
+<div id="locationTableWrapper"></div>
 {% endblock content %}
 
 {% block javascripts %}

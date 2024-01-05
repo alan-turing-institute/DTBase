@@ -1,3 +1,5 @@
+import { initialiseDataTable } from "./datatables";
+
 function updateTable(sensors_for_each_type) {
   try {
     var selectedSensorType = document.getElementById("sensor_type").value;
@@ -34,20 +36,10 @@ function updateTable(sensors_for_each_type) {
     tableContent += "</tbody>";
 
     // Construct the full table and inject it into the DOM
-    var fullTable = `<div class='table-responsive'><table class='table sensor-table table-striped table-hover'>${tableContent}</table></div>`;
-    document.getElementById("sensorTable").innerHTML = fullTable;
+    const fullTable = `<table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">${tableContent}</table>`;
 
-    // Get the number of columns
-    var numOfColumns = Object.keys(sensors[0]).length;
-
-    // Calculate table width based on number of columns.
-    var tableWidth = 120 * numOfColumns;
-
-    // Set a maximum table width if required
-    tableWidth = Math.min(tableWidth, 1000);
-
-    var tableElement = document.querySelector(".sensor-table");
-    tableElement.style.width = tableWidth + "px";
+    document.getElementById("sensorTableWrapper").innerHTML = fullTable;
+    initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);
   }
