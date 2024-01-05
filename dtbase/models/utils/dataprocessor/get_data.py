@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 import pandas as pd
 
 from dtbase.core.exc import BackendCallError
-from dtbase.models.utils.backend_call import auth_backend_call, login
+from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def get_training_data(
                Each DataFrame is sorted by the timestamp column.
     """
     if token is None:
-        token = login()
+        token = login()[0]
 
     # get number of training days
     if delta_days is None:

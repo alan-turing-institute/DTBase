@@ -7,8 +7,8 @@ import coloredlogs
 import pandas as pd
 
 from dtbase.core.exc import BackendCallError
+from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.hodmd.hodmd_model import hodmd_pipeline
-from dtbase.models.utils.backend_call import auth_backend_call, login
 from dtbase.models.utils.config import config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
@@ -46,7 +46,7 @@ def run_pipeline(
     coloredlogs.install(level="INFO")
 
     # Log into the backend
-    token = login()
+    token = login()[0]
 
     prep_data = fetch_data()
 

@@ -5,8 +5,8 @@ import sys
 import coloredlogs
 
 from dtbase.core.exc import BackendCallError
+from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.utils.backend_call import auth_backend_call, login
 from dtbase.models.utils.config import config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
@@ -25,7 +25,7 @@ def run_pipeline() -> None:
     coloredlogs.install(level="INFO")
 
     # Log into the backend
-    token = login()
+    token = login()[0]
 
     sensors_config = config(section="sensors")
     sensors_list = sensors_config["include_sensors"]
