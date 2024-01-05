@@ -8,14 +8,16 @@ import logging
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
+import requests
 from flask import Response, send_file
 from sqlalchemy import exc
 from sqlalchemy.engine import Engine, ResultProxy, RowMapping
 from sqlalchemy.orm import Session
 
+from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
 from dtbase.core.db import connect_db, session_close, session_open
 from dtbase.core.exc import DatabaseConnectionError
@@ -327,3 +329,21 @@ def download_csv(readings: List[Any], filename_base: str = "results") -> Respons
     return send_file(
         output_buffer, download_name=filename, mimetype="text/csv", as_attachment=True
     )
+
+
+def backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+) -> requests.models.Response:
+    """Make an API call to the backend server."""
+    headers = {} if headers is None else headers
+    request_func = getattr(requests, request_type)
+    url = f"{BACKEND_URL}{end_point_path}"
+    if payload:
+        headers = headers | {"content-type": "application/json"}
+        response = request_func(url, headers=headers, json=payload)
+    else:
+        response = request_func(url, headers=headers)
+    return response

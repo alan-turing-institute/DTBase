@@ -158,14 +158,17 @@ def index() -> str:
     if scenario_description == "ANY SCENARIO/NULL":
         scenario_description = None
     run_id = request.form.get("run_id", None)
-    dt_from = request.form.get("startDate", None)
-    dt_to = request.form.get("endDate", None)
-    dt_to = dt.datetime.now() if dt_to is None else dt.datetime.fromisoformat(dt_to)
-    dt_from = (
-        dt_to - dt.timedelta(days=1)
-        if dt_from is None
-        else dt.datetime.fromisoformat(dt_from)
+    date_from = request.form.get("startDate", None)
+    date_to = request.form.get("endDate", None)
+    date_to = dt.date.today() if date_to is None else dt.date.fromisoformat(date_to)
+    date_from = (
+        date_to - dt.timedelta(days=1)
+        if date_from is None
+        else dt.date.fromisoformat(date_from)
     )
+    # Make the date limits into inclusive datetime limits
+    dt_from = dt.datetime.combine(date_from, dt.time(hour=0, minute=0, second=0))
+    dt_to = dt.datetime.combine(date_to, dt.time(hour=23, minute=59, second=59))
 
     if (
         request.method == "POST"
