@@ -101,7 +101,10 @@ def test_models_index_with_data_mock(mock_auth_frontend_client: FlaskClient) -> 
                     {"description": "Scenario 2", "model_name": "model2"},
                 ],
             )
-            m.get("http://localhost:5000/model/list-model-runs", json=[1, 2])
+            m.get(
+                "http://localhost:5000/model/list-model-runs",
+                json=[{"id": 1}, {"id": 2}],
+            )
             m.get(
                 "http://localhost:5000/model/get-model-run", json=MOCK_PREDICTION_DATA
             )

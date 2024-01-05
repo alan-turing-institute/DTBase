@@ -158,6 +158,7 @@ def index() -> str:
     if scenario_description == "ANY SCENARIO/NULL":
         scenario_description = None
     run_id = request.form.get("run_id", None)
+    run_id = int(run_id) if run_id is not None else None
     date_from = request.form.get("startDate", None)
     date_to = request.form.get("endDate", None)
     date_to = dt.date.today() if date_to is None else dt.date.fromisoformat(date_to)
@@ -177,6 +178,10 @@ def index() -> str:
         and dt_to is not None
     ):
         runs = get_runs(model_name, dt_from, dt_to, scenario_description)
+        if run_id not in [r["id"] for r in runs]:
+            # We don't want to show data for a run that isn't among the ones available
+            # for picking by the user.
+            run_id = None
     else:
         runs = None
 

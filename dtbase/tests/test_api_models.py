@@ -187,6 +187,17 @@ def test_insert_model_scenario(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_model_scenario_duplicate(auth_client: AuthenticatedClient) -> None:
+    with auth_client as client:
+        insert_model_scenarios(client)
+        response = client.post(
+            "/model/insert-model-scenario",
+            json={"model_name": MODEL_NAME1, "description": SCENARIO1},
+        )
+        assert response.status_code == 409
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_model_scenarios(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         # add a model scenario

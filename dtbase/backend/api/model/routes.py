@@ -94,8 +94,11 @@ def insert_model_scenario() -> Tuple[Response, int]:
     if error_response:
         return error_response
 
-    models.insert_model_scenario(**payload, session=db.session)
-    db.session.commit()
+    try:
+        models.insert_model_scenario(**payload, session=db.session)
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({"message": "Scenario exists already"}), 409
     return jsonify(payload), 201
 
 

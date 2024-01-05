@@ -277,7 +277,7 @@ def insert_model_run(
     measures_and_values: list[dict[str, Any]],
     sensor_unique_id: Optional[str] = None,
     sensor_measure: Optional[dict[str, str]] = None,
-    time_created: dt.datetime = dt.datetime.now(dt.timezone.utc),
+    time_created: Optional[dt.datetime] = None,
     create_scenario: bool = False,
     session: Optional[Session] = None,
 ) -> None:
@@ -305,6 +305,8 @@ def insert_model_run(
     Returns:
         None
     """
+    if time_created is None:
+        time_created = dt.datetime.now(dt.timezone.utc)
     session = set_session_if_unset(session)
 
     # Find/insert the scenario

@@ -41,6 +41,8 @@ def run_pipeline(session: Optional[Session] = None) -> None:
 
     # fetch training data from the database
     sensor_data = get_training_data()
+    if not sensor_data:
+        raise ValueError("No training data")
 
     # clean the training data
     cleaned_data = clean_data_list(sensor_data)
