@@ -51,13 +51,14 @@ open_weather_data_ingress = OpenWeatherDataIngress()
 def test_get_api_base_url_and_sensor(
     dt_from: datetime, dt_to: datetime, expected: tuple[str, str]
 ) -> None:
+    """Test the get_api_base_url_and_sensor method for scenarios where the correct //
+    API base URL and sensor should be returned"""
     assert (
         open_weather_data_ingress.get_api_base_url_and_sensor(dt_from, dt_to)
         == expected
     )
 
 
-# Specifically testing the correct errors are raised in different scenarios
 @pytest.mark.parametrize(
     "dt_from, dt_to, expected",
     [
@@ -71,6 +72,8 @@ def test_get_api_base_url_and_sensor(
 def test_get_api_base_url_and_sensor_raises(
     dt_from: datetime, dt_to: datetime, expected: ValueError
 ) -> None:
+    """Test the get_api_base_url_and_sensor method for scenarios where an error //
+    should be raised"""
     with pytest.raises(expected):
         open_weather_data_ingress.get_api_base_url_and_sensor(dt_from, dt_to)
 

@@ -350,7 +350,10 @@ EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE = [
         "/sensor/insert-sensor-type",
         {
             "name": "Weather",
-            "description": "Weather sensors and sensor-like data sources, such as weather forecast sources.",
+            "description": (
+                "Weather sensors and sensor-like data sources, such as weather forecast"
+                " sources."
+            ),
             "measures": [
                 {
                     "name": "temperature",
@@ -1536,7 +1539,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1704416160,
             "moonset": 1704457260,
             "moon_phase": 0.79,
-            "summary": "The day will start with partly cloudy through the late morning hours, transitioning to clearing",
+            "summary": (
+                "The day will start with partly cloudy through the late morning hours,"
+                " transitioning to clearing"
+            ),
             "temp": {
                 "day": 19.39,
                 "min": 9.8,
@@ -1601,7 +1607,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1704596100,
             "moonset": 1704634020,
             "moon_phase": 0.86,
-            "summary": "You can expect partly cloudy in the morning, with clearing in the afternoon",
+            "summary": (
+                "You can expect partly cloudy in the morning, with clearing in the"
+                " afternoon"
+            ),
             "temp": {
                 "day": 15.54,
                 "min": 6.48,
@@ -1636,7 +1645,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1704686340,
             "moonset": 1704723060,
             "moon_phase": 0.89,
-            "summary": "You can expect clear sky in the morning, with partly cloudy in the afternoon",
+            "summary": (
+                "You can expect clear sky in the morning, with partly cloudy in the"
+                " afternoon"
+            ),
             "temp": {
                 "day": 16.06,
                 "min": 6.44,
@@ -1701,7 +1713,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1704867060,
             "moonset": 1704902700,
             "moon_phase": 0.96,
-            "summary": "The day will start with partly cloudy through the late morning hours, transitioning to clearing",
+            "summary": (
+                "The day will start with partly cloudy through the late morning hours,"
+                " transitioning to clearing"
+            ),
             "temp": {
                 "day": 17.93,
                 "min": 8.19,
@@ -1731,7 +1746,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1704957060,
             "moonset": 1704993300,
             "moon_phase": 0,
-            "summary": "You can expect clear sky in the morning, with partly cloudy in the afternoon",
+            "summary": (
+                "You can expect clear sky in the morning, with partly cloudy in the"
+                " afternoon"
+            ),
             "temp": {
                 "day": 19.43,
                 "min": 9.11,
@@ -1761,7 +1779,10 @@ MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE = {
             "moonrise": 1705046700,
             "moonset": 1705084080,
             "moon_phase": 0.04,
-            "summary": "You can expect partly cloudy in the morning, with clearing in the afternoon",
+            "summary": (
+                "You can expect partly cloudy in the morning, with clearing in the"
+                " afternoon"
+            ),
             "temp": {
                 "day": 15.02,
                 "min": 8.17,
@@ -1863,7 +1884,10 @@ EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE = [
         "/sensor/insert-sensor-type",
         {
             "name": "Weather",
-            "description": "Weather sensors and sensor-like data sources, such as weather forecast sources.",
+            "description": (
+                "Weather sensors and sensor-like data sources, such as weather forecast"
+                " sources."
+            ),
             "measures": [
                 {
                     "name": "temperature",
