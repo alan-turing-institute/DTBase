@@ -5,6 +5,7 @@
 {% block sidebar %} {# Omit the sidebar content #} {% endblock sidebar %}
 
 {% block content %}
+<div id="sensorKeysContainer"></div>
 <div class="container">
     <h3>Edit Sensor</h2>
     <form id="edit-sensor-form" method="POST">
@@ -24,6 +25,37 @@
 {% block javascripts %}
 {{ super() }}
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        //// Function to extract parameters from the URL
+        function getURLParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Get id and type from the URL
+        var sensorId = getURLParameter('id');
+        var sensorType = getURLParameter('type');
+        console.log(sensorId);
+        console.log(sensorType);
+        // Use sensorType directly without 'selectedSensorType'
+        //var sensors = window.sensors_for_each_type[sensorType];
+        //console.log(sensors);
+
+        //// Find the selected sensor
+        //var selectedSensor = sensors.find(sensor => sensor.id === parseInt(sensorId));
+        //console.log(selectedSensor);
+
+        var messageElement = window.document.createElement("p");
+        messageElement.textContent = "This is sensor id: " + sensorId + " of type: " + sensorType;
+
+        // Append the messageElement to the body of the popup window
+        //window.document.body.appendChild(messageElement);
+        // var container = window.document.querySelector('.container');
+        // container.insertBefore(messageElement, container.firstChild);
+    });
+
     function closeEditModal() {
         // close the popup window or perform any other close action
         window.close();
