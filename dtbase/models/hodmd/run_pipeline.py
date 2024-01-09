@@ -69,8 +69,6 @@ def run_pipeline(
         raise BackendCallError(response)
 
     # Ensure that we have all measures in the database, or insert if not.
-    # We should have mean, upper bound, and lower bound for each of the measures that
-    # the sensor we are trying to forecast for reports.
     measures_list = config(section="sensors")["include_measures"]
     logging.info(f"measures to use: {measures_list}")
     # base_measures_list is a list of tuples (measure_name, units)

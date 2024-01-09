@@ -111,7 +111,7 @@ def run_pipeline() -> None:
                 "/model/insert-model-run",
                 {
                     "model_name": "Arima",
-                    "scenario_description": "Business as usual",
+                    "scenario_description": scenario,
                     "measures_and_values": [mean, upper, lower],
                     "sensor_unique_id": sensor,
                     "sensor_measure": {

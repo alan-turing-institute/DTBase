@@ -74,7 +74,7 @@ def get_training_data(
     dt_to = dt.datetime.now()
     delta = dt.timedelta(days=num_days_training)
     dt_from = dt_to - delta
-    print(f"Training data from {dt_from} to {dt_to}")
+    logger.info(f"Training data from {dt_from} to {dt_to}")
     # get one table per measure_name x sensor_uniq_id
     # each table can be produced by joining two tables, as specified in the config file.
     data_tables = []

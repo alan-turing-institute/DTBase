@@ -280,10 +280,10 @@ def auth_frontend_client(conn_frontend_client: FlaskClient) -> FlaskClient:
 
 
 @pytest.fixture()
-def conn_models_backend(
+def conn_backend(
     client: AuthenticatedClient,
 ) -> Generator[AuthenticatedClient, None, None]:
-    """Pytest fixture for setting up a backend app and making the models connect to it.
+    """Pytest fixture setting up a backend and making core.utils.backend_call talk to it
 
     This works by mocking dtbase.models.utils.backend_call.requests with an object that
     reroutes all calls to a test backend client.
