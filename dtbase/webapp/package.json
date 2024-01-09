@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "bootstrap": "^5.2.3",
-    "chart.js": "^4.2.1",
+    "chart.js": "^4.4.1",
     "chartjs-adapter-moment": "^1.0.1",
     "datatables.net-bs5": "^1.13.4",
     "datatables.net-buttons-bs5": "^2.3.6",
@@ -23,9 +23,12 @@
     "webpack-cli": "^5.1.4"
   },
   "devDependencies": {
-    "eslint": "^8.25.0",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.7",
+    "typescript": "^5.3.3"
   }
 }
