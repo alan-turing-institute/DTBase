@@ -362,4 +362,5 @@ def example_weather_ingress() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     example_weather_ingress()

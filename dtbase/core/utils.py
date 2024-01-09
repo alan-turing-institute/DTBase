@@ -395,3 +395,14 @@ def auth_backend_call(
         headers = {}
     headers = headers | {"Authorization": f"Bearer {token}"}
     return backend_call(request_type, end_point_path, payload, headers)
+
+
+def log_rest_response(response: Response) -> None:
+    """
+    Logging the response from the backend API
+    """
+    msg = f"Got response {response.status_code}: {response.text}"
+    if 300 > response.status_code:
+        logging.info(msg)
+    else:
+        logging.warning(msg)
