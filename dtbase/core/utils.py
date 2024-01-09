@@ -8,17 +8,24 @@ import logging
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
+import requests
 from flask import Response, send_file
 from sqlalchemy import exc
 from sqlalchemy.engine import Engine, ResultProxy, RowMapping
 from sqlalchemy.orm import Session
 
-from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
+from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
+from dtbase.core.constants import (
+    DEFAULT_USER_EMAIL,
+    DEFAULT_USER_PASS,
+    SQL_CONNECTION_STRING,
+    SQL_DBNAME,
+)
 from dtbase.core.db import connect_db, session_close, session_open
-from dtbase.core.exc import DatabaseConnectionError
+from dtbase.core.exc import BackendCallError, DatabaseConnectionError
 from dtbase.core.structure import (
     LocationBooleanValue,
     LocationFloatValue,
@@ -327,3 +334,64 @@ def download_csv(readings: List[Any], filename_base: str = "results") -> Respons
     return send_file(
         output_buffer, download_name=filename, mimetype="text/csv", as_attachment=True
     )
+
+
+def backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+) -> requests.models.Response:
+    """Make an API call to the backend server."""
+    headers = {} if headers is None else headers
+    request_func = getattr(requests, request_type)
+    url = f"{BACKEND_URL}{end_point_path}"
+    if payload:
+        headers = headers | {"content-type": "application/json"}
+        response = request_func(url, headers=headers, json=payload)
+    else:
+        response = request_func(url, headers=headers)
+    return response
+
+
+def login(
+    email: str = DEFAULT_USER_EMAIL, password: Optional[str] = DEFAULT_USER_PASS
+) -> tuple[str, str]:
+    """Log in to the backend server.
+
+    If no user credentials are provided, use the default ones.
+
+    Return an access token and a refresh token.
+    """
+    if password is None:
+        raise ValueError("Must provide a password.")
+    response = backend_call(
+        "post",
+        "/auth/login",
+        {"email": DEFAULT_USER_EMAIL, "password": DEFAULT_USER_PASS},
+    )
+    if response.status_code != 200:
+        raise BackendCallError(response)
+    access_token = response.json()["access_token"]
+    refresh_token = response.json()["refresh_token"]
+    return access_token, refresh_token
+
+
+def auth_backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+    token: Optional[str] = None,
+) -> requests.models.Response:
+    """Make an API call to the backend, with authentication.
+
+    If no access token is given, use the `login` function to get one with default
+    credentials.
+    """
+    if token is None:
+        token = login()[0]
+    if headers is None:
+        headers = {}
+    headers = headers | {"Authorization": f"Bearer {token}"}
+    return backend_call(request_type, end_point_path, payload, headers)

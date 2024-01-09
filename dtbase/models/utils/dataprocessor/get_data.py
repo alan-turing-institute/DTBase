@@ -2,16 +2,15 @@
 Data access module for ARIMA model and potentially others
 """
 
-import datetime
+import datetime as dt
 import logging
 from typing import List, Optional, Tuple
 
 import pandas as pd
-from sqlalchemy.orm import Session
 
-from dtbase.core.sensors import get_sensor_readings
+from dtbase.core.exc import BackendCallError
+from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.utils.config import config
-from dtbase.models.utils.db_utils import get_sqlalchemy_session, session_close
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ def get_training_data(
     measures_list: Optional[List[str]] = None,
     sensors_list: Optional[List[str]] = None,
     delta_days: Optional[int] = None,
-    session: Optional[Session] = None,
+    token: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, ...]:
     """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
@@ -50,14 +49,15 @@ def get_training_data(
             config.
         delta_days (int): Number of days in the past from which to retrieve data.
             Defaults to None.
-        num_rows (int, optional): Number of rows to limit the data to. Defaults to None.
-        session (_type_, optional): _description_. Defaults to None.
+        token (str): An authencation token for the backend. Optional.
 
     Returns:
         tuple: A tuple of pandas DataFrames, with each corresponding to a
                Measure x Sensor combination.
                Each DataFrame is sorted by the timestamp column.
     """
+    if token is None:
+        token = login()[0]
 
     # get number of training days
     if delta_days is None:
@@ -71,12 +71,10 @@ def get_training_data(
         )
         raise ValueError
 
-    if not session:
-        session = get_sqlalchemy_session()
-    date_to = datetime.datetime.now()
-    delta = datetime.timedelta(days=num_days_training)
-    date_from = date_to - delta
-    print(f"Training data from {date_from} to {date_to}")
+    dt_to = dt.datetime.now()
+    delta = dt.timedelta(days=num_days_training)
+    dt_from = dt_to - delta
+    logger.info(f"Training data from {dt_from} to {dt_to}")
     # get one table per measure_name x sensor_uniq_id
     # each table can be produced by joining two tables, as specified in the config file.
     data_tables = []
@@ -85,18 +83,28 @@ def get_training_data(
         sensors_list = sensors_config["include_sensors"]
     if not measures_list:
         measures_list = sensors_config["include_measures"]
-        # this will be a list of tuples (measure_name, units)
-    for measure in measures_list:
+    for measure_name, units in measures_list:
         for sensor in sensors_list:
-            readings = get_sensor_readings(
-                measure_name=measure[0],
-                sensor_uniq_id=sensor,
-                dt_from=date_from,
-                dt_to=date_to,
-                session=session,
+            response = auth_backend_call(
+                "get",
+                "/sensor/sensor-readings",
+                {
+                    "measure_name": measure_name,
+                    "unique_identifier": sensor,
+                    "dt_from": dt_from.isoformat(),
+                    "dt_to": dt_to.isoformat(),
+                },
+                token=token,
             )
+            if response.status_code != 200:
+                raise BackendCallError(response)
+            readings = response.json()
             entries = [
-                {measure[0]: r[0], "sensor_unique_id": sensor, "timestamp": r[1]}
+                {
+                    measure_name: r["value"],
+                    "sensor_unique_id": sensor,
+                    "timestamp": dt.datetime.fromisoformat(r["timestamp"]),
+                }
                 for r in readings
             ]
             df = pd.DataFrame(entries)
@@ -105,6 +113,4 @@ def get_training_data(
     # useful filter when multiple sensors and measures are specified in the
     # configuration.
     data_tables = [table for table in data_tables if len(table) > 0]
-
-    session_close(session)
     return tuple(data_tables)

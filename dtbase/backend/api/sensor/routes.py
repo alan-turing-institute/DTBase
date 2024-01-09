@@ -284,13 +284,23 @@ def get_sensor_readings() -> Tuple[Response, int]:
     """
     Get sensor readings for a specific measure and sensor between two dates.
 
-    GET request should have JSON data (mimetype "application/json") containing:
+    GET request should have JSON data (mimetype "application/json") with payload
+    {
         measure_name: Name of the sensor measure to get readings for.
         unique_identifier: Unique identifier for the sensor to get readings for.
         dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601
             format: '%Y-%m-%dT%H:%M:%S'.
         dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format:
             '%Y-%m-%dT%H:%M:%S'.
+    }
+    Returns readings in the format
+    [
+        {
+            "value": <value:str|float|bool|int>
+            "timestamp": <timestamp:datetime>
+         }
+        ...
+    ]
     """
 
     payload = request.get_json()

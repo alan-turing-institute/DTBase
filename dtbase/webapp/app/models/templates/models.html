@@ -113,10 +113,28 @@
     // See static/javascript/predictions.js for the plot function.
     const show_legend = true;
     const axis_title = measure;
+    if (measure in pred_data) {
+      mid_line = pred_data[measure]
+    } else if ("Mean "+measure in pred_data) {
+      mid_line = pred_data["Mean "+measure]
+    } else {
+      mid_line = null
+    }
 
-    plot(pred_data["Upper Bound "+measure],
-      pred_data["Mean "+measure],
-      pred_data["Lower Bound "+measure],
+    if ("Upper Bound "+measure in pred_data) {
+      top_line = pred_data["Upper Bound "+measure]
+    } else {
+      top_line = null
+    }
+    if ("Lower Bound "+measure in pred_data) {
+      bot_line = pred_data["Lower Bound "+measure]
+    } else {
+      bot_line = null
+    }
+    plot(
+      top_line,
+      mid_line,
+      bot_line,
       sensor_data["readings"],
       measure,
       canvas_name,

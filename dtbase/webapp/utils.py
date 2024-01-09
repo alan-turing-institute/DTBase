@@ -6,10 +6,7 @@ from collections.abc import Collection
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-import requests
 from flask import Request
-
-from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
 
 
 def parse_rfc1123_datetime(string: str) -> dt.datetime:
@@ -30,24 +27,6 @@ def parse_url_parameter(request: Request, parameter: str) -> Optional[str]:
     else:
         parsed = None
     return parsed
-
-
-def backend_call(
-    request_type: str,
-    end_point_path: str,
-    payload: Optional[dict] = None,
-    headers: Optional[dict] = None,
-) -> requests.models.Response:
-    """Make an API call to the backend server."""
-    headers = {} if headers is None else headers
-    request_func = getattr(requests, request_type)
-    url = f"{BACKEND_URL}{end_point_path}"
-    if payload:
-        headers = headers | {"content-type": "application/json"}
-        response = request_func(url, headers=headers, json=payload)
-    else:
-        response = request_func(url, headers=headers)
-    return response
 
 
 def convert_form_values(
