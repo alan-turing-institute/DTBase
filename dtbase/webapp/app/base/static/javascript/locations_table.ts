@@ -1,19 +1,24 @@
 import { initialiseDataTable } from "./datatables";
+import { Location } from "./interfaces";
 
-function updateTable(locations_for_each_schema) {
+export function updateTable(locations_for_each_schema: {
+  [key: string]: Location[];
+}): void {
   try {
-    var selectedSchema = document.getElementById("schema").value;
+    const selectedSchema = (
+      document.getElementById("schema") as HTMLSelectElement
+    ).value;
     if (!selectedSchema) {
       document.getElementById("locationTableWrapper").innerHTML = "";
       return;
     }
 
-    var locations = locations_for_each_schema[selectedSchema];
-    var tableContent = "";
+    const locations = locations_for_each_schema[selectedSchema];
+    let tableContent = "";
 
     // Construct the table headers
     tableContent += "<thead><tr><th class='num-column' scope='col'>#</th>"; // Adding '#' column
-    for (var key in locations[0]) {
+    for (const key in locations[0]) {
       if (key !== "id") {
         // Exclude 'id' column
         tableContent += `<th scope='col'>${key}</th>`;
@@ -23,9 +28,9 @@ function updateTable(locations_for_each_schema) {
 
     // Construct the table body
     tableContent += "<tbody>";
-    for (var i = 0; i < locations.length; i++) {
+    for (let i = 0; i < locations.length; i++) {
       tableContent += "<tr><td class='num-column'>" + (i + 1) + "</td>"; // Adding row number
-      for (var key in locations[i]) {
+      for (const key in locations[i]) {
         if (key !== "id") {
           // Exclude 'id' column
           tableContent += `<td>${locations[i][key]}</td>`;
@@ -42,6 +47,14 @@ function updateTable(locations_for_each_schema) {
     initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);
+  }
+}
+
+declare global {
+  interface Window {
+    updateTable: (locations_for_each_schema: {
+      [key: string]: Location[];
+    }) => void;
   }
 }
 

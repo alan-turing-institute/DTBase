@@ -1,6 +1,13 @@
-function updateSensorSelector(sensorIdsByType, selectedSensor) {
-  const sensorSelector = document.getElementById("sensorSelector");
-  const sensorTypeSelector = document.getElementById("sensorTypeSelector");
+export function updateSensorSelector(
+  sensorIdsByType: { [key: string]: string[] },
+  selectedSensor: string | null
+): void {
+  const sensorSelector = document.getElementById(
+    "sensorSelector"
+  ) as HTMLSelectElement;
+  const sensorTypeSelector = document.getElementById(
+    "sensorTypeSelector"
+  ) as HTMLSelectElement;
   const selectedSensorType = sensorTypeSelector.value;
 
   // Empty sensorSelector
@@ -34,6 +41,15 @@ function updateSensorSelector(sensorIdsByType, selectedSensor) {
       if (id == selectedSensor) option.selected = true;
       sensorSelector.appendChild(option);
     }
+  }
+}
+
+declare global {
+  interface Window {
+    updateSensorSelector: (
+      sensorIdsByType: { [key: string]: string[] },
+      selectedSensor: string | null
+    ) => void;
   }
 }
 

@@ -1,42 +1,44 @@
-function onPageLoad(existing_measures) {
+import { SensorMeasure } from "./interfaces";
+
+export function onPageLoad(existing_measures: SensorMeasure[]): void {
   const addButton = document.querySelector(".btn-add-measure");
   const measureGroup = document.querySelector(".form-group:nth-of-type(3)");
   const existingMeasureSelect = document.querySelector(
     ".existing-measure-select"
   );
 
-  function createMeasureRow(measure = {}) {
+  function createMeasureRow(measure: SensorMeasure | null = null) {
     const newRow = document.createElement("div");
     newRow.className = "measure-row";
 
     newRow.innerHTML = `
             <input type="hidden" name="measure_existing[]" value="${
-              measure.is_existing ? "1" : "0"
+              measure !== null ? "1" : "0"
             }">
             <input type="text" class="form-control" name="measure_name[]" placeholder="name, e.g. temperature" required value="${
-              measure.name || ""
-            }" ${measure.name ? "readonly" : ""}>
+              measure?.name || ""
+            }" ${measure?.name ? "readonly" : ""}>
             <input type="text" class="form-control" name="measure_units[]" placeholder="units, e.g. degrees" required value="${
-              measure.units || ""
-            }" ${measure.units ? "readonly" : ""}>
+              measure?.units || ""
+            }" ${measure?.units ? "readonly" : ""}>
             <select class="form-control custom-select datatype-select" name="${
-              measure.datatype ? "" : "measure_datatype[]"
-            }" required ${measure.datatype ? "readonly" : ""}>
+              measure?.datatype ? "" : "measure_datatype[]"
+            }" required ${measure?.datatype ? "readonly" : ""}>
             <option disabled ${
-              !measure.datatype ? "selected" : ""
+              !measure?.datatype ? "selected" : ""
             } value="">-- Select datatype --</option>
             ${["string", "float", "integer", "boolean"]
               .map(
                 (option) =>
                   `<option value="${option}" ${
-                    measure.datatype === option ? "selected" : ""
+                    measure?.datatype === option ? "selected" : ""
                   }>${option}</option>`
               )
               .join("")}
             </select>
             ${
-              measure.datatype
-                ? `<input type="hidden" name="measure_datatype[]" value="${measure.datatype}">`
+              measure?.datatype
+                ? `<input type="hidden" name="measure_datatype[]" value="${measure?.datatype}">`
                 : ""
             }
             <button type="button" class="btn btn-danger btn-remove-measure">-</button>
@@ -55,8 +57,9 @@ function onPageLoad(existing_measures) {
     createMeasureRow();
   });
 
-  existingMeasureSelect.addEventListener("change", function () {
-    const selectedId = this.value;
+  existingMeasureSelect.addEventListener("change", function (event) {
+    const target = event.target as HTMLSelectElement;
+    const selectedId = target.value;
 
     if (selectedId) {
       const measure = existing_measures.find(
@@ -64,9 +67,14 @@ function onPageLoad(existing_measures) {
       );
       const selectedMeasure = { ...measure, is_existing: true }; // Create a new object
       createMeasureRow(selectedMeasure);
-      this.value = "";
+      target.value = "";
     }
   });
 }
 
+declare global {
+  interface Window {
+    onPageLoad: (existing_measures: SensorMeasure[]) => void;
+  }
+}
 window.onPageLoad = onPageLoad;

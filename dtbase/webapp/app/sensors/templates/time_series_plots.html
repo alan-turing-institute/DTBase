@@ -84,11 +84,8 @@
 
 {% block javascripts %}
 {{ super()}}
-<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js')
-  }}"></script>
+<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}">
+</script>
 <script>
   document.getElementById('sensorTypeSelector').addEventListener('change', window.changeSensorType);
   document.getElementById('plotButton').addEventListener('click', function() {

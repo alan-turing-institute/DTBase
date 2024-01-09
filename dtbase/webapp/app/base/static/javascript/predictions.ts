@@ -1,15 +1,50 @@
+import { ModelScenario, TimeseriesDataPoint } from "./interfaces";
 import { dictionary_scatter } from "./utility";
+import {
+  Chart,
+  Colors,
+  LinearScale,
+  TimeScale,
+  ScatterController,
+  PointElement,
+  LineElement,
+  Legend,
+  Title,
+  SubTitle,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import "chartjs-adapter-moment";
 
-function plot(
-  top_json,
-  mid_json,
-  bot_json,
-  sensor_json,
-  sensor_measure,
-  canvas_name,
-  y_label,
-  show_legend
-) {
+// See https://www.chartjs.org/docs/latest/getting-started/usage.html for how importing
+// and registering Chart.js components works.
+Chart.register(
+  Colors,
+  LinearScale,
+  TimeScale,
+  ScatterController,
+  PointElement,
+  LineElement,
+  Legend,
+  Title,
+  SubTitle,
+  Tooltip,
+  Filler
+);
+
+export function plot(
+  top_json: TimeseriesDataPoint[] | null,
+  mid_json: TimeseriesDataPoint[] | null,
+  bot_json: TimeseriesDataPoint[] | null,
+  sensor_json: TimeseriesDataPoint[] | null,
+  sensor_measure: {
+    name: string;
+    units: string | null;
+  },
+  canvas_name: string,
+  y_label: string,
+  show_legend: boolean
+): void {
   const datasets = [];
   if (top_json !== null) {
     const values_top = top_json.map((e) => parseFloat(e["value"]));
@@ -85,7 +120,6 @@ function plot(
       plugins: {
         legend: {
           display: show_legend,
-          position: "top",
         },
       },
       scales: {
@@ -99,26 +133,37 @@ function plot(
         },
         x: {
           type: "time",
-          time: {
-            displayFormats: {
-              hour: "DD MMM hA",
+          options: {
+            time: {
+              displayFormats: {
+                hour: "DD MMM hA",
+              },
             },
-          },
-          ticks: {
-            maxTicksLimit: 13,
-            includeBounds: false,
+            ticks: {
+              maxTicksLimit: 13,
+              includeBounds: false,
+            },
           },
         },
       },
     },
   };
-  const ctx = document.getElementById(canvas_name);
+  const ctx = document.getElementById(canvas_name) as HTMLCanvasElement;
+  // Typescript seems to be raising a type error on the below line.
+  // This is caused by the config["options"]["scales"]["x"]["type"] field, which it
+  // doesn't like, though it seems to be a valid config for Chart.
   return new Chart(ctx, config);
 }
 
-function updateScenarioSelector(scenarios, selectedScenarioDescription) {
-  const modelName = document.getElementById("model_name").value;
-  const scenarioSelector = document.getElementById("model_scenario");
+export function updateScenarioSelector(
+  scenarios: ModelScenario[],
+  selectedScenarioDescription: string | null
+): void {
+  const modelName = (document.getElementById("model_name") as HTMLSelectElement)
+    .value;
+  const scenarioSelector = document.getElementById(
+    "model_scenario"
+  ) as HTMLSelectElement;
 
   // Clear existing options
   scenarioSelector.innerHTML = "";
@@ -143,6 +188,28 @@ function updateScenarioSelector(scenarios, selectedScenarioDescription) {
       option.selected = true;
     scenarioSelector.add(option);
   });
+}
+
+declare global {
+  interface Window {
+    plot: (
+      top_json: TimeseriesDataPoint[] | null,
+      mid_json: TimeseriesDataPoint[] | null,
+      bot_json: TimeseriesDataPoint[] | null,
+      sensor_json: TimeseriesDataPoint[] | null,
+      sensor_measure: {
+        name: string;
+        units: string | null;
+      },
+      canvas_name: string,
+      y_label: string,
+      show_legend: boolean
+    ) => void;
+    updateScenarioSelector: (
+      scenarios: ModelScenario[],
+      selectedScenarioDescription: string | null
+    ) => void;
+  }
 }
 
 window.plot = plot;

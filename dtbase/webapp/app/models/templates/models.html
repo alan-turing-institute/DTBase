@@ -84,12 +84,6 @@
 
 {% block javascripts %}
 {{ super()}}
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-
-
 <script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
 <script>
 

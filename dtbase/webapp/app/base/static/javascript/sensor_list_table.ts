@@ -1,19 +1,26 @@
 import { initialiseDataTable } from "./datatables";
+import { Sensor } from "./interfaces";
 
-function updateTable(sensors_for_each_type) {
+interface ArgType {
+  [key: string]: Sensor[];
+}
+
+export function updateTable(sensors_for_each_type: ArgType): void {
   try {
-    var selectedSensorType = document.getElementById("sensor_type").value;
+    const selectedSensorType = (
+      document.getElementById("sensor_type") as HTMLSelectElement
+    ).value;
     if (!selectedSensorType) {
-      document.getElementById("sensorTable").innerHTML = "";
+      document.getElementById("sensorTableWrapper").innerHTML = "";
       return;
     }
 
-    var sensors = sensors_for_each_type[selectedSensorType];
-    var tableContent = "";
+    const sensors = sensors_for_each_type[selectedSensorType];
+    let tableContent = "";
 
     // Construct the table headers
     tableContent += "<thead><tr><th class='num-column' scope='col'>#</th>"; // Adding '#' column
-    for (var key in sensors[0]) {
+    for (const key in sensors[0]) {
       if (key !== "id") {
         // Exclude 'id' column
         tableContent += `<th scope='col'>${key}</th>`;
@@ -23,9 +30,9 @@ function updateTable(sensors_for_each_type) {
 
     // Construct the table body
     tableContent += "<tbody>";
-    for (var i = 0; i < sensors.length; i++) {
+    for (let i = 0; i < sensors.length; i++) {
       tableContent += "<tr><td class='num-column'>" + (i + 1) + "</td>"; // Adding row number
-      for (var key in sensors[i]) {
+      for (const key in sensors[i]) {
         if (key !== "id") {
           // Exclude 'id' column
           tableContent += `<td>${sensors[i][key]}</td>`;
@@ -42,6 +49,12 @@ function updateTable(sensors_for_each_type) {
     initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);
+  }
+}
+
+declare global {
+  interface Window {
+    updateTable: (sensors_for_each_type: ArgType) => void;
   }
 }
 
