@@ -81,8 +81,8 @@ def test_get_api_base_url_and_sensor_raises(
 def test_get_data_historical_api() -> None:
     """Test the get_data method for a scenario where the historical API would be used"""
     weather_ingress = OpenWeatherDataIngress()
-    dt_from = NOW - timedelta(hours=2)
-    dt_to = "present"
+    dt_to = datetime(2024, 1, 5, 16, 1, 1, 1)
+    dt_from = dt_to - timedelta(hours=2)
     with requests_mock.Mocker() as m:
         m.get(
             CONST_OPENWEATHERMAP_HISTORICAL_URL,
@@ -95,12 +95,19 @@ def test_get_data_historical_api() -> None:
 def test_get_data_forecast_api() -> None:
     """Test the get_data method for a scenario where the forecast API would be used"""
     weather_ingress = OpenWeatherDataIngress()
-    dt_from = "present"
-    dt_to = NOW + timedelta(hours=2)
+    dt_from = datetime(2024, 1, 5, 16, 1, 1, 1)
+    dt_to = dt_from + timedelta(hours=2)
     with requests_mock.Mocker() as m:
         m.get(
             CONST_OPENWEATHERMAP_FORECAST_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE,
         )
-        response = weather_ingress.get_data(dt_from, dt_to)
+        # Override the inferred API base URL to ensure the forecast API is tested.
+        # This is required because we're comapring against a mocking result from
+        # past dates.
+        response = weather_ingress.get_data(
+            dt_from,
+            dt_to,
+            override_inferred_weather_api="forecast",
+        )
         assert response == EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE

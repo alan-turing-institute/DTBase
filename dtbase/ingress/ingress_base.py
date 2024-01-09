@@ -69,9 +69,9 @@ class BaseIngress:
 
         """
         raise NotImplementedError(
-            "The user should implement this method \
-                                   by inhering from the BaseIngress class \
-                                  and overwriting the get_data method."
+            "The user should implement this method                                   "
+            " by inhering from the BaseIngress class                                  "
+            " and overwriting the get_data method."
         )
 
     def backend_login(self, username: str, password: str) -> None:
