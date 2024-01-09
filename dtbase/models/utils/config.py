@@ -6,17 +6,17 @@ including parameters required to connect to the PostgreSQL database server
 import ast
 import os
 from configparser import ConfigParser
-from typing import Dict
+from typing import Any
 
 
 def config(
     # gets config.ini file from the parent directory, no matter where the script is run
     # from
+    section: str,
     filename: str = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "dataprocessor/data_config.ini"
     ),
-    section: str = "postgresql",
-) -> Dict:
+) -> dict[str, Any]:
     # check that configuration file exists
     if not os.path.isfile(filename):
         raise Exception(f"File {filename} does not exist")
@@ -51,20 +51,4 @@ def config(
         if env_var in os.environ:
             # use ast.literal_eval to convert a string to a Python literal structure
             conf_dict[key] = ast.literal_eval(os.environ[env_var])
-
-    # special treatment for SQL environment variables
-    if section == "postgresql":
-        env_var1 = "DT_SQL_HOST"
-        env_var2 = "DT_SQL_USERNAME"
-        if env_var1 in os.environ:
-            conf_dict["host"] = os.environ[env_var1]
-            if env_var2 in os.environ:
-                conf_dict["user"] = os.environ[env_var2] + "@" + os.environ[env_var1]
-        env_var = "DT_SQL_PASS"
-        if env_var in os.environ:
-            conf_dict["password"] = os.environ[env_var]
-        env_var = "DT_SQL_DBNAME"
-        if env_var in os.environ:
-            conf_dict["dbname"] = os.environ[env_var]
-
     return conf_dict
