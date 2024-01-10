@@ -35,7 +35,7 @@
 {% block javascripts %}
 {{ super()}}
 
-<script src="{{ url_for('static', filename='javascript/location_schema.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/location_schema_form.js') }}"></script>
 <script>
   const existing_identifiers = {{ existing_identifiers|tojson }};
   document.addEventListener("DOMContentLoaded", () => window.onPageLoad(existing_identifiers));

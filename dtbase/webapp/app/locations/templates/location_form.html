@@ -28,7 +28,7 @@
 
 {% block javascripts %}
 {{ super() }}
-<script src="{{ url_for('static', filename='javascript/location.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/location_form.js') }}"></script>
 <script>
   const schemas = {{ schemas|tojson|safe }};
   window.onload = function () {
