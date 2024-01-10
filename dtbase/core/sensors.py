@@ -113,7 +113,6 @@ def insert_sensor_measure(
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
-
     session.flush()
 
 
@@ -148,7 +147,6 @@ def insert_sensor_type(
         session.add(
             SensorTypeMeasureRelation(type_id=new_type.id, measure_id=measure_id)
         )
-
     session.flush()
 
 

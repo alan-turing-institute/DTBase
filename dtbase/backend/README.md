@@ -256,7 +256,7 @@ The schema name will be a concatenation of the identifier names.
 
 ## Sensors
 
-The Sensor data model is as follows.   Every _Sensor_ has a _SensorType_ which in turn specifies the variable(s) it can measure - these are known as _SensorMeasures_.  Each _SensorMeasure_ specifies its datatype (float, int, string, or bool), and these are used to define the type of the corresponding _SensorXYZReadings_.   A _Sensor_ will also have a _SensorLocation_, which specifies a _Location_ as defined above, and a time window (possibly open-ended) when the sensor was at that location.
+The Sensor data model is as follows.   Every _Sensor_ has a _SensorType_ which in turn specifies the variable(s) it can measure - these are known as _SensorMeasures_.  Each _SensorMeasure_ specifies its datatype (float, int, string, or bool), and these are used to define the type of the corresponding _SensorXYZReadings_.   A _Sensor_ may also have a _SensorLocation_, which specifies a _Location_ as defined above, and a time window (possibly open-ended) when the sensor was at that location.
 
 The endpoints are:
 
