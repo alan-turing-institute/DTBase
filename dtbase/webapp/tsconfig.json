@@ -4,7 +4,7 @@
     "module": "es6",
     "noEmitOnError": false,
     "sourceMap": true,
-    "moduleResolution": "nodenext"
+    "moduleResolution": "node"
     //"strict": true  // TODO Enable this once it no longer generates syntax errors.
   },
   "include": ["app/base/static/javascript/**/*.ts"],

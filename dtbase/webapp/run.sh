@@ -26,7 +26,9 @@ fi
 
 npm install
 if [ "$debug" == "false" ]; then
-  npx webpack --mode=production
+  # We are using development mode for webpack for as long as typescript transpilation
+  # raises errors. In production a single error halts the transpilation.
+  npx webpack --mode=development
   flask run --host=0.0.0.0 --port $bport
 else
   # This runs webpack and the flask app concurrently.

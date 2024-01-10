@@ -5,7 +5,7 @@ interface ArgType {
   [key: string]: Sensor[];
 }
 
-export function updateTable(sensors_for_each_type: ArgType): void {
+export function updateSensorTable(sensors_for_each_type: ArgType): void {
   try {
     const selectedSensorType = (
       document.getElementById("sensor_type") as HTMLSelectElement
@@ -54,8 +54,8 @@ export function updateTable(sensors_for_each_type: ArgType): void {
 
 declare global {
   interface Window {
-    updateTable: (sensors_for_each_type: ArgType) => void;
+    updateSensorTable: (sensors_for_each_type: ArgType) => void;
   }
 }
 
-window.updateTable = updateTable;
+window.updateSensorTable = updateSensorTable;

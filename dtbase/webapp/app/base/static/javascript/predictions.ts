@@ -33,10 +33,10 @@ Chart.register(
 );
 
 export function plot(
-  top_json: TimeseriesDataPoint[] | null,
-  mid_json: TimeseriesDataPoint[] | null,
-  bot_json: TimeseriesDataPoint[] | null,
-  sensor_json: TimeseriesDataPoint[] | null,
+  top_json: TimeseriesDataPoint<number>[] | null,
+  mid_json: TimeseriesDataPoint<number>[] | null,
+  bot_json: TimeseriesDataPoint<number>[] | null,
+  sensor_json: TimeseriesDataPoint<number>[] | null,
   sensor_measure: {
     name: string;
     units: string | null;
@@ -47,7 +47,7 @@ export function plot(
 ): void {
   const datasets = [];
   if (top_json !== null) {
-    const values_top = top_json.map((e) => parseFloat(e["value"]));
+    const values_top = top_json.map((e) => e["value"]);
     const times_top = top_json.map((e) => new Date(e["timestamp"]));
     const top_scatter = dictionary_scatter(times_top, values_top);
     datasets.push({
@@ -61,7 +61,7 @@ export function plot(
     });
   }
   if (mid_json !== null) {
-    const values_mid = mid_json.map((e) => parseFloat(e["value"]));
+    const values_mid = mid_json.map((e) => e["value"]);
     const times_mid = mid_json.map((e) => new Date(e["timestamp"]));
     const mid_scatter = dictionary_scatter(times_mid, values_mid);
     datasets.push({
@@ -75,7 +75,7 @@ export function plot(
     });
   }
   if (bot_json !== null) {
-    const values_bot = bot_json.map((e) => parseFloat(e["value"]));
+    const values_bot = bot_json.map((e) => e["value"]);
     const times_bot = bot_json.map((e) => new Date(e["timestamp"]));
     const bot_scatter = dictionary_scatter(times_bot, values_bot);
     datasets.push({
@@ -90,7 +90,7 @@ export function plot(
   }
 
   if (sensor_json !== null) {
-    const values_sensor = sensor_json.map((e) => parseFloat(e["value"]));
+    const values_sensor = sensor_json.map((e) => e["value"]);
     const times_sensor = sensor_json.map((e) => new Date(e["timestamp"]));
     const sensor_scatter = dictionary_scatter(times_sensor, values_sensor);
     datasets.push({
@@ -149,9 +149,10 @@ export function plot(
     },
   };
   const ctx = document.getElementById(canvas_name) as HTMLCanvasElement;
-  // Typescript seems to be raising a type error on the below line.
+  // TODO: Typescript seems to be raising a type error on the below line.
   // This is caused by the config["options"]["scales"]["x"]["type"] field, which it
-  // doesn't like, though it seems to be a valid config for Chart.
+  // doesn't like, though it seems to be a valid config for Chart. Don't know what's
+  // going on, maybe a Chart.js bug?
   return new Chart(ctx, config);
 }
 
@@ -193,10 +194,10 @@ export function updateScenarioSelector(
 declare global {
   interface Window {
     plot: (
-      top_json: TimeseriesDataPoint[] | null,
-      mid_json: TimeseriesDataPoint[] | null,
-      bot_json: TimeseriesDataPoint[] | null,
-      sensor_json: TimeseriesDataPoint[] | null,
+      top_json: TimeseriesDataPoint<number>[] | null,
+      mid_json: TimeseriesDataPoint<number>[] | null,
+      bot_json: TimeseriesDataPoint<number>[] | null,
+      sensor_json: TimeseriesDataPoint<number>[] | null,
       sensor_measure: {
         name: string;
         units: string | null;

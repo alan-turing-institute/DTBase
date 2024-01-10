@@ -1,7 +1,7 @@
 import { initialiseDataTable } from "./datatables";
 import { Location } from "./interfaces";
 
-export function updateTable(locations_for_each_schema: {
+export function updateLocationsTable(locations_for_each_schema: {
   [key: string]: Location[];
 }): void {
   try {
@@ -52,10 +52,10 @@ export function updateTable(locations_for_each_schema: {
 
 declare global {
   interface Window {
-    updateTable: (locations_for_each_schema: {
+    updateLocationsTable: (locations_for_each_schema: {
       [key: string]: Location[];
     }) => void;
   }
 }
 
-window.updateTable = updateTable;
+window.updateLocationsTable = updateLocationsTable;

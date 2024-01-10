@@ -33,9 +33,9 @@
   window.addEventListener("DOMContentLoaded", (event) => {
     const sensorTypeSelector = document.getElementById("sensor_type");
     sensorTypeSelector.addEventListener(
-      "change", () => window.updateTable(sensors_for_each_type)
+      "change", () => window.updateSensorTable(sensors_for_each_type)
     );
-    window.updateTable(sensors_for_each_type);
+    window.updateSensorTable(sensors_for_each_type);
   });
 </script>
 {% endblock javascripts %}

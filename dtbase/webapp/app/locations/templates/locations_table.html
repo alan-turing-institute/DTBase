@@ -33,9 +33,9 @@
   window.addEventListener("DOMContentLoaded", (event) => {
     const schemaSelector = document.getElementById("schema");
     schemaSelector.addEventListener(
-      "change", () => window.updateTable(locations_for_each_schema)
+      "change", () => window.updateLocationsTable(locations_for_each_schema)
     );
-    window.updateTable(locations_for_each_schema);
+    window.updateLocationsTable(locations_for_each_schema);
   });
 </script>
 {% endblock javascripts %}
