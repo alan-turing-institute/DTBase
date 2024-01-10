@@ -1,11 +1,15 @@
 import { SensorMeasure } from "./interfaces";
 
 export function onPageLoad(existing_measures: SensorMeasure[]): void {
-  const addButton = document.querySelector(".btn-add-measure");
-  const measureGroup = document.querySelector(".form-group:nth-of-type(3)");
-  const existingMeasureSelect = document.querySelector(
-    ".existing-measure-select"
-  );
+  const addButton = document.getElementById(
+    "addMeasureButton"
+  ) as HTMLButtonElement;
+  const measureGroup = document.getElementById(
+    "formGroupMeasures"
+  ) as HTMLDivElement;
+  const existingMeasureSelect = document.getElementById(
+    "existingMeasureSelect"
+  ) as HTMLSelectElement;
 
   function createMeasureRow(measure: SensorMeasure | null = null) {
     const newRow = document.createElement("div");
@@ -44,11 +48,11 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
             <button type="button" class="btn btn-danger btn-remove-measure">-</button>
         `;
 
-    newRow
-      .querySelector(".btn-remove-measure")
-      .addEventListener("click", function () {
-        newRow.remove();
-      });
+    (
+      newRow.querySelector(".btn-remove-measure") as HTMLButtonElement
+    ).addEventListener("click", function () {
+      newRow.remove();
+    });
 
     measureGroup.appendChild(newRow);
   }
@@ -65,8 +69,7 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
       const measure = existing_measures.find(
         (measure) => measure.id === parseInt(selectedId)
       );
-      const selectedMeasure = { ...measure, is_existing: true }; // Create a new object
-      createMeasureRow(selectedMeasure);
+      createMeasureRow(measure);
       target.value = "";
     }
   });

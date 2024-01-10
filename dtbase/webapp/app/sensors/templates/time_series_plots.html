@@ -96,10 +96,9 @@
     window.requestTimeSeries('/sensors/time-series-plots', true);
   });
 
-  const data = {{data | safe}};
-  const allSensors = "{{all_sensors}}"
+  const data = {{data | tojson }};
   {% for m in measures %}
-  window.makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
+  window.makePlot(data, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
   {% endfor %}
 </script>
 {% endblock javascripts %}

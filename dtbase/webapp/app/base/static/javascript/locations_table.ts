@@ -4,12 +4,15 @@ import { Location } from "./interfaces";
 export function updateLocationsTable(locations_for_each_schema: {
   [key: string]: Location[];
 }): void {
+  const locationTableWrapper = document.getElementById(
+    "locationTableWrapper"
+  ) as HTMLDivElement;
   try {
     const selectedSchema = (
       document.getElementById("schema") as HTMLSelectElement
     ).value;
     if (!selectedSchema) {
-      document.getElementById("locationTableWrapper").innerHTML = "";
+      locationTableWrapper.innerHTML = "";
       return;
     }
 
@@ -43,7 +46,7 @@ export function updateLocationsTable(locations_for_each_schema: {
     // Construct the full table and inject it into the DOM
     const fullTable = `<table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">${tableContent}</table>`;
 
-    document.getElementById("locationTableWrapper").innerHTML = fullTable;
+    locationTableWrapper.innerHTML = fullTable;
     initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);

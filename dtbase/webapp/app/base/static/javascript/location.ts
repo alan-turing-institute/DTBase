@@ -3,7 +3,9 @@ import { LocationSchema } from "./interfaces";
 export function updateForm(schemas: LocationSchema[]): void {
   const schemaId = (document.getElementById("schema") as HTMLSelectElement)
     .value;
-  const identifiersDiv = document.getElementById("identifiers");
+  const identifiersDiv = document.getElementById(
+    "identifiers"
+  ) as HTMLDivElement;
   identifiersDiv.innerHTML = "";
 
   // find the selected schema

@@ -10,8 +10,11 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
     const selectedSensorType = (
       document.getElementById("sensor_type") as HTMLSelectElement
     ).value;
+    const sensorTableWrapper = document.getElementById(
+      "sensorTableWrapper"
+    ) as HTMLDivElement;
     if (!selectedSensorType) {
-      document.getElementById("sensorTableWrapper").innerHTML = "";
+      sensorTableWrapper.innerHTML = "";
       return;
     }
 
@@ -35,7 +38,8 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
       for (const key in sensors[i]) {
         if (key !== "id") {
           // Exclude 'id' column
-          tableContent += `<td>${sensors[i][key]}</td>`;
+          const value = (sensors[i] as any)[key];
+          tableContent += `<td>${value}</td>`;
         }
       }
       tableContent += "</tr>";
@@ -45,7 +49,7 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
     // Construct the full table and inject it into the DOM
     const fullTable = `<table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">${tableContent}</table>`;
 
-    document.getElementById("sensorTableWrapper").innerHTML = fullTable;
+    sensorTableWrapper.innerHTML = fullTable;
     initialiseDataTable("#datatable");
   } catch (error) {
     console.error(error);

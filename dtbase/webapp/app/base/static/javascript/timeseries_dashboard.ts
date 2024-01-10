@@ -154,7 +154,6 @@ interface DataPoint {
 
 export function makePlot(
   data: { [key: string]: DataPoint[] },
-  allSensors: Sensor[],
   yDataName: string,
   yLabel: string,
   canvasName: string
@@ -164,10 +163,7 @@ export function makePlot(
   const numSensors = sensorIds.length;
   for (let i = 0; i < numSensors; i++) {
     const sensorId = sensorIds[i];
-    let label = sensorId;
-    if (allSensors[sensorId] && allSensors[sensorId].aranet_code) {
-      label = allSensors[sensorId].aranet_code;
-    }
+    const label = sensorId;
     let colour = colouramp_redblue[Math.min(i, numSensors - 1)];
     let pointRadius = 1;
     let borderWidth = 1;
@@ -199,7 +195,6 @@ declare global {
   interface Window {
     makePlot: (
       data: { [key: string]: DataPoint[] },
-      allSensors: Sensor[],
       yDataName: string,
       yLabel: string,
       canvasName: string

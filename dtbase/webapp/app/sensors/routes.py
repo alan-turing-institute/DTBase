@@ -123,7 +123,6 @@ def time_series_plots() -> Response:
             sensor_type_name = sensor_types[0]["name"]
     else:
         sensor_type_name = None
-    all_sensors = fetch_all_sensors(sensor_type_name)
 
     # If we don't have the information necessary to plot data for sensors, just render
     # the selector version of the page.
@@ -143,7 +142,6 @@ def time_series_plots() -> Response:
             "time_series_plots.html",
             sensor_type=sensor_type_name,
             sensor_types=sensor_types,
-            all_sensors=all_sensors,
             sensor_ids=sensor_ids,
             dt_from=dt_from,
             dt_to=dt_to,
@@ -177,7 +175,6 @@ def time_series_plots() -> Response:
         "time_series_plots.html",
         sensor_type=sensor_type_name,
         sensor_types=sensor_types,
-        all_sensors=all_sensors,
         sensor_ids=sensor_ids,
         dt_from=dt_from,
         dt_to=dt_to,

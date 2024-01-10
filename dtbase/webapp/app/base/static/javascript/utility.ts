@@ -20,7 +20,9 @@ export function dictionary_scatter<T1, T2>(
 
 // function used to toggle the visibility of the password field
 export function passwordToggle(): void {
-  const passwordField = document.getElementById("pwd_login");
+  const passwordField = document.getElementById(
+    "pwd_login"
+  ) as HTMLInputElement;
   const passwordFieldType = passwordField.getAttribute("type");
   if (passwordFieldType === "password") {
     passwordField.setAttribute("type", "text");

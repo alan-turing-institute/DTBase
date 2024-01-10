@@ -44,7 +44,7 @@ export function plot(
   canvas_name: string,
   y_label: string,
   show_legend: boolean
-): void {
+): Chart {
   const datasets = [];
   if (top_json !== null) {
     const values_top = top_json.map((e) => e["value"]);
@@ -183,8 +183,8 @@ export function updateScenarioSelector(
   // Add filtered scenarios to the selector
   filteredScenarios.forEach(function (scenario) {
     const option = document.createElement("option");
-    option.text = scenario.description;
-    option.value = scenario.description;
+    option.text = scenario.description || "";
+    option.value = scenario.description || "";
     if (scenario.description == selectedScenarioDescription)
       option.selected = true;
     scenarioSelector.add(option);

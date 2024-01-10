@@ -68,11 +68,11 @@ function createIdentifierRow(
         <button type="button" class="btn btn-danger btn-remove-identifier">-</button>
         `;
 
-  newRow
-    .querySelector(".btn-remove-identifier")
-    .addEventListener("click", function () {
-      newRow.remove();
-    });
+  (
+    newRow.querySelector(".btn-remove-identifier") as HTMLButtonElement
+  ).addEventListener("click", function () {
+    newRow.remove();
+  });
 
   identifierGroup.appendChild(newRow);
 }
