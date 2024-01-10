@@ -7,6 +7,6 @@
     "moduleResolution": "node",
     "strict": true
   },
-  "include": ["app/base/static/javascript/**/*.ts"],
+  "include": ["app/base/static/typescript/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -3,8 +3,8 @@ const glob = require("glob");
 
 // Dynamically generate entry points
 const entries = {};
-glob.sync("./app/base/static/javascript/**/*.ts").forEach((filePath) => {
-  const entry = path.relative(__dirname, filePath).replace(/\.[^.]+$/, ""); // remove extension
+glob.sync("./app/base/static/typescript/**/*.ts").forEach((filePath) => {
+  const entry = path.basename(filePath).replace(/\.[^.]+$/, ""); // remove extension
   entries[entry] = "./" + filePath;
 });
 
@@ -25,6 +25,6 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    path: __dirname,
+    path: path.resolve(__dirname, "./app/base/static/javascript"),
   },
 };
