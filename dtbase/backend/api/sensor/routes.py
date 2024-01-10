@@ -39,6 +39,10 @@ def insert_sensor_type() -> Tuple[Response, int]:
 
     db.session.begin()
     for measure in payload["measures"]:
+        # TODO This loop might run into trouble if one of the measures exists already
+        # but others don't, since the db.session.rollback() rolls them all back.
+        # Note that we probably do want all of this to be rolled back if the sensor type
+        # exists.
         try:
             sensors.insert_sensor_measure(
                 name=measure["name"],
@@ -47,6 +51,7 @@ def insert_sensor_type() -> Tuple[Response, int]:
                 session=db.session,
             )
         except IntegrityError:
+            # Sensor measure already exists.
             db.session.rollback()
     try:
         sensors.insert_sensor_type(
@@ -57,9 +62,10 @@ def insert_sensor_type() -> Tuple[Response, int]:
         )
     except IntegrityError:
         db.session.rollback()
+        return jsonify({"message": "Sensor type exists already"}), 409
 
     db.session.commit()
-    return jsonify(payload), 201
+    return jsonify({"message": "Sensor type inserted"}), 201
 
 
 @blueprint.route("/insert-sensor", methods=["POST"])

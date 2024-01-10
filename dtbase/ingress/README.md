@@ -4,8 +4,8 @@ This readme details how to write your own data ingress in DTBase using the OpenW
 
 ## BaseIngress
 
-The BaseIngress Class has all the general purpose tools for interacting with the backend (and TODO: Azure Functions).
-For a custom data ingress, the user should create their own custom DataIngressClass inheriting from the BaseIngress Class.
+The `BaseIngress` class has all the general purpose tools for interacting with the backend (and TODO: Azure Functions).
+For a custom data ingress, the user should create their own custom DataIngressClass inheriting from the `BaseIngress` class.
 For example:
 
 ```
@@ -61,7 +61,7 @@ For example, if we would like to insert two different sensor readings, then the 
 The `ingress_data` method is used to send data to the database via DTBase's backend. The user doesn't need to write this, but this is the method to call after defining `get_data`.
 
 1. Runs the `get_data` method to extract data from a source
-2. logs into the backend
+2. Logs into the backend
 3. Loops through the data `get_data` returns and posts it to the backend.
 
 
@@ -69,21 +69,21 @@ The `ingress_data` method is used to send data to the database via DTBase's back
 
 This section will now go through the [ingress_weather](ingress_weather.py) example in detail.
 
-The goal of the weather ingress is to extract data from the OpenWeatherData API and enter it into our database via the backend.There are two different APIs depending on whether the user wants historical data or forecasting.
+The goal of the weather ingress is to extract data from the OpenWeatherData API and enter it into our database via the backend. There are two different APIs depending on whether the user wants historical data or forecasting.
 
 ### 1. Define Payloads
 
-3 Constants are defined at the top of ingress_weather.py:
+3 constants are defined at the top of `ingress_weather.py`:
 
-- *SENSOR_TYPE:* Define the sensor type as detailed by the "/sensor/insert-sensor-type" API endpoint.
-- *SENSOR_OPENWEATHERMAPHISTORICAL*: Define the sensor as detailed by the "/sensor/insert-sensor" API endpoint. This sensor is for the historical data API.
-- *SENSOR_OPENWEATHERMAPFORECAST*: Same as previous sensor but for forecasting.
+- *`SENSOR_TYPE`:* Define the sensor type as detailed by the `/sensor/insert-sensor-type` API endpoint.
+- *`SENSOR_OPENWEATHERMAPHISTORICAL`*: Define the sensor as detailed by the `/sensor/insert-sensor` API endpoint. This sensor is for the historical data API.
+- *`SENSOR_OPENWEATHERMAPFORECAST`*: Same as previous sensor but for forecasting.
 
-These constants are dictionaries and define the sensor type and sensor payloads. The payload for entering sensor-readings is built in the get_data method.
+These constants are dictionaries and define the sensor type and sensor payloads. The payload for entering sensor-readings is built in the `get_data` method.
 
 ### 2. OpenWeatherDataIngress
 
-We then write a custom class that inherits from BaseIngress. There are a number of _* methods that are used to handle different combinations of start and end dates given by the user. A lot of this complexity comes from there being two different APIs.
+We then write a custom class that inherits from `BaseIngress`. There are a number of `_*` methods that are used to handle different combinations of start and end dates given by the user. A lot of this complexity comes from there being two different APIs.
 
 The important method is the `get_data`. This method takes in `from_dt` and `to_dt` arguments to define when the user wants to extract information from the API. There is then some specific preprocessing to get the exact data we want from the API.
 
@@ -101,19 +101,20 @@ sensor_readings_output = [
 return sensor_type_output + sensor_output + sensor_readings_output
 ```
 
-**The get_data method MUST returns a list of tuples structures as (endpoint, payload) for the ingress method to integrate into the rest of DTBase.**
+**The `get_data` method MUST returns a list of tuples structures as `(endpoint, payload)` for the ingress method to integrate into the rest of DTBase.**
 
 ### 3. Uploading data to database
 
-After writing your own custom get_data method, we can then send it to the database via the dtbase backend. This is simply done by calling
+After writing your own custom `get_data` method, we can then send it to the database via the dtbase backend. This is simply done by calling
 
 ```
 weather_ingress = OpenWeatherDataIngress()
 weather_ingress.ingress_data(dt_from, dt_to)
 ```
 
-Under the hood, the class finds the get_data method, runs the get_data method, and then calls the backend API to upload the data to the database. It handles authentication and error handling. This method uses any input arguments required in get_data.
+Under the hood, the class finds the `get_data` method, runs the `get_data` method, and then calls the backend API to upload the data to the database. It handles authentication and error handling. This method uses any input arguments required in `get_data`.
 
 **Note: It uses environment variables for API keys and authentication so ensure you have the correct variables set.**
+For instance, for the OpenWeatherDataIngress, the environment variables you'll need to set are `DT_OPENWEATHERMAP_APIKEY` and `DT_OPENWEATHERMAP_LAT` and `DT_OPENWEATHERMAP_LONG` for the latitude and longitude for the weather location.
 
 The `example_weather_ingress` function shows how to use this code to ingress weather data.

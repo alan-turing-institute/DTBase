@@ -3,7 +3,7 @@ Python module to import data using the Openweathermap API
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Optional, Tuple, Union
 
 import pandas as pd
 import requests
@@ -12,9 +12,7 @@ from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
     CONST_OPENWEATHERMAP_HISTORICAL_URL,
 )
-from dtbase.ingress.ingress_base import (
-    BaseIngress,
-)
+from dtbase.ingress.ingress_base import BaseIngress
 
 # Mapping of Openweathermap metrics to sensor measures in the database.
 METRICS_TO_MEASURES = {
@@ -85,7 +83,7 @@ class OpenWeatherDataIngress(BaseIngress):
         super().__init__()
         self.present = datetime.now()
 
-    def _set_now(self, dt: [datetime, str]) -> datetime:
+    def _set_now(self, dt: Union[datetime, str]) -> datetime:
         """
         Method to set the present time. If dt is a datetime object, then it is returned.
         If dt is the string 'present', then the present time is returned.
@@ -93,7 +91,7 @@ class OpenWeatherDataIngress(BaseIngress):
         The reason this is required is for the following scenario:
 
         If datetime.now() is used to set dt_from from outside the Class, then problems
-        start occuring when comparing these times to the present time. THis is because
+        start occuring when comparing these times to the present time. This is because
         time has continued to happen whilst initiating the class.
 
         For example:
@@ -123,8 +121,8 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: datetime,
         to_dt: datetime,
-        override_inferred_weather_api: [None, str] = None,
-    ) -> Tuple[str, str]:
+        override_inferred_weather_api: Optional[str] = None,
+    ) -> Tuple[str, dict[str, str]]:
         """
         Determine whether to call the historical or forecast API.
         This is determined by comparing the present time to the from_dt and to_dt.
@@ -168,7 +166,7 @@ class OpenWeatherDataIngress(BaseIngress):
         the correct API is called or the correct error is raised.
         """
         if from_dt > to_dt:
-            raise ValueError("from_date must be before to_date")
+            raise ValueError("from_dt must be before to_dt")
         elif from_dt < self.present and to_dt > self.present:
             raise ValueError(
                 "This call spans both historical and forecast data.                "
@@ -195,10 +193,10 @@ class OpenWeatherDataIngress(BaseIngress):
 
     def get_api_base_url_and_sensor(
         self,
-        from_dt: [datetime, str],
-        to_dt: [datetime, str],
-        override_inferred_weather_api: [None, str] = None,
-    ) -> Tuple[str, str, datetime, datetime]:
+        from_dt: Union[datetime, str],
+        to_dt: Union[datetime, str],
+        override_inferred_weather_api: Optional[str] = None,
+    ) -> Tuple[str, dict[str, str], datetime, datetime]:
         from_dt = self._set_now(from_dt)
         to_dt = self._set_now(to_dt)
         self._handling_datetime_range(from_dt, to_dt)
@@ -209,9 +207,9 @@ class OpenWeatherDataIngress(BaseIngress):
 
     def get_data(
         self,
-        from_dt: [datetime, str],
-        to_dt: [datetime, str],
-        override_inferred_weather_api: [None, str] = None,
+        from_dt: Union[datetime, str],
+        to_dt: Union[datetime, str],
+        override_inferred_weather_api: Optional[str] = None,
     ) -> list:
         """
         Please read the docstring for BaseIngress.get_data()
@@ -228,7 +226,7 @@ class OpenWeatherDataIngress(BaseIngress):
         If dt_from and dt_to span both the past and future, then an error is raised.
 
         Note the georgraphical location is defined by the
-        two environment variables DT_LAT and DT_LONG.
+        two environment variables DT_OPENWEATHERMAP_LAT and DT_OPENWEATHERMAP_LONG.
 
         --------------------------------
         Arguments:
@@ -264,18 +262,14 @@ class OpenWeatherDataIngress(BaseIngress):
 
         # Loop through timestamps, make API call and extract hourly data from response
         hourly_records = []
-        error = ""
         for ts in timestamps:
             url = base_url + "&dt={}".format(ts)
             response = requests.get(url)
 
             if response.status_code != 200:
-                error = "Request's [%s] status code: %d" % (
-                    url[: min(70, len(url))],
-                    response.status_code,
+                raise RuntimeError(
+                    f"Got an error response from the OpenWeatherMap API. {response}"
                 )
-                success = False
-                return success, error, None
 
             hourly_data = response.json()["hourly"]
 
@@ -306,7 +300,7 @@ class OpenWeatherDataIngress(BaseIngress):
             (weather_df.index >= from_dt) & (weather_df.index <= to_dt)
         ]
 
-        print(weather_df)
+        logging.debug("Weather dataframe: %s", weather_df)
 
         # Convert dataframe into list of dicts to match expected output format.
         # This format is required by the backend API and can be found in the readme
@@ -349,14 +343,14 @@ def example_weather_ingress() -> None:
     """
 
     # First do calls from before now
-    dt_from = datetime.now() - timedelta(hours=2)
+    dt_from = datetime.now() - timedelta(hours=60)
     dt_to = "present"
     weather_ingress = OpenWeatherDataIngress()
     weather_ingress.ingress_data(dt_from, dt_to)
 
     # Now repeat for after
     dt_from = "present"
-    dt_to = datetime.now() + timedelta(hours=3)
+    dt_to = datetime.now() + timedelta(days=2)
     weather_ingress = OpenWeatherDataIngress()
     weather_ingress.ingress_data(dt_from, dt_to)
 
