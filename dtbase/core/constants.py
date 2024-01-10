@@ -80,8 +80,8 @@ DEFAULT_USER_PASS = os.environ.get("DT_DEFAULT_USER_PASS", None)
 # for data sources that we want to use for data ingress.
 
 # Weather-related misc constants
-CONST_LAT = os.environ.get("DT_LAT", "DUMMY")  #  latitude
-CONST_LON = os.environ.get("DT_LONG", "DUMMY")  #  longitude
+CONST_LAT = os.environ.get("DT_OPENWEATHERMAP_LAT", "DUMMY")  #  latitude
+CONST_LON = os.environ.get("DT_OPENWEATHERMAP_LONG", "DUMMY")  #  longitude
 
 # We use OpenWeatherMap as an example of how to get weather data
 # (both historical and forecast).
