@@ -1,7 +1,7 @@
 """
-Utility functions for e.g. uploading ingressed data to the db.
+Utility functions for ingressing data to the db.
 """
-from typing import Any, List
+from typing import Any, List, Optional
 
 from requests import Response
 
@@ -9,7 +9,7 @@ from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
 )
-from dtbase.core.utils import auth_backend_call, backend_call, log_rest_response
+from dtbase.core.utils import auth_backend_call, log_rest_response, login
 
 
 class BaseIngress:
@@ -22,18 +22,19 @@ class BaseIngress:
     def __init__(self) -> None:
         self.access_token = None
 
-    def get_data(self) -> None:
+    def get_data(self) -> Any:
         """
         Method for getting data from source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
-        class.
+        class. The implementation in BaseIngress only raises a NotImplementedError.
+
         The method should return a list of tuples. A tuple should
         be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
         its a single tuple.
 
-        Below is an example for inserting a sensor type and a sensor.
+        Below is an example return value for inserting a sensor type and a sensor.
         Please look at backend readme for list of backend endpoints
-        and their repsective payload formats.
+        and their respective payload formats.
 
         [
             (
@@ -50,8 +51,11 @@ class BaseIngress:
                             "units": "degrees Celsius",
                             "datatype": "float",
                         },
-                        {"name": "relative humidity", "units": "percent",
-                        "datatype": "float"},
+                        {
+                            "name": "relative humidity",
+                            "units": "percent",
+                            "datatype": "float"
+                        },
                     ],
                 },
             ),
@@ -67,23 +71,18 @@ class BaseIngress:
 
         """
         raise NotImplementedError(
-            "The user should implement this method                                   "
-            " by inhering from the BaseIngress class                                  "
+            "The user should implement this method"
+            " by inhering from the BaseIngress class"
             " and overwriting the get_data method."
         )
 
-    def backend_login(self, username: str, password: str) -> Response:
+    def backend_login(self, username: str, password: Optional[str]) -> None:
         """
-        Sets the access token using login credentials
+        Sets the access token using login credentials.
+
+        Raises BackendCallError if the login fails.
         """
-        response = backend_call(
-            "post", "/auth/login", payload={"email": username, "password": password}
-        )
-        if response.status_code != 200:
-            raise RuntimeError(f"Failed to authenticate with the backend: {response}")
-        assert response.json is not None
-        self.access_token = response.json()["access_token"]
-        return response
+        self.access_token = login(username, password)[0]
 
     def ingress_data(self, *args: Any, **kwargs: Any) -> List[Response]:
         """

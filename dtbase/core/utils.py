@@ -12,7 +12,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
-from flask import Response, send_file
+from flask import Response as FlaskResponse
+from flask import send_file
 from sqlalchemy import exc
 from sqlalchemy.engine import Engine, ResultProxy, RowMapping
 from sqlalchemy.orm import Session
@@ -314,7 +315,7 @@ def row_mappings_to_dicts(rows: Sequence[RowMapping]) -> List[Dict]:
     return [{k: v for k, v in row.items()} for row in rows]
 
 
-def download_csv(readings: List[Any], filename_base: str = "results") -> Response:
+def download_csv(readings: List[Any], filename_base: str = "results") -> FlaskResponse:
     """
     Use Pandas to convert array of readings into a csv
     Args:
@@ -341,7 +342,7 @@ def backend_call(
     end_point_path: str,
     payload: Optional[dict] = None,
     headers: Optional[dict] = None,
-) -> requests.models.Response:
+) -> requests.Response:
     """Make an API call to the backend server."""
     headers = {} if headers is None else headers
     request_func = getattr(requests, request_type)
@@ -383,7 +384,7 @@ def auth_backend_call(
     payload: Optional[dict] = None,
     headers: Optional[dict] = None,
     token: Optional[str] = None,
-) -> requests.models.Response:
+) -> requests.Response:
     """Make an API call to the backend, with authentication.
 
     If no access token is given, use the `login` function to get one with default
@@ -397,7 +398,7 @@ def auth_backend_call(
     return backend_call(request_type, end_point_path, payload, headers)
 
 
-def log_rest_response(response: Response) -> None:
+def log_rest_response(response: requests.Response) -> None:
     """
     Logging the response from the backend API
     """
