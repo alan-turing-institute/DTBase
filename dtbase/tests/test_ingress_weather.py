@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 import requests_mock
+from freezegun import freeze_time
 
 from dtbase.core.constants import (
     CONST_OPENWEATHERMAP_FORECAST_URL,
@@ -78,6 +79,7 @@ def test_get_api_base_url_and_sensor_raises(
         open_weather_data_ingress.get_api_base_url_and_sensor(dt_from, dt_to)
 
 
+@freeze_time("2024-01-06")
 def test_get_data_historical_api() -> None:
     """Test the get_data method for a scenario where the historical API would be used"""
     weather_ingress = OpenWeatherDataIngress()
@@ -92,6 +94,7 @@ def test_get_data_historical_api() -> None:
         assert response == EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE
 
 
+@freeze_time("2024-01-04")
 def test_get_data_forecast_api() -> None:
     """Test the get_data method for a scenario where the forecast API would be used"""
     weather_ingress = OpenWeatherDataIngress()
@@ -102,12 +105,5 @@ def test_get_data_forecast_api() -> None:
             CONST_OPENWEATHERMAP_FORECAST_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE,
         )
-        # Override the inferred API base URL to ensure the forecast API is tested.
-        # This is required because we're comapring against a mocking result from
-        # past dates.
-        response = weather_ingress.get_data(
-            dt_from,
-            dt_to,
-            override_inferred_weather_api="forecast",
-        )
+        response = weather_ingress.get_data(dt_from, dt_to)
         assert response == EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE

@@ -3,7 +3,7 @@ Python module to import data using the Openweathermap API
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
 import pandas as pd
 import requests
@@ -121,33 +121,13 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: datetime,
         to_dt: datetime,
-        override_inferred_weather_api: Optional[str] = None,
     ) -> Tuple[str, dict[str, str]]:
         """
         Determine whether to call the historical or forecast API.
         This is determined by comparing the present time to the from_dt and to_dt.
         This method combined with _handling_datetime_range() should ensure the correct
         API is called or the correct error is raised.
-
-        override_inferred_weather_api: str, Optional.
-            options are "historical" or "forecast". This overrides
-            the inferred weather API. Practically, this is used
-            for testing purposes.
         """
-        if override_inferred_weather_api is not None:
-            if override_inferred_weather_api == "historical":
-                return (
-                    CONST_OPENWEATHERMAP_HISTORICAL_URL,
-                    SENSOR_OPENWEATHERMAPHISTORICAL,
-                )
-            elif override_inferred_weather_api == "forecast":
-                return CONST_OPENWEATHERMAP_FORECAST_URL, SENSOR_OPENWEATHERMAPFORECAST
-            else:
-                raise ValueError(
-                    "override_inferred_weather_api must be either 'historical' or"
-                    " 'forecast'"
-                )
-
         if self.present >= to_dt:
             return CONST_OPENWEATHERMAP_HISTORICAL_URL, SENSOR_OPENWEATHERMAPHISTORICAL
         elif self.present <= from_dt:
@@ -195,13 +175,12 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: Union[datetime, str],
         to_dt: Union[datetime, str],
-        override_inferred_weather_api: Optional[str] = None,
     ) -> Tuple[str, dict[str, str], datetime, datetime]:
         from_dt = self._set_now(from_dt)
         to_dt = self._set_now(to_dt)
         self._handling_datetime_range(from_dt, to_dt)
         base_url, sensor_payload = self._determine_if_historic_or_forecast(
-            from_dt, to_dt, override_inferred_weather_api=override_inferred_weather_api
+            from_dt, to_dt
         )
         return base_url, sensor_payload, from_dt, to_dt
 
@@ -209,7 +188,6 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: Union[datetime, str],
         to_dt: Union[datetime, str],
-        override_inferred_weather_api: Optional[str] = None,
     ) -> list:
         """
         Please read the docstring for BaseIngress.get_data()
@@ -238,10 +216,6 @@ class OpenWeatherDataIngress(BaseIngress):
             Max 2 days in the future.
             If 'present' is passed, then the present time is used.
             DON'T USE datetime.now() as this will cause problems.
-            override_inferred_weather_api: str, Optional.
-            options are "historical" or "forecast". This overrides
-            the inferred weather API. Practically, this is used
-            for testing purposes.
 
         Returns:
             List of tuples. A tuple should be in the format
@@ -249,7 +223,7 @@ class OpenWeatherDataIngress(BaseIngress):
             It gives Sensor type, Sensor and Sensor measurements.
         """
         base_url, sensor_payload, from_dt, to_dt = self.get_api_base_url_and_sensor(
-            from_dt, to_dt, override_inferred_weather_api=override_inferred_weather_api
+            from_dt, to_dt
         )
 
         logging.info(f"Calling Openweathermap API from {from_dt} to {to_dt}.")
