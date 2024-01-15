@@ -343,7 +343,7 @@ def new_sensor() -> Response:
 
 
 @login_required
-@blueprint.route("/add-sensor", methods=["POST", "GET"])
+@blueprint.route("/add-sensor", methods=["POST"])
 def submit_sensor() -> Response:
     form_data = request.form
     payload = {}
