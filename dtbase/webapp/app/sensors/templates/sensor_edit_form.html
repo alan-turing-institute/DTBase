@@ -16,9 +16,9 @@
     <form style="margin-top: 15px" id="edit-sensor-form" method="POST">
         <div class="form-group">
             <label for="name">Name:</label>
-            <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Notes" value="{{ form_data.name if form_data }}">
+            <input type="text" class="form-control custom-input" id="name" name="name" required value="{{all_args['name']}}">
             <label for="notes">Notes:</label>
-            <input type="text" class="form-control custom-input" id="notes" name="notes" required placeholder="Notes" value="{{ form_data.notes if form_data }}">
+            <input type="text" class="form-control custom-input" id="notes" name="notes" required value="{{all_args['notes']}}">
         </div>
         <button type="submit" class="btn btn-primary btn-margin">Submit</button>
         <button type="button" class="btn btn-warning btn-margin" formnovalidate onclick="closeEditModal()">Cancel</button>
