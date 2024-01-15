@@ -42,7 +42,6 @@
             fetch(window.location.href,{
                 method: 'DELETE',
             }).then(function(response) {
-                console.log(response);
                 if (response.ok) {
                     // If the sensor was deleted successfully, close the popup window
                     window.close();
