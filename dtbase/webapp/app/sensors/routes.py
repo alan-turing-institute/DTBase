@@ -404,7 +404,7 @@ def new_sensor() -> Response:
 
 
 @login_required
-@blueprint.route("/add-sensor", methods=["POST"])
+@blueprint.route("/add-sensor", methods=["POST", "GET"])
 def submit_sensor() -> Response:
     form_data = request.form
     payload = {}
@@ -413,6 +413,23 @@ def submit_sensor() -> Response:
             payload["type_name"] = v
         else:
             payload[k] = v
+
+    # Check if the unique identifier already exists
+    sensor_type_response = current_user.backend_call("get", "/sensor/list-sensor-types")
+    for sensor_type in sensor_type_response.json():
+        payload_check = {"type_name": sensor_type["name"]}
+        sensors_list = current_user.backend_call(
+            "get", "/sensor/list-sensors", payload_check
+        )
+        for sensor in sensors_list.json():
+            if sensor["unique_identifier"] == payload["unique_identifier"]:
+                flash(
+                    f"Sensor with unique identifier {payload['unique_identifier']} "
+                    "already exists",
+                    "error",
+                )
+                return redirect(url_for(".new_sensor"))
+
     try:
         # Send a POST request to the backend
         response = current_user.backend_call("post", "/sensor/insert-sensor", payload)
@@ -469,7 +486,9 @@ def sensor_edit_form() -> Response:
         payload["unique_identifier"] = unique_identifier
         for k, v in request.form.items():
             payload[k] = v
-        # response = current_user.backend_call("post", "/sensor/edit-sensor", payload)
+        response = current_user.backend_call("post", "/sensor/edit-sensor", payload)
+        if response.status_code == 200:
+            flash("Sensor edited successfully", "success")
         return "", 200
 
     if request.method == "DELETE":

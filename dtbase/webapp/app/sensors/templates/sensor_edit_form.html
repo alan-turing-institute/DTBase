@@ -5,12 +5,12 @@
 {% block sidebar %} {# Omit the sidebar content #} {% endblock sidebar %}
 
 {% block content %}
-<div class="col-12 mt-3 ml-5">
+<div class="col-12 mt-5 ms-5">
     <h3 style="margin-bottom: 15px;">Edit Sensor</h2>
 
     <p style = "margin-bottom: 5px;"><strong>You are editing:</strong></p>
     {% for key, value in all_args.items() %}
-        <p style="margin-bottom: 3px;"><strong>{{ key }}: </strong>{{ value }}</p>
+        <p style="margin-bottom: 1px; margin-left: 20px"> - {{ key }}: {{ value }}</p>
     {% endfor %}
 
     <form style="margin-top: 15px" id="edit-sensor-form" method="POST">

@@ -84,7 +84,7 @@ function openEditModal(sensor) {
   var editWindow = window.open(
     "/sensors/sensor-edit-form?" + urlParameters,
     "_blank",
-    "width=600,height=600"
+    "width=550,height=600"
   );
   editWindow.addEventListener("beforeunload", function () {
     window.location.reload();

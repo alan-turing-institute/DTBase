@@ -505,3 +505,34 @@ def list_sensors(
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
     return result
+
+
+@add_default_session
+def edit_sensor(
+    unique_identifier: str,
+    new_name: str,
+    new_notes: str,
+    session: Optional[Session] = None,
+) -> None:
+    """Edit an existing sensor in the database.
+
+    Args:
+        unique_identifier: Unique identifier of the sensor to be edited.
+        new_name: New name for the sensor.
+        new_notes: New notes for the sensor.
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        None
+    """
+    # Find the sensor by unique identifier
+    sensor = (
+        session.query(Sensor).filter_by(unique_identifier=unique_identifier).first()
+    )
+
+    if sensor is not None:
+        # Update the attributes
+        sensor.name = new_name
+        sensor.notes = new_notes
+    else:
+        raise ValueError(f"No sensor found with unique identifier {unique_identifier}")
