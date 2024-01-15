@@ -287,7 +287,7 @@ def clean_data_list(sensor_readings_list: List[pd.DataFrame]) -> Dict:
             containing processed temperature and humidity data for each sensor
             (the observations are averaged based on the proximity of the timestamp
             to the full hour - use the "mins_from_the_hour" parameter in
-             "data_config.ini" to specify what timestamps to average together). The
+            "data_config.ini" to specify what timestamps to average together). The
             processed data is time-ordered. The dataframes are indexed by timestamp.
             Specify the timedelta between successive timestamps using the "time_delta"
             parameter in "data_config.ini".

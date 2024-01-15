@@ -6,11 +6,13 @@ from typing import Tuple
 
 from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.backend.api.model import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import models
-from dtbase.core.structure import SQLA as db
+from dtbase.core.exc import RowMissingError
+from dtbase.core.structure import db
 
 
 @blueprint.route("/insert-model", methods=["POST"])
@@ -24,15 +26,16 @@ def insert_model() -> Tuple[Response, int]:
         "name": <model_name:str>
     }
     """
-
     payload = request.get_json()
     error_response = check_keys(payload, ["name"], "/insert-model")
     if error_response:
         return error_response
-
-    models.insert_model(name=payload["name"], session=db.session)
+    try:
+        models.insert_model(name=payload["name"], session=db.session)
+    except IntegrityError:
+        return jsonify({"message": "Model exists already"}), 409
     db.session.commit()
-    return jsonify(payload), 201
+    return jsonify({"message": "Model inserted"}), 201
 
 
 @blueprint.route("/list-models", methods=["GET"])
@@ -42,7 +45,7 @@ def list_models() -> Tuple[Response, int]:
     List all models in the database.
     """
 
-    result = models.list_models(session=db.session)
+    result = models.list_models()
     return jsonify(result), 200
 
 
@@ -82,7 +85,6 @@ def insert_model_scenario() -> Tuple[Response, int]:
     {
         "model_name": <model_name:str>,
         "description": <description:str> (can be None/null),
-        "session": <session:sqlalchemy.orm.session.Session> (optional)
     }
     """
 
@@ -92,8 +94,11 @@ def insert_model_scenario() -> Tuple[Response, int]:
     if error_response:
         return error_response
 
-    models.insert_model_scenario(**payload, session=db.session)
-    db.session.commit()
+    try:
+        models.insert_model_scenario(**payload, session=db.session)
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({"message": "Scenario exists already"}), 409
     return jsonify(payload), 201
 
 
@@ -102,8 +107,18 @@ def insert_model_scenario() -> Tuple[Response, int]:
 def list_model_scenarios() -> Tuple[Response, int]:
     """
     List all model scenarios in the database.
+
+    Returns JSON of the format
+    [
+        {
+            "id": <id:int>,
+            "model_id": <model_id:int>,
+            "description": <description:str|None|null>
+        },
+        ...
+    ]
     """
-    result = models.list_model_scenarios(session=db.session)
+    result = models.list_model_scenarios()
     return jsonify(result), 200
 
 
@@ -111,9 +126,9 @@ def list_model_scenarios() -> Tuple[Response, int]:
 @jwt_required()
 def delete_model_scenario() -> Tuple[Response, int]:
     """
-    Delete a model scenario from the database
-    DELETE request should have json data (mimetype "application/json")
-    containing
+    Delete a model scenario from the database.
+
+    DELETE request should have json data (mimetype "application/json") containing
     {
         "model_name": <model_name:str>,
         "description": <description:str>
@@ -170,7 +185,7 @@ def list_models_measures() -> Tuple[Response, int]:
     """
     List all model measures in the database.
     """
-    model_measures = models.list_model_measures(session=db.session)
+    model_measures = models.list_model_measures()
     return jsonify(model_measures), 200
 
 
@@ -202,21 +217,35 @@ def insert_model_run() -> Tuple[Response, int]:
 
     POST request should have json data (mimetype "application/json") containing
     {
-        "model_name": <name of the model that was run:str>
-        "scenario_description": <description of the scenario:str>
-        "measures_and_values": <results of the run:list of dicts with the below keys>
-            "measure_name": <name of the measure reported:str>
-            "values": <values that the model outputs:list>
-            "timestamps": <timestamps associated with the values:list>
+        "model_name": <name of the model that was run:str>,
+        "scenario_description": <description of the scenario:str>,
+        "measures_and_values": [
+            {
+                "measure_name": <name of the measure reported:str>,
+                "values": <values that the model outputs:list>,
+                "timestamps": <timestamps associated with the values:list>
+            }
+            ...
+        ]
     }
-    The values can be strings, integers, floats, or booleans, depending on the measure.
-    There should as many values as there are timestamps.
+    The measures_and_values, which holds the results of the model should have as many
+    entries as this model records measures. The values can be strings, integers, floats,
+    or booleans, depending on the measure. There should as many values as there are
+    timestamps.
+
     Optionally the following can also be included in the paylod
     {
-        "time_created": <time when this run was run, `now` by default:string>
+        "time_created": <time when this run was run, `now` by default:string>,
         "create_scenario": <create the scenario if it doesn't already exist, False by
-                            default:boolean>
+                            default:boolean>,
+        "sensor_unique_id": <id for the associated sensor:string>,
+        "sensor_measure": {
+            "name": <name of the associated sensor measure:string>,
+            "units": <name of the associated sensor measure:string>
+        }
     }
+
+    Returns status code 201 on success.
     """
 
     payload = request.get_json()
@@ -226,7 +255,7 @@ def insert_model_run() -> Tuple[Response, int]:
         return error_response
     models.insert_model_run(**payload, session=db.session)
     db.session.commit()
-    return jsonify(payload), 201
+    return jsonify({"message": "Model run successfully inserted"}), 201
 
 
 @blueprint.route("/list-model-runs", methods=["GET"])
@@ -237,18 +266,34 @@ def list_model_runs() -> Tuple[Response, int]:
 
     GET request should have json data (mimetype "application/json") containing
     {
-        "model_name": <Name of the model to get runs for>,
-        "dt_from": <Datetime string for earliest readings to get. Inclusive. In ISO 8601
-            format: '%Y-%m-%dT%H:%M:%S'>.  Optional, defaults to datetime.now minus one
-            week.
-        "dt_to": <Datetime string for last readings to get. Inclusive. In ISO 8601
-            format: '%Y-%m-%dT%H:%M:%S'>. Optional, defaults to datetime.now.
+        "model_name": <Name of the model to get runs for:string>,
+        "dt_from": <Datetime for earliest readings to get. Inclusive. Optional, defaults
+            to now minus one week.:string>
+        "dt_to": <Datetime for last readings to get. Inclusive. Optional, defaults to
+            now.:string>
         "scenario": <The string description of the scenario to include runs for.
-            Optional, by default all scenarios>,
+            Optional, by default all scenarios.:string>,
     }
+    Both dt_from and dt_to should be in ISO 8601 format: '%Y-%m-%dT%H:%M:%S'.
 
-    Returns:
-        A list of tuples (values, timestamp) that are the result the model run.
+    On success, returns 200 with
+    [
+        {
+            "id": <database id of the model run:int>,
+            "model_id": <database id of the model:int>,
+            "model_name": <name of the model:str>,
+            "scenario_id": <database id of the scenario:int>,
+            "scenario_description": <description of the scenario:str>,
+            "time_created": <time when this run was created:str in ISO 8601>,
+            "sensor_unique_id": <unique identifier of the associated sensor:str or
+                null>,
+            "sensor_measure": {
+                "name": <name of the associated sensor measure:str or null>,
+                "units": <units of the associated sensor measure:str or null>
+            }
+        }
+        ...
+    ]
     """
 
     payload = request.get_json()
@@ -279,9 +324,9 @@ def list_model_runs() -> Tuple[Response, int]:
             return dt_error, 400
     scenario = payload.get("scenario")
 
-    model_runs = models.list_model_runs(
-        model_name, dt_from, dt_to, scenario, session=db.session
-    )
+    model_runs = models.list_model_runs(model_name, dt_from, dt_to, scenario)
+    for run in model_runs:
+        run["time_created"] = run["time_created"].isoformat()
     return jsonify(model_runs), 200
 
 
@@ -305,7 +350,7 @@ def get_model_run() -> Tuple[Response, int]:
     if error_response:
         return error_response
 
-    model_run = models.get_model_run_results(**payload, session=db.session)
+    model_run = models.get_model_run_results(**payload)
     converted_results = {}
     for k, v in model_run.items():
         converted_results[k] = [
@@ -327,14 +372,24 @@ def get_model_run_sensor_measure() -> Tuple[Response, int]:
         run_id: <Database ID of the model run>,
     }
 
-    Returns:
-        Dict, with keys "sensor_unique_id", "measure_name"
+    Returns 200 with
+    {
+        "sensor_unique_id": <sensor unique id:str>,
+        "sensor_measure": {
+            "name": <sensor measure name:str>,
+            "units": <sensor measure units:str>
+        }
+    }
     """
     payload = request.get_json()
     required_keys = ["run_id"]
     error_response = check_keys(payload, required_keys, "/get-model-run-sensor-measure")
     if error_response:
         return error_response
-    result = models.get_model_run_sensor_measures(**payload)
-    result_dict = {"sensor_unique_id": result[0], "measure_name": result[1]}
-    return jsonify(result_dict), 200
+    try:
+        result = models.get_model_run_sensor_measure(**payload)
+        # The sensor_id is not needed in the API return value
+        del result["sensor_id"]
+    except RowMissingError:
+        return jsonify({"message": "No such model run"}), 400
+    return jsonify(result), 200

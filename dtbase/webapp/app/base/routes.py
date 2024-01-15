@@ -29,12 +29,6 @@ def route_template(template: str) -> str:
     return render_template(template + ".html")
 
 
-@blueprint.route("/fixed_<template>")
-@login_required
-def route_fixed_template(template: str) -> str:
-    return render_template("fixed/fixed_{}.html".format(template))
-
-
 @blueprint.route("/page_<error>")
 def route_errors(error: Any) -> str:
     return render_template("errors/page_{}.html".format(error))

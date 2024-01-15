@@ -3,20 +3,18 @@
 {% block title %} Locations {% endblock title %}
 
 {% block content %}
-<div class="container">
-    <h3>Locations</h3>
-    <div class="form-group">
-        <label for="schema">Schema:</label>
-        <select class="form-control custom-select custom-input" id="schema" name="schema" required>
-            <option value="">-- Select a schema --</option>
-            {% for schema in schemas %}
-                <option value="{{ schema.name }}">{{ schema.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div id="locationTable"></div>
+<h3>Locations</h3>
+<div class="form-group">
+    <label for="schema">Schema:</label>
+    <select class="form-control custom-select custom-input" id="schema" name="schema" required>
+        <option value="">-- Select a schema --</option>
+        {% for schema in schemas %}
+            <option value="{{ schema.name }}">{{ schema.name }}</option>
+        {% endfor %}
+    </select>
 </div>
+
+<div id="locationTable"></div>
 {% endblock content %}
 
 {% block javascripts %}

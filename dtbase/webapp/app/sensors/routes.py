@@ -4,12 +4,11 @@ A module for the main dashboard actions
 import datetime as dt
 import json
 import re
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import pandas as pd
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from requests.exceptions import ConnectionError
 from werkzeug.wrappers import Response
 
 from dtbase.core.constants import CONST_MAX_RECORDS
@@ -36,7 +35,7 @@ def fetch_all_sensor_types() -> List[dict]:
     return sensor_types
 
 
-def fetch_all_sensors(sensor_type: str) -> List[dict]:
+def fetch_all_sensors(sensor_type: str) -> List[dict[str, Any]]:
     """Get all sensors of a given sensor type from the database.
     Args:
         sensor_type: The name of the sensor type.
@@ -55,15 +54,15 @@ def fetch_all_sensors(sensor_type: str) -> List[dict]:
 
 
 def fetch_sensor_data(
-    dt_from: dt.datetime,
-    dt_to: dt.datetime,
+    dt_from: dt.datetime | str,
+    dt_to: dt.datetime | str,
     measures: List[dict],
     sensor_ids: List[str],
-) -> Dict[int, pd.DataFrame]:
+) -> Dict[str, pd.DataFrame]:
     """Get the data from a given sensor and measure, in a given time period.
     Args:
-        dt_from: Datetime from
-        dt_to: Datetime to
+        dt_from: Datetime from, either as a datetime object or as an ISO format string
+        dt_to: Datetime to, either as a datetime object or as an ISO format string
         measures: List of dicts, each with keys "name", "datatype", "units" for a
             measure.
         sensor_ids: List of strings, Unique IDs of sensors to get data for
@@ -105,7 +104,7 @@ def fetch_sensor_data(
 
 
 @blueprint.route("/time-series-plots", methods=["GET", "POST"])
-# @login_required
+@login_required
 def time_series_plots() -> Response:
     """Time-series plots of sensor data"""
     # Parse the various parameters we may have been passed, and load some generally
@@ -117,10 +116,7 @@ def time_series_plots() -> Response:
         # sensor_ids is passed as a comma-separated (or semicolon, although those aren't
         # currently used) string, split it into a list of ids.
         sensor_ids = tuple(re.split(r"[;,]+", sensor_ids.rstrip(",;")))
-    try:
-        sensor_types = fetch_all_sensor_types()
-    except RuntimeError:
-        return redirect("/backend_not_found_error")
+    sensor_types = fetch_all_sensor_types()
     sensor_type_name = utils.parse_url_parameter(request, "sensorType")
     if sensor_types:
         if sensor_type_name is None:
@@ -145,7 +141,7 @@ def time_series_plots() -> Response:
         dt_from = today - dt.timedelta(days=7)
         dt_to = today
         return render_template(
-            "sensors.html",
+            "time_series_plots.html",
             sensor_type=sensor_type_name,
             sensor_types=sensor_types,
             all_sensors=all_sensors,
@@ -179,7 +175,7 @@ def time_series_plots() -> Response:
         for k, v in sensor_data.items()
     }
     return render_template(
-        "sensors.html",
+        "time_series_plots.html",
         sensor_type=sensor_type_name,
         sensor_types=sensor_types,
         all_sensors=all_sensors,
@@ -193,8 +189,8 @@ def time_series_plots() -> Response:
 
 # Plot sensor readings in responsive datatables
 @blueprint.route("/readings", methods=["GET", "POST"])
-# @login_required
-def sensor_readings() -> Response:
+@login_required
+def sensor_readings() -> Response | str:
     """
     Render tables of readings for a selected sensor type.
 
@@ -204,111 +200,61 @@ def sensor_readings() -> Response:
     and only when start and end dates are selected will the
     datatable be populated.
     """
-    try:
-        sensor_types = fetch_all_sensor_types()
-    except RuntimeError:
-        return redirect("/backend_not_found_error")
+    sensor_types = fetch_all_sensor_types()
     sensor_type_names = [st["name"] for st in sensor_types]
-    # initially all the other fields are empty, until the sensor (type) is chosen.
-    sensor_type = None
-    sensor_ids = []
-    measure_names = []
-    measures = []
 
-    if request.method == "POST":
-        if (
-            "startDate" in request.form
-            and "endDate" in request.form
-            and "sensor_type" not in request.form
-        ):
-            dt_from = request.form["startDate"]
-            dt_to = request.form["endDate"]
-            return render_template(
-                "readings.html",
-                sensor_types=sensor_type_names,
-                selected_sensor_type=None,
-                sensor_ids=[],
-                selected_sensor=None,
-                measure_names=measure_names,
-                sensor_data=None,
-                dt_from=dt_from,
-                dt_to=dt_to,
-                num_records=CONST_MAX_RECORDS,
-            )
-        # either the "sensor_type" or the "sensor" was selected from the form
-        if "sensor_type" in request.form:
-            dt_from = request.form["startDate"]
-            dt_to = request.form["endDate"]
-            sensor_type = request.form["sensor_type"]
-            sensors = fetch_all_sensors(sensor_type)
-            sensor_ids = [s["unique_identifier"] for s in sensors]
-            measures = next(
-                s["measures"] for s in sensor_types if s["name"] == sensor_type
-            )
-            measure_names = [m["name"] for m in measures]
-            if "sensor" not in request.form or request.form["sensor"] not in sensor_ids:
-                # populate the dropdown of sensor choices.
-                return render_template(
-                    "readings.html",
-                    sensor_types=sensor_type_names,
-                    selected_sensor_type=sensor_type,
-                    sensor_ids=sensor_ids,
-                    selected_sensor=None,
-                    measure_names=measure_names,
-                    sensor_data=None,
-                    dt_from=dt_from,
-                    dt_to=dt_to,
-                    num_records=CONST_MAX_RECORDS,
-                )
-            if "sensor" in request.form:
-                sensor_id = request.form["sensor"]
-                # get the data for that sensor - initially a dict of DataFrames
-                sensor_data = fetch_sensor_data(dt_from, dt_to, measures, [sensor_id])
-                # get the DataFrame for this sensor, and convert to dict
-                sensor_data = sensor_data[sensor_id]
-                sensor_data["timestamp"].map(lambda x: x.isoformat())
-                sensor_data = sensor_data.to_dict("records")
-                return render_template(
-                    "readings.html",
-                    sensor_types=sensor_type_names,
-                    selected_sensor_type=sensor_type,
-                    sensor_ids=sensor_ids,
-                    selected_sensor=sensor_id,
-                    measure_names=measure_names,
-                    sensor_data=sensor_data,
-                    dt_from=dt_from,
-                    dt_to=dt_to,
-                    num_records=CONST_MAX_RECORDS,
-                )
+    sensor_ids_by_type = {
+        st: [s["unique_identifier"] for s in fetch_all_sensors(st)]
+        for st in sensor_type_names
+    }
 
+    dt_to = request.form.get("endDate", dt.date.today().isoformat())
+    dt_from = request.form.get("startDate", dt.date.today().isoformat())
+    sensor_type = request.form.get("sensor_type", None)
+    sensor_id = request.form.get("sensor", None)
+
+    if (
+        dt_from is not None
+        and dt_to is not None
+        and sensor_type is not None
+        and sensor_id is not None
+        and sensor_id in sensor_ids_by_type[sensor_type]
+    ):
+        # We have everything we need to get some actual data.
+        measures = next(s["measures"] for s in sensor_types if s["name"] == sensor_type)
+        measure_names = [m["name"] for m in measures]
+        # get the data for that sensor - initially a dict of DataFrames
+        sensor_data = fetch_sensor_data(dt_from, dt_to, measures, [sensor_id])
+        # get the DataFrame for this sensor, and convert to dict
+        sensor_data = sensor_data[sensor_id]
+        sensor_data["timestamp"].map(lambda x: x.isoformat())
+        sensor_data = sensor_data.to_dict("records")
     else:
-        # initial GET request - we don't yet have selected sensor_type
-        return render_template(
-            "readings.html",
-            sensor_types=sensor_type_names,
-            selected_sensor_type=None,
-            sensor_ids=[],
-            selected_sensor=None,
-            measure_names=measure_names,
-            sensor_data=None,
-            dt_from=None,
-            dt_to=None,
-            num_records=CONST_MAX_RECORDS,
-        )
+        measure_names = None
+        sensor_data = None
+    return render_template(
+        "readings.html",
+        sensor_types=sensor_type_names,
+        selected_sensor_type=sensor_type,
+        sensor_ids_by_type=sensor_ids_by_type,
+        selected_sensor=sensor_id,
+        measure_names=measure_names,
+        sensor_data=sensor_data,
+        dt_from=dt_from,
+        dt_to=dt_to,
+        num_records=CONST_MAX_RECORDS,
+    )
 
 
 @blueprint.route("/add-sensor-type", methods=["GET"])
-# @login_required
+@login_required
 def new_sensor_type(form_data: str = None) -> Response:
     """
     Form to add a new SensorType, with associated measures.
     """
-    try:
-        existing_measures_response = current_user.backend_call(
-            "get", "/sensor/list-measures"
-        )
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    existing_measures_response = current_user.backend_call(
+        "get", "/sensor/list-measures"
+    )
     existing_measures = existing_measures_response.json()
     return render_template(
         "sensor_type_form.html",
@@ -318,7 +264,7 @@ def new_sensor_type(form_data: str = None) -> Response:
 
 
 @blueprint.route("/add-sensor-type", methods=["POST"])
-# @login_required
+@login_required
 def submit_sensor_type() -> Response:
     """
     Send a POST request to add a new sensor type to the database.
@@ -376,13 +322,9 @@ def submit_sensor_type() -> Response:
                     )
                     return new_sensor_type(form_data=form_data)
 
-    try:
-        response = current_user.backend_call(
-            "post", "/sensor/insert-sensor-type", form_data
-        )
-    except Exception as e:
-        flash(f"Error communicating with the backend: {e}", "error")
-        return redirect("/backend_not_found_error")
+    response = current_user.backend_call(
+        "post", "/sensor/insert-sensor-type", form_data
+    )
 
     if response.status_code != 201:
         flash(f"An error occurred while adding the sensor type: {response}", "error")
@@ -395,10 +337,7 @@ def submit_sensor_type() -> Response:
 @login_required
 @blueprint.route("/add-sensor", methods=["GET"])
 def new_sensor() -> Response:
-    try:
-        response = current_user.backend_call("get", "/sensor/list-sensor-types")
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    response = current_user.backend_call("get", "/sensor/list-sensor-types")
     sensor_types = response.json()
     return render_template("sensor_form.html", sensor_types=sensor_types)
 
@@ -448,24 +387,16 @@ def submit_sensor() -> Response:
 @login_required
 @blueprint.route("/sensor-list", methods=["GET"])
 def sensor_list_table() -> Response:
-    try:
-        sensor_type_response = current_user.backend_call(
-            "get", "/sensor/list-sensor-types"
-        )
-    except ConnectionError:
-        return redirect("/backend_not_found_error")
+    sensor_type_response = current_user.backend_call("get", "/sensor/list-sensor-types")
 
     sensor_types = sensor_type_response.json()
     sensors_for_each_type = {}
 
     for sensor_type in sensor_types:
-        try:
-            payload = {"type_name": sensor_type["name"]}
-            sensors_response = current_user.backend_call(
-                "get", "/sensor/list-sensors", payload
-            )
-        except ConnectionError:
-            return redirect("/backend_not_found_error")
+        payload = {"type_name": sensor_type["name"]}
+        sensors_response = current_user.backend_call(
+            "get", "/sensor/list-sensors", payload
+        )
 
         sensors_for_each_type[sensor_type["name"]] = sensors_response.json()
 

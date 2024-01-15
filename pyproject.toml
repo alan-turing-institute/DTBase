@@ -55,6 +55,7 @@ dependencies = [
 dev = [
     "pre-commit ~= 3.5.0",
     "black ~= 23.11.0",
+    "freezegun ~= 1.4",
     "pylint ~= 3.0.2",
     "pytest ~= 7.4.3",
     "pytest-cov ~= 4.1.0",
@@ -95,7 +96,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # TODO Comment in more of the below as we clean up the code.
-ignore = ["ANN401"]
+ignore = ["ANN401", "ANN101"]
 select = [
   "F",
   "E",

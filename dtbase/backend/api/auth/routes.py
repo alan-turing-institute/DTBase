@@ -7,7 +7,7 @@ from flask import Response, jsonify, request
 from dtbase.backend.api.auth import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import users
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 
 @blueprint.route("/login", methods=["POST"])

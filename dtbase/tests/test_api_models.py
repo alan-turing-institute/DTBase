@@ -6,8 +6,11 @@ import datetime as dt
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
 
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
+from dtbase.tests.test_api_sensors import UNIQ_ID1 as SENSOR_ID1
+from dtbase.tests.test_api_sensors import insert_weather_sensor, insert_weather_type
 from dtbase.tests.utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
@@ -70,6 +73,28 @@ PRODUCT3 = {
     "values": [False, True, False],
     "timestamps": TIMESTAMPS2,
 }
+RUN1 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO1,
+    "measures_and_values": [PRODUCT1],
+}
+RUN2 = {
+    "model_name": MODEL_NAME1,
+    "scenario_description": SCENARIO2,
+    "measures_and_values": [PRODUCT1, PRODUCT2],
+    "time_created": (NOW - dt.timedelta(days=7)).isoformat(),
+    "sensor_unique_id": SENSOR_ID1,
+    "sensor_measure": {
+        "name": "temperature",
+        "units": "Kelvin",
+    },
+}
+RUN3 = {
+    "model_name": MODEL_NAME2,
+    "scenario_description": SCENARIO3,
+    "measures_and_values": [PRODUCT3],
+    "create_scenario": True,
+}
 
 
 def insert_model(client: FlaskClient, name: str) -> None:
@@ -77,13 +102,13 @@ def insert_model(client: FlaskClient, name: str) -> None:
     assert response.status_code == 201
 
 
-def insert_model_measures(client: FlaskClient) -> None:
+def insert_model_measures(client: FlaskClient) -> tuple[TestResponse, TestResponse]:
     response1 = client.post("/model/insert-model-measure", json=MEASURE1)
     response2 = client.post("/model/insert-model-measure", json=MEASURE2)
     return response1, response2
 
 
-def insert_model_scenarios(client: FlaskClient) -> None:
+def insert_model_scenarios(client: FlaskClient) -> list[TestResponse]:
     insert_model(client, MODEL_NAME1)
     insert_model(client, MODEL_NAME2)
     responses = [
@@ -100,29 +125,16 @@ def insert_model_scenarios(client: FlaskClient) -> None:
     return responses
 
 
-def insert_model_runs(client: FlaskClient) -> None:
+def insert_model_runs(
+    client: FlaskClient,
+) -> tuple[TestResponse, TestResponse, TestResponse]:
     insert_model_measures(client)
     insert_model_scenarios(client)
-    run1 = {
-        "model_name": MODEL_NAME1,
-        "scenario_description": SCENARIO1,
-        "measures_and_values": [PRODUCT1],
-    }
-    run2 = {
-        "model_name": MODEL_NAME1,
-        "scenario_description": SCENARIO2,
-        "measures_and_values": [PRODUCT2],
-        "time_created": (NOW - dt.timedelta(days=7)).isoformat(),
-    }
-    run3 = {
-        "model_name": MODEL_NAME2,
-        "scenario_description": SCENARIO3,
-        "measures_and_values": [PRODUCT3],
-        "create_scenario": True,
-    }
-    response1 = client.post("/model/insert-model-run", json=run1)
-    response2 = client.post("/model/insert-model-run", json=run2)
-    response3 = client.post("/model/insert-model-run", json=run3)
+    insert_weather_type(client)
+    insert_weather_sensor(client)
+    response1 = client.post("/model/insert-model-run", json=RUN1)
+    response2 = client.post("/model/insert-model-run", json=RUN2)
+    response3 = client.post("/model/insert-model-run", json=RUN3)
     return response1, response2, response3
 
 
@@ -175,6 +187,17 @@ def test_insert_model_scenario(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_insert_model_scenario_duplicate(auth_client: AuthenticatedClient) -> None:
+    with auth_client as client:
+        insert_model_scenarios(client)
+        response = client.post(
+            "/model/insert-model-scenario",
+            json={"model_name": MODEL_NAME1, "description": SCENARIO1},
+        )
+        assert response.status_code == 409
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_model_scenarios(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         # add a model scenario
@@ -209,6 +232,7 @@ def test_delete_model_scenario(auth_client: AuthenticatedClient) -> None:
 def test_insert_model_measures(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         responses = insert_model_measures(client)
+        assert responses is not None
         for response in responses:
             assert response.status_code == 201
 
@@ -220,6 +244,7 @@ def test_list_model_measures(auth_client: AuthenticatedClient) -> None:
         response = client.get("/model/list-model-measures")
         assert response.status_code == 200
         response_data = response.json
+        assert response_data is not None
         assert len(response_data) == 2
         expected_keys = {"name", "units", "datatype", "id"}
         assert set(response_data[0].keys()) == expected_keys
@@ -241,6 +266,7 @@ def test_delete_model_measures(auth_client: AuthenticatedClient) -> None:
         assert response.status_code == 200
         response = client.get("/model/list-model-measures")
         response_data = response.json
+        assert response_data is not None
         assert len(response_data) == 1
 
 
@@ -248,6 +274,7 @@ def test_delete_model_measures(auth_client: AuthenticatedClient) -> None:
 def test_insert_model_runs(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
         responses = insert_model_runs(client)
+        assert responses is not None
         for response in responses:
             assert response.status_code == 201
 
@@ -255,26 +282,60 @@ def test_insert_model_runs(auth_client: AuthenticatedClient) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_model_runs(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
-        responses = insert_model_runs(client)
+        insert_model_runs(client)
 
-        runs = {
+        payload = {
             "model_name": MODEL_NAME1,
             "dt_from": NOW.isoformat(),
             "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
             "scenario": SCENARIO1,
         }
+        response = client.get("/model/list-model-runs", json=payload)
+        assert response.status_code == 200
+        body = response.json
+        assert body is not None
+        assert len(body) == 1
 
-        responses = client.get("/model/list-model-runs", json=runs)
+        expected_keys = {
+            "id",
+            "model_id",
+            "model_name",
+            "scenario_id",
+            "scenario_description",
+            "time_created",
+            "sensor_unique_id",
+            "sensor_measure",
+        }
+        run = body[0]
+        assert set(run.keys()) == expected_keys
+        for k in ("model_name", "scenario_description"):
+            assert run[k] == RUN1[k]
+        for k in ("sensor_measure", "sensor_unique_id"):
+            assert run[k] is None
 
-        assert responses.status_code == 200
-        assert isinstance(responses.json, list)
-        assert len(responses.json) == 1
+        payload = {
+            "model_name": MODEL_NAME1,
+            "dt_from": (NOW - dt.timedelta(days=10)).isoformat(),
+            "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
+        }
+        response = client.get("/model/list-model-runs", json=payload)
+        assert response.status_code == 200
+        body = response.json
+        assert body is not None
+        assert len(body) == 2
+        for run in body:
+            assert set(run.keys()) == expected_keys
+            expected_run = RUN1 if run["id"] == 1 else RUN2
+            for k in expected_keys:
+                if k in expected_run:
+                    expected_value = expected_run[k]
+                    assert run[k] == expected_value
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_get_model_run(auth_client: AuthenticatedClient) -> None:
     with auth_client as client:
-        responses = insert_model_runs(client)
+        insert_model_runs(client)
 
         runs = {
             "model_name": MODEL_NAME1,
@@ -282,16 +343,62 @@ def test_get_model_run(auth_client: AuthenticatedClient) -> None:
             "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
             "scenario": SCENARIO1,
         }
-        responses = client.get("/model/list-model-runs", json=runs)
-        run_id = responses.json[0]["id"]
+        response = client.get("/model/list-model-runs", json=runs)
+        assert response.json is not None
+        run_id = response.json[0]["id"]
 
-        run = {
-            "run_id": run_id,
-            # "measure_name": MEASURE_NAME1,
+        response = client.get("/model/get-model-run", json={"run_id": run_id})
+        assert response.status_code == 200
+        body = response.json
+        assert body is not None
+        assert len(body.keys()) == 1
+        key, value = next(iter(body.items()))
+        assert key in {MEASURE_NAME1, MEASURE_NAME2}
+        if key == MEASURE_NAME1:
+            expected_product = PRODUCT1
+        else:
+            expected_product = PRODUCT2
+        assert value == [
+            {"timestamp": t, "value": v}
+            for t, v in zip(expected_product["timestamps"], expected_product["values"])
+        ]
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_get_model_run_sensor_measure(auth_client: AuthenticatedClient) -> None:
+    with auth_client as client:
+        insert_model_runs(client)
+
+        runs = {
+            "model_name": MODEL_NAME1,
+            "dt_from": (NOW - dt.timedelta(days=10)).isoformat(),
+            "dt_to": (NOW + dt.timedelta(days=10)).isoformat(),
         }
+        response = client.get("/model/list-model-runs", json=runs)
+        assert response.json is not None
+        assert len(response.json) == 2
 
-        responses = client.get("/model/get-model-run", json=run)
-        assert responses.status_code == 200
+        for run in response.json:
+            run_id = run["id"]
+            response = client.get(
+                "/model/get-model-run-sensor-measure", json={"run_id": run_id}
+            )
+            assert response.status_code == 200
+            body = response.json
+            assert body is not None
+            assert set(body.keys()) == {
+                "sensor_unique_id",
+                "sensor_measure",
+            }
+            if run["scenario_description"] == SCENARIO2:
+                assert body["sensor_unique_id"] == SENSOR_ID1
+                assert body["sensor_measure"] == {
+                    "name": "temperature",
+                    "units": "Kelvin",
+                }
+            else:
+                assert body["sensor_unique_id"] is None
+                assert body["sensor_measure"] is None
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

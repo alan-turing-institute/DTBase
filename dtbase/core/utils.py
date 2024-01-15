@@ -6,17 +6,27 @@ import io
 import json
 import logging
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
-from flask import Response, send_file
+import requests
+from flask import Response as FlaskResponse
+from flask import send_file
 from sqlalchemy import exc
 from sqlalchemy.engine import Engine, ResultProxy, RowMapping
 from sqlalchemy.orm import Session
 
-from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
+from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
+from dtbase.core.constants import (
+    DEFAULT_USER_EMAIL,
+    DEFAULT_USER_PASS,
+    SQL_CONNECTION_STRING,
+    SQL_DBNAME,
+)
 from dtbase.core.db import connect_db, session_close, session_open
+from dtbase.core.exc import BackendCallError, DatabaseConnectionError
 from dtbase.core.structure import (
     LocationBooleanValue,
     LocationFloatValue,
@@ -35,7 +45,7 @@ from dtbase.core.structure import (
 
 def get_db_session(
     return_engine: bool = False,
-) -> (Tuple[Session, Engine] | Session | None):
+) -> Tuple[Session, Engine] | Session | None:
     """
     Get an SQLAlchemy session on the database.
 
@@ -50,9 +60,10 @@ def get_db_session(
     session: SQLAlchemy session object
     engine (optional): SQLAlchemy engine
     """
-    success, log, engine = connect_db(SQL_CONNECTION_STRING, SQL_DBNAME)
-    if not success:
-        logging.error(log)
+    try:
+        engine = connect_db(SQL_CONNECTION_STRING, SQL_DBNAME)
+    except DatabaseConnectionError as e:
+        logging.error(e)
         return None
     session = session_open(engine)
     if return_engine:
@@ -103,7 +114,7 @@ def query_result_to_array(
 
 def query_result_to_dict(
     query_result: List[ResultProxy], date_iso: bool = True
-) -> (Dict | ResultProxy):
+) -> Dict | ResultProxy:
     """
     If we have a single query result, return output as a dict rather than a list
     Args:
@@ -297,14 +308,14 @@ def check_datatype(value: str, datatype_name: str) -> bool:
     raise ValueError(f"Unrecognised datatype: {datatype_name}")
 
 
-def row_mappings_to_dicts(rows: List[RowMapping]) -> List[Dict]:
+def row_mappings_to_dicts(rows: Sequence[RowMapping]) -> List[Dict]:
     """Convert the list of RowMappings that SQLAlchemy's mappings() returns into plain
     dicts.
     """
     return [{k: v for k, v in row.items()} for row in rows]
 
 
-def download_csv(readings: List[Any], filename_base: str = "results") -> Response:
+def download_csv(readings: List[Any], filename_base: str = "results") -> FlaskResponse:
     """
     Use Pandas to convert array of readings into a csv
     Args:
@@ -324,3 +335,75 @@ def download_csv(readings: List[Any], filename_base: str = "results") -> Respons
     return send_file(
         output_buffer, download_name=filename, mimetype="text/csv", as_attachment=True
     )
+
+
+def backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+) -> requests.Response:
+    """Make an API call to the backend server."""
+    headers = {} if headers is None else headers
+    request_func = getattr(requests, request_type)
+    url = f"{BACKEND_URL}{end_point_path}"
+    if payload:
+        headers = headers | {"content-type": "application/json"}
+        response = request_func(url, headers=headers, json=payload)
+    else:
+        response = request_func(url, headers=headers)
+    return response
+
+
+def login(
+    email: str = DEFAULT_USER_EMAIL, password: Optional[str] = DEFAULT_USER_PASS
+) -> tuple[str, str]:
+    """Log in to the backend server.
+
+    If no user credentials are provided, use the default ones.
+
+    Return an access token and a refresh token.
+    """
+    if password is None:
+        raise ValueError("Must provide a password.")
+    response = backend_call(
+        "post",
+        "/auth/login",
+        {"email": DEFAULT_USER_EMAIL, "password": DEFAULT_USER_PASS},
+    )
+    if response.status_code != 200:
+        raise BackendCallError(response)
+    access_token = response.json()["access_token"]
+    refresh_token = response.json()["refresh_token"]
+    return access_token, refresh_token
+
+
+def auth_backend_call(
+    request_type: str,
+    end_point_path: str,
+    payload: Optional[dict] = None,
+    headers: Optional[dict] = None,
+    token: Optional[str] = None,
+) -> requests.Response:
+    """Make an API call to the backend, with authentication.
+
+    If no access token is given, use the `login` function to get one with default
+    credentials.
+    """
+    if token is None:
+        token = login()[0]
+    if headers is None:
+        headers = {}
+    headers = headers | {"Authorization": f"Bearer {token}"}
+    return backend_call(request_type, end_point_path, payload, headers)
+
+
+def log_rest_response(response: requests.Response) -> None:
+    """
+    Logging the response from the backend API
+    """
+    msg = f"Got response {response.status_code}: {response.text}"
+    if 300 > response.status_code:
+        logging.info(msg)
+    else:
+        logging.warning(msg)

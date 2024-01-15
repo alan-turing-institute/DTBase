@@ -107,7 +107,7 @@ class AuthenticatedClient(FlaskClient):
 
 def reset_tables() -> None:
     """Reset the database by dropping all tables and recreating them."""
-    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     drop_tables(engine)
     create_tables(engine)
 
@@ -118,7 +118,7 @@ def session() -> Generator[Session, None, None]:
 
     Handles clean-up of the database after tests finish.
     """
-    status, log, engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     session = session_open(engine)
     yield session
     session.close()
@@ -252,7 +252,7 @@ def conn_frontend_app(
         mock_method = mock_request_method_builder(client, method_name)
         setattr(mock_requests, method_name, mock_method)
 
-    with mock.patch("dtbase.webapp.utils.requests", wraps=mock_requests):
+    with mock.patch("dtbase.core.utils.requests", wraps=mock_requests):
         config = frontend_config["Test"]
         frontend_app = create_frontend_app(config)
         yield frontend_app
@@ -277,6 +277,26 @@ def auth_frontend_client(conn_frontend_client: FlaskClient) -> FlaskClient:
     }
     conn_frontend_client.post("/login", data=payload)
     return conn_frontend_client
+
+
+@pytest.fixture()
+def conn_backend(
+    client: AuthenticatedClient,
+) -> Generator[AuthenticatedClient, None, None]:
+    """Pytest fixture setting up a backend and making core.utils.backend_call talk to it
+
+    This works by mocking dtbase.models.utils.backend_call.requests with an object that
+    reroutes all calls to a test backend client.
+
+    `yields` the backend client.
+    """
+    mock_requests = mock.MagicMock()
+    for method_name in ("get", "post", "put", "delete"):
+        mock_method = mock_request_method_builder(client, method_name)
+        setattr(mock_requests, method_name, mock_method)
+
+    with mock.patch("dtbase.core.utils.requests", wraps=mock_requests):
+        yield client
 
 
 def pytest_configure() -> None:
@@ -308,8 +328,7 @@ def pytest_unconfigure() -> None:
 
     print("pytest_unconfigure: start")
     # drops test db
-    success, log = drop_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    assert success, log
+    drop_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     # if we started a docker container in pytest_configure, kill it here.
     if DOCKER_CONTAINER_ID:
         stop_docker_postgres(DOCKER_CONTAINER_ID)

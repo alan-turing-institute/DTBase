@@ -4,14 +4,14 @@ Module (routes.py) to handle API endpoints related to sensors
 from datetime import datetime
 from typing import Tuple
 
-import sqlalchemy as sqla
 from flask import Response, jsonify, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
 
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import sensor_locations, sensors
-from dtbase.core.structure import SQLA as db
+from dtbase.core.structure import db
 
 
 @blueprint.route("/insert-sensor-type", methods=["POST"])
@@ -39,6 +39,10 @@ def insert_sensor_type() -> Tuple[Response, int]:
 
     db.session.begin()
     for measure in payload["measures"]:
+        # TODO This loop might run into trouble if one of the measures exists already
+        # but others don't, since the db.session.rollback() rolls them all back.
+        # Note that we probably do want all of this to be rolled back if the sensor type
+        # exists.
         try:
             sensors.insert_sensor_measure(
                 name=measure["name"],
@@ -46,7 +50,8 @@ def insert_sensor_type() -> Tuple[Response, int]:
                 datatype=measure["datatype"],
                 session=db.session,
             )
-        except sqla.exc.IntegrityError:
+        except IntegrityError:
+            # Sensor measure already exists.
             db.session.rollback()
     try:
         sensors.insert_sensor_type(
@@ -55,11 +60,12 @@ def insert_sensor_type() -> Tuple[Response, int]:
             measures=payload["measures"],
             session=db.session,
         )
-    except sqla.exc.IntegrityError:
+    except IntegrityError:
         db.session.rollback()
+        return jsonify({"message": "Sensor type exists already"}), 409
 
     db.session.commit()
-    return jsonify(payload), 201
+    return jsonify({"message": "Sensor type inserted"}), 201
 
 
 @blueprint.route("/insert-sensor", methods=["POST"])
@@ -87,7 +93,7 @@ def insert_sensor() -> Tuple[Response, int]:
         return error_response
     try:
         sensors.insert_sensor(**payload, session=db.session)
-    except sqla.exc.IntegrityError:
+    except IntegrityError:
         db.session.rollback()
     db.session.commit()
     return jsonify(payload), 201
@@ -149,7 +155,7 @@ def list_sensor_locations() -> Tuple[Response, int]:
     if error_response:
         return error_response
     result = sensor_locations.get_location_history(
-        sensor_uniq_id=payload["unique_identifier"], session=db.session
+        sensor_uniq_id=payload["unique_identifier"]
     )
     return jsonify(result), 200
 
@@ -229,11 +235,9 @@ def list_sensors() -> Tuple[Response, int]:
     """
     payload = request.get_json()
     if "type_name" in payload.keys():
-        result = sensors.list_sensors(
-            type_name=payload.get("type_name"), session=db.session
-        )
+        result = sensors.list_sensors(type_name=payload.get("type_name"))
     else:
-        result = sensors.list_sensors(session=db.session)
+        result = sensors.list_sensors()
     return jsonify(result), 200
 
 
@@ -256,7 +260,7 @@ def list_sensor_types() -> Tuple[Response, int]:
         ...
     ]
     """
-    result = sensors.list_sensor_types(session=db.session)
+    result = sensors.list_sensor_types()
     return jsonify(result), 200
 
 
@@ -276,7 +280,7 @@ def list_sensor_measures() -> Tuple[Response, int]:
     ...
     ]
     """
-    result = sensors.list_sensor_measures(session=db.session)
+    result = sensors.list_sensor_measures()
     return jsonify(result), 200
 
 
@@ -286,13 +290,23 @@ def get_sensor_readings() -> Tuple[Response, int]:
     """
     Get sensor readings for a specific measure and sensor between two dates.
 
-    GET request should have JSON data (mimetype "application/json") containing:
+    GET request should have JSON data (mimetype "application/json") with payload
+    {
         measure_name: Name of the sensor measure to get readings for.
         unique_identifier: Unique identifier for the sensor to get readings for.
         dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601
             format: '%Y-%m-%dT%H:%M:%S'.
         dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format:
             '%Y-%m-%dT%H:%M:%S'.
+    }
+    Returns readings in the format
+    [
+        {
+            "value": <value:str|float|bool|int>
+            "timestamp": <timestamp:datetime>
+         }
+        ...
+    ]
     """
 
     payload = request.get_json()
@@ -322,9 +336,7 @@ def get_sensor_readings() -> Tuple[Response, int]:
             400,
         )
 
-    readings = sensors.get_sensor_readings(
-        measure_name, sensor_uniq_id, dt_from, dt_to, session=db.session
-    )
+    readings = sensors.get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to)
 
     # Convert readings to JSON-friendly format
     readings_json = [
