@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import sensor_locations, sensors
+from dtbase.core.exc import RowMissingError
 from dtbase.core.structure import db
 
 
@@ -403,11 +404,15 @@ def edit_sensor() -> Tuple[Response, int]:
     if error_response:
         return error_response
 
-    sensors.edit_sensor(
-        unique_identifier=payload["unique_identifier"],
-        new_name=payload["name"],
-        new_notes=payload["notes"],
-        session=db.session,
-    )
-    db.session.commit()
+    try:
+        sensors.edit_sensor(
+            unique_identifier=payload["unique_identifier"],
+            new_name=payload["name"],
+            new_notes=payload["notes"],
+            session=db.session,
+        )
+        db.session.commit()
+    except RowMissingError:
+        return jsonify({"message": "Sensor does not exist"}), 400
+
     return jsonify({"message": "Sensor edited"}), 200

@@ -433,3 +433,18 @@ def test_delete_sensor_nonexistent(session: Session) -> None:
     error_msg = "No sensor 'BLAHBLAH'"
     with pytest.raises(ValueError, match=error_msg):
         sensors.delete_sensor("BLAHBLAH", session=session)
+
+
+def test_edit_sensor(session: Session) -> None:
+    """Edit a sensor, and check that it is edited."""
+    insert_sensors(session)
+    sensors.edit_sensor(
+        SENSOR_ID1, new_name="new_name", new_notes="new_notes", session=session
+    )
+    all_sensors = sensors.list_sensors(session=session)
+    assert len(all_sensors) == 3
+
+    for sensor in all_sensors:
+        if sensor.get("unique_identifier") == SENSOR_ID1:
+            assert sensor.get("name") == "new_name"
+            assert sensor.get("notes") == "new_notes"

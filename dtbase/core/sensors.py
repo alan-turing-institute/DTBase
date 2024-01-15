@@ -6,6 +6,7 @@ import sqlalchemy as sqla
 
 from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core import queries, utils
+from dtbase.core.exc import RowMissingError
 from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
@@ -504,7 +505,6 @@ def list_sensors(
     return result
 
 
-@add_default_session
 def edit_sensor(
     unique_identifier: str,
     new_name: str,
@@ -522,6 +522,7 @@ def edit_sensor(
     Returns:
         None
     """
+    session = set_session_if_unset(session)
     # Find the sensor by unique identifier
     sensor = (
         session.query(Sensor).filter_by(unique_identifier=unique_identifier).first()
@@ -532,4 +533,6 @@ def edit_sensor(
         sensor.name = new_name
         sensor.notes = new_notes
     else:
-        raise ValueError(f"No sensor found with unique identifier {unique_identifier}")
+        raise RowMissingError(
+            f"No sensor found with unique identifier {unique_identifier}"
+        )

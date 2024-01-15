@@ -279,3 +279,25 @@ def test_unauthorized(client: FlaskClient, app: Flask) -> None:
             if methods and str(rule).startswith("/sensor"):
                 method = next(iter(methods))
                 assert_unauthorized(client, method.lower(), str(rule))
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_edit_sensor(auth_client: AuthenticatedClient) -> None:
+    with auth_client as client:
+        response = insert_weather_type(client)
+        assert response.status_code == 201
+        # Use that type to insert a sensor
+        response = insert_weather_sensor(client)
+        assert response.status_code == 201
+
+        response = client.post(
+            "/sensor/edit-sensor",
+            json={"unique_identifier": UNIQ_ID1, "name": "new", "notes": "new"},
+        )
+        assert response.status_code == 200
+
+        list_sensors = client.get("/sensor/list-sensors", json={"type_name": "weather"})
+        for sensor in list_sensors.json:
+            if sensor["unique_identifier"] == UNIQ_ID1:
+                assert sensor["name"] == "new"
+                assert sensor["notes"] == "new"
