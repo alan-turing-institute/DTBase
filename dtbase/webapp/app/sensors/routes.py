@@ -352,6 +352,23 @@ def submit_sensor() -> Response:
             payload["type_name"] = v
         else:
             payload[k] = v
+
+    # Check if the unique identifier already exists
+    sensor_type_response = current_user.backend_call("get", "/sensor/list-sensor-types")
+    for sensor_type in sensor_type_response.json():
+        payload_check = {"type_name": sensor_type["name"]}
+        sensors_list = current_user.backend_call(
+            "get", "/sensor/list-sensors", payload_check
+        )
+        for sensor in sensors_list.json():
+            if sensor["unique_identifier"] == payload["unique_identifier"]:
+                flash(
+                    f"Sensor with unique identifier {payload['unique_identifier']} "
+                    "already exists",
+                    "error",
+                )
+                return redirect(url_for(".new_sensor"))
+
     try:
         # Send a POST request to the backend
         response = current_user.backend_call("post", "/sensor/insert-sensor", payload)
@@ -388,3 +405,30 @@ def sensor_list_table() -> Response:
         sensor_types=sensor_types,
         sensors_for_each_type=sensors_for_each_type,
     )
+
+
+@login_required
+@blueprint.route("/sensor-edit-form", methods=["GET", "POST", "DELETE"])
+def sensor_edit_form() -> Response:
+    payload = {}
+
+    if request.method == "POST":
+        unique_identifier = request.args.get("unique_identifier")
+        payload["unique_identifier"] = unique_identifier
+        for k, v in request.form.items():
+            payload[k] = v
+        response = current_user.backend_call("post", "/sensor/edit-sensor", payload)
+        if response.status_code == 200:
+            flash("Sensor edited successfully", "success")
+        return "", 200
+
+    if request.method == "DELETE":
+        unique_identifier = request.args.get("unique_identifier")
+        payload["unique_identifier"] = unique_identifier
+        response = current_user.backend_call("delete", "/sensor/delete-sensor", payload)
+        if response.status_code == 200:
+            flash("Sensor deleted successfully", "success")
+        return "", 200
+
+    all_args = request.args
+    return render_template("sensor_edit_form.html", all_args=all_args)

@@ -445,6 +445,21 @@ The endpoints are:
     {"message": "Sensor type deleted"}
     ```
 
+### `/sensor/edit-sensor`
+* A POST request, will edit the sensor.
+    - Payload should have the form
+    ```
+    {
+        unique_identifier: <str>
+        new_name: <str>
+        new_notes: <str>
+    }
+    ```
+    - returns status code 200, alongside message in the form
+    ```
+    {"message": "Sensor edited succesfully"}
+    ```
+
 ## Models
 
 API endpoints for the models is as follows.

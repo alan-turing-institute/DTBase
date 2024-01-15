@@ -23,6 +23,7 @@ function updateTable() {
         tableContent += `<th scope='col'>${key}</th>`;
       }
     }
+    tableContent += "<th scope='col'></th>";
     tableContent += "</tr></thead>";
 
     // Construct the table body
@@ -35,6 +36,14 @@ function updateTable() {
           tableContent += `<td>${sensors[i][key]}</td>`;
         }
       }
+      tableContent += `<td>
+      <button type="button" class="btn btn-warning btn-margin edit-button" data-sensor-id="${
+        sensors[i]["id"]
+      }"
+          onclick="openEditModal('${encodeURIComponent(
+            JSON.stringify(sensors[i])
+          )}')"> Edit  </button>
+      </td> `;
       tableContent += "</tr>";
     }
     tableContent += "</tbody>";
@@ -57,4 +66,27 @@ function updateTable() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function openEditModal(sensor) {
+  // Assuming 'sensor' is a URL-encoded JSON string
+  var decodedSensor = decodeURIComponent(sensor);
+  var sensorObject = JSON.parse(decodedSensor);
+
+  // Construct the URL parameters from the sensor object
+  var urlParameters = Object.entries(sensorObject)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
+  // Open the popup window after displaying keys
+  var editWindow = window.open(
+    "/sensors/sensor-edit-form?" + urlParameters,
+    "_blank",
+    "width=550,height=600"
+  );
+  editWindow.addEventListener("beforeunload", function () {
+    window.location.reload();
+  });
 }
