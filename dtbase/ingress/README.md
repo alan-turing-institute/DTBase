@@ -105,7 +105,9 @@ return sensor_type_output + sensor_output + sensor_readings_output
 
 ### 3. Uploading data to database
 
-After writing your own custom `get_data` method, we can then send it to the database via the dtbase backend. This is simply done by calling
+After writing your own custom `get_data` method, we can then send it to the database via the dtbase backend. **The backend must be running. Please check the [developer docs](../../DeveloperDocs.md) for how to run the backend**.
+
+This is simply done by calling
 
 ```
 weather_ingress = OpenWeatherDataIngress()
