@@ -29,6 +29,7 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
         tableContent += `<th scope='col'>${key}</th>`;
       }
     }
+    tableContent += "<th scope='col'></th>";
     tableContent += "</tr></thead>";
 
     // Construct the table body
@@ -42,6 +43,19 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
           tableContent += `<td>${value}</td>`;
         }
       }
+      tableContent += `
+      <td>
+      <button
+        type="button"
+        class="btn btn-warning btn-margin edit-button"
+        data-sensor-id="${sensors[i]["id"]}"
+        onclick="window.openEditModal('${encodeURIComponent(
+          JSON.stringify(sensors[i])
+        )}')"
+      >
+      Edit
+      </button>
+      </td> `;
       tableContent += "</tr>";
     }
     tableContent += "</tbody>";
@@ -56,10 +70,37 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
   }
 }
 
+export function openEditModal(sensor: string): void {
+  // Assuming 'sensor' is a URL-encoded JSON string
+  const decodedSensor = decodeURIComponent(sensor);
+  const sensorObject: Sensor = JSON.parse(decodedSensor);
+
+  // Construct the URL parameters from the sensor object
+  const urlParameters = Object.entries(sensorObject)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
+  // Open the popup window after displaying keys
+  const editWindow = window.open(
+    "/sensors/sensor-edit-form?" + urlParameters,
+    "_blank",
+    "width=550,height=600"
+  );
+  if (editWindow !== null) {
+    editWindow.addEventListener("beforeunload", function () {
+      window.location.reload();
+    });
+  }
+}
+
 declare global {
   interface Window {
     updateSensorTable: (sensors_for_each_type: ArgType) => void;
+    openEditModal: (sensor: string) => void;
   }
 }
 
 window.updateSensorTable = updateSensorTable;
+window.openEditModal = openEditModal;

@@ -1,6 +1,8 @@
 """
 Test that the DTBase sensors pages load
 """
+from urllib.parse import urlencode
+
 import requests_mock
 from flask.testing import FlaskClient
 
@@ -303,6 +305,7 @@ def test_add_sensor_ok_mock(mock_auth_frontend_client: FlaskClient) -> None:
                 "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "testtype"}],
             )
+            m.get("http://localhost:5000/sensor/list-sensors", json=[])
             m.post("http://localhost:5000/sensor/insert-sensor", status_code=201)
             client.post(
                 "/sensors/add-sensor",
@@ -363,3 +366,27 @@ def test_sensor_list_ok_mock(mock_auth_frontend_client: FlaskClient) -> None:
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert '<div id="sensorTableWrapper"></div>' in html_content
+
+
+def test_edit_sensor_backend(auth_frontend_client: FlaskClient) -> None:
+    with auth_frontend_client as client:
+        query_args = {
+            "name": "Name",
+            "notes": "Notes",
+            "sensor_type_id": "1",
+            "sensor_type_name": "Sensor type",
+            "unique_identifier": "Unique identifier",
+        }
+        url = "/sensors/sensor-edit-form?" + urlencode(query_args)
+        response = client.get(url, follow_redirects=True)
+        assert response.status_code == 200
+        html_content = response.data.decode("utf-8")
+        for key, value in query_args.items():
+            assert f"{key}: {value}" in html_content
+        for test_string in (
+            "Edit Sensor",
+            ">Submit</button>",
+            ">Cancel</button>",
+            ">Delete</button>",
+        ):
+            assert test_string in html_content

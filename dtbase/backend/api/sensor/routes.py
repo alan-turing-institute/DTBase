@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from dtbase.backend.api.sensor import blueprint
 from dtbase.backend.utils import check_keys
 from dtbase.core import sensor_locations, sensors
+from dtbase.core.exc import RowMissingError
 from dtbase.core.structure import db
 
 
@@ -385,3 +386,33 @@ def delete_sensor_type() -> Tuple[Response, int]:
     sensors.delete_sensor_type(type_name=type_name, session=db.session)
     db.session.commit()
     return jsonify({"message": "Sensor type deleted"}), 200
+
+
+@blueprint.route("/edit-sensor", methods=["POST"])
+@jwt_required()
+def edit_sensor() -> Tuple[Response, int]:
+    """
+    Edit a sensor in the database.
+
+    Expects a payload of the form
+    {"unique_identifier": <sensor_unique_id:str>}
+    """
+    payload = request.get_json()
+
+    required_keys = ["unique_identifier", "name", "notes"]
+    error_response = check_keys(payload, required_keys, "/edit-sensor")
+    if error_response:
+        return error_response
+
+    try:
+        sensors.edit_sensor(
+            unique_identifier=payload["unique_identifier"],
+            new_name=payload["name"],
+            new_notes=payload["notes"],
+            session=db.session,
+        )
+        db.session.commit()
+    except RowMissingError:
+        return jsonify({"message": "Sensor does not exist"}), 400
+
+    return jsonify({"message": "Sensor edited"}), 200
