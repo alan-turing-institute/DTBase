@@ -226,6 +226,8 @@ def create_function_app(
             ("DOCKER_REGISTRY_SERVER_URL", "https://index.docker.io/v1"),
             ("DOCKER_ENABLE_CI", "true"),
             ("DT_BACKEND_URL", backend_url),
+            # TODO We should probably use a different user for the functions app.
+            ("DT_DEFAULT_USER_PASS", f"{DEFAULT_USER_PASSWORD}"),
         )
     ]
     models_app = web.WebApp(
