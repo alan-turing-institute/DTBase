@@ -76,30 +76,6 @@ CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_USER_EMAIL = "default_user@localhost"
 DEFAULT_USER_PASS = os.environ.get("DT_DEFAULT_USER_PASS", None)
 
-# The following are some examples of how one might store URLs and API keys
-# for data sources that we want to use for data ingress.
-
-# Weather-related misc constants
-CONST_LAT = os.environ.get("DT_OPENWEATHERMAP_LAT", "DUMMY")  #  latitude
-CONST_LON = os.environ.get("DT_OPENWEATHERMAP_LONG", "DUMMY")  #  longitude
-
-# We use OpenWeatherMap as an example of how to get weather data
-# (both historical and forecast).
-
-CONST_OPENWEATHERMAP_APIKEY = os.environ.get(
-    "DT_OPENWEATHERMAP_APIKEY", "DUMMY"
-).strip()
-
-# see https://openweathermap.org/api/one-call-3
-CONST_OPENWEATHERMAP_HISTORICAL_URL = (
-    "https://api.openweathermap.org/data/2.5/onecall/timemachine?"
-    f"lat={CONST_LAT}&lon={CONST_LON}&units=metric&appid={CONST_OPENWEATHERMAP_APIKEY}"
-)  # historical weather URL without requested timestamp
-CONST_OPENWEATHERMAP_FORECAST_URL = (
-    f"https://api.openweathermap.org/data/3.0/onecall?"
-    f"lat={CONST_LAT}&lon={CONST_LON}&units=metric&appid={CONST_OPENWEATHERMAP_APIKEY}"
-)
-
 JWT_ACCESS_TOKEN_EXPIRES = int(
     os.environ.get("DT_JWT_ACCESS_TOKEN_EXPIRES_SECONDS", 3600)
 )
