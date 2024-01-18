@@ -113,6 +113,7 @@ def list_model_scenarios() -> Tuple[Response, int]:
         {
             "id": <id:int>,
             "model_id": <model_id:int>,
+            "model_name": <str>,
             "description": <description:str|None|null>
         },
         ...

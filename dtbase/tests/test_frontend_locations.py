@@ -132,6 +132,6 @@ def test_locations_table_mock(mock_auth_frontend_client: FlaskClient) -> None:
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
             assert "<title>DTBase |  Locations </title>" in html_content
-            assert '<div id="locationTable"></div>' in html_content
+            assert '<div id="locationTableWrapper"></div>' in html_content
             assert "loc1" in html_content
             assert "loc2" in html_content

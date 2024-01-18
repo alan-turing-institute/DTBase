@@ -94,7 +94,6 @@ def fetch_sensor_data(
             index = [x["timestamp"] for x in readings]
             values = [x["value"] for x in readings]
             index = list(map(dt.datetime.fromisoformat, index))
-            #            index = list(map(utils.parse_rfc1123_datetime, index))
             series = pd.Series(data=values, index=index, name=measure["name"])
             measure_readings_list.append(series)
         df = pd.concat(measure_readings_list, axis=1)

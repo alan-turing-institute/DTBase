@@ -142,3 +142,7 @@ node_modules
 # directory storing plots from model runs
 plots
 ./examples/plots
+
+# outputs of transpiling typescript
+dtbase/webapp/app/base/static/javascript/*.js
+dtbase/webapp/app/base/static/javascript/*.js.map

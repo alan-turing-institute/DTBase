@@ -1,5 +1,13 @@
 {% extends "base_site.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs5/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs5/css/buttons.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
 {% block title %} Locations {% endblock title %}
 
 {% block content %}
@@ -14,14 +22,20 @@
     </select>
 </div>
 
-<div id="locationTable"></div>
+<div id="locationTableWrapper"></div>
 {% endblock content %}
 
 {% block javascripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='javascript/locations_table.js') }}"></script>
 <script>
-    window.schemas = {{ schemas | tojson | safe }};
-    window.locations_for_each_schema = {{ locations_for_each_schema | tojson | safe }};
+  const locations_for_each_schema = {{ locations_for_each_schema | tojson | safe }};
+  window.addEventListener("DOMContentLoaded", (event) => {
+    const schemaSelector = document.getElementById("schema");
+    schemaSelector.addEventListener(
+      "change", () => window.updateLocationsTable(locations_for_each_schema)
+    );
+    window.updateLocationsTable(locations_for_each_schema);
+  });
 </script>
 {% endblock javascripts %}

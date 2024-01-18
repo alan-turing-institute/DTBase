@@ -56,13 +56,8 @@
       </div>
 
       {% block javascripts %}
-        <!-- jQuery -->
-        <script src="{{ url_for('static', filename='node_modules/jquery/dist/jquery.min.js') }}"></script>
-        <!-- Bootstrap -->
         <script src="{{ url_for('static', filename='node_modules/bootstrap/dist/js/bootstrap.min.js') }}"></script>
       {% endblock %}
-      <!-- Custom Theme Scripts -->
-      <script src="{{ url_for('static', filename='javascript/custom.js') }}"></script>
     {% endblock body %}
   </body>
 </html>

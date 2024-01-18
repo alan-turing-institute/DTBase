@@ -4,11 +4,10 @@
 
 {% block stylesheets %}
 {{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs/css/buttons.bootstrap.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-scroller-bs/css/scroller.bootstrap.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs5/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs5/css/buttons.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.css') }}" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -22,7 +21,7 @@
   </div>
   <div class="form-group">
     <label for="sensor_type">Sensor Type:</label>
-    <select onchange="updateSensorSelectorNoArgs()" name="sensor_type" id="sensorTypeSelector">
+    <select name="sensor_type" id="sensorTypeSelector">
       {% if not selected_sensor_type %}
       <option value="" selected disabled hidden>Choose sensor type</option>
       {% endif %}
@@ -42,84 +41,58 @@
     </select>
   </div>
   <button class="btn btn-primary" onclick="this.form.submit()">Get readings</button>
+</form>
 
-  {% if selected_sensor %}
-  <div class="row">
-    <div class="col-md-12 col-sm-12 col-xs-12">
-      <div class="x_panel">
-
-        <div class="x_content">
-
-          <div class="row x_title">
-            <div class="col-md-6">
-              <h3>Uploaded {{selected_sensor_type}} Sensor Data for {{ selected_sensor }} <small>(showing max {{num_records}} records)</small></h3>
-            </div>
-
-            <div class="col-md-6">
-              <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
-                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-                <span></span>
-                <b class="caret"></b>
-              </div>
-            </div>
-          </div>
-          <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                {%
-                for m in measure_names:
-                %}
-                <th>{{m}}</th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for sd in sensor_data: %}
-              <tr>
-                <th>{{ sd['timestamp'] }}</th>
-                {% for m in measure_names: %}
-                <th>{{ '%0.2f' | format(sd[m]|float) }} </th>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          <input type="submit" value="Download" name="download"/>
-        </div>
+{% if selected_sensor %}
+<div class="row">
+  <div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="row">
+      <div class="col-md-6">
+        <h3>Uploaded {{selected_sensor_type}} Sensor Data for {{ selected_sensor }} <small>(showing max {{num_records}} records)</small></h3>
       </div>
     </div>
+    <table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          {% for m in measure_names: %}
+          <th>{{m}}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for sd in sensor_data: %}
+        <tr>
+          <td>{{ sd['timestamp'] }}</td>
+          {% for m in measure_names: %}
+          <td>{{ '%0.2f' | format(sd[m]|float) }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  {% endif %}
-</form>
+</div>
+{% endif %}
 {% endblock content %}
 
 {% block javascripts %}
   {{ super() }}
-  <!-- Datatables -->
-  <script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-buttons/js/dataTables.buttons.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs/js/buttons.bootstrap.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-buttons/js/buttons.flash.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-buttons/js/buttons.html5.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-buttons/js/buttons.print.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-fixedheader/js/dataTables.fixedHeader.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-keytable/js/dataTables.keyTable.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
-  <script src="{{ url_for('static', filename='node_modules/datatables.net-scroller/js/dataTables.scroller.js') }}"></script>
-  <!-- Set the correct options for the sensor selector --!>
+  <script src="{{ url_for('static', filename='javascript/datatables.js') }}"></script>
   <script src="{{ url_for('static', filename='javascript/readings.js') }}"></script>
   <script>
+    window.initialiseDataTable("#datatable");
     const sensorsIdsByType = {{sensor_ids_by_type | safe}}
     const selectedSensor = {{selected_sensor | tojson | safe}}
 
     function updateSensorSelectorNoArgs() {
-      updateSensorSelector(sensorsIdsByType, null);
+      window.updateSensorSelector(sensorsIdsByType, null);
     }
 
-    updateSensorSelector(sensorsIdsByType, selectedSensor);
+    document.getElementById("sensorTypeSelector").addEventListener(
+      "change", updateSensorSelectorNoArgs
+    );
+    window.updateSensorSelector(sensorsIdsByType, selectedSensor);
   </script>
 
 {% endblock javascripts %}

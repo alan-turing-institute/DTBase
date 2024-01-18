@@ -365,7 +365,7 @@ def test_sensor_list_ok_mock(mock_auth_frontend_client: FlaskClient) -> None:
             response = client.get("/sensors/sensor-list", follow_redirects=True)
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
-            assert '<div id="sensorTable"></div>' in html_content
+            assert '<div id="sensorTableWrapper"></div>' in html_content
 
 
 def test_edit_sensor_backend(auth_frontend_client: FlaskClient) -> None:

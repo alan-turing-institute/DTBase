@@ -16,5 +16,13 @@
     "no-undef": 0,
     "camelcase": 0
   },
-  "extends": ["eslint:recommended", "google", "prettier"]
+  "extends": [
+    "eslint:recommended",
+    "google",
+    "prettier",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true
 }
