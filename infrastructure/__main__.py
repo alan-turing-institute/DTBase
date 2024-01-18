@@ -208,6 +208,7 @@ def create_function_app(
     app_insights: insights.Component,
     sa_connection_string: str | Output[str],
     storage_account: storage.StorageAccount,
+    backend_url: str | Output[str],
 ) -> web.WebApp:
     webapp_settings = [
         web.NameValuePairArgs(name=name, value=value)
@@ -224,6 +225,7 @@ def create_function_app(
             ("WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
             ("DOCKER_REGISTRY_SERVER_URL", "https://index.docker.io/v1"),
             ("DOCKER_ENABLE_CI", "true"),
+            ("DT_BACKEND_URL", backend_url),
         )
     ]
     models_app = web.WebApp(
@@ -289,14 +291,6 @@ def main() -> None:
     sa_connection_string = get_connection_string(
         storage_account.name, resource_group.name
     )
-    create_function_app(
-        "functionapp",
-        resource_group,
-        app_service_plan,
-        app_insights,
-        sa_connection_string,
-        storage_account,
-    )
     backend = create_backend_webapp(
         "backend", resource_group, app_service_plan, sql_server, app_insights
     )
@@ -324,6 +318,17 @@ def main() -> None:
         "backend_endpoint",
         backend_url,
     )
+
+    create_function_app(
+        "functionapp",
+        resource_group,
+        app_service_plan,
+        app_insights,
+        sa_connection_string,
+        storage_account,
+        backend_url,
+    )
+
     frontend = create_frontend_webapp(
         "frontend",
         resource_group,
