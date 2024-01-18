@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
+from typing import Any
 
 from azure.functions import HttpRequest, HttpResponse
 
@@ -28,24 +29,32 @@ def main(req: HttpRequest) -> HttpResponse:
     logging.info("Starting Open Weather Map ingress function.")
 
     req_body = req.get_json()
-    dt_from_str = req_body.get("dt_from")
-    dt_to_str = req_body.get("dt_to")
-    if dt_from_str is None or dt_to_str is None:
-        return HttpResponse(
-            "Must provide dt_from and dt_to in request body.", status_code=400
-        )
+    params: dict[str, Any] = {}
+    for parameter_name in {
+        "from_dt",
+        "to_dt",
+        "api_key",
+        "latitude",
+        "longitude",
+    }:
+        parameter = req_body.get(parameter_name)
+        if parameter is None:
+            return HttpResponse(
+                f"Must provide {parameter_name} in request body.", status_code=400
+            )
+        params[parameter_name] = parameter
 
     try:
-        dt_from = parse_datetime_argument(dt_from_str)
-        dt_to = parse_datetime_argument(dt_to_str)
+        params["from_dt"] = parse_datetime_argument(params["from_dt"])
+        params["to_dt"] = parse_datetime_argument(params["to_dt"])
     except ValueError:
         return HttpResponse(
-            "dt_from and dt_to must be ISO 8601 datetime strings or 'present'.",
+            "from_dt and to_dt must be ISO 8601 datetime strings or 'present'.",
             status_code=400,
         )
 
     weather_ingress = OpenWeatherDataIngress()
-    weather_ingress.ingress_data(dt_from, dt_to)
+    weather_ingress.ingress_data(**params)
 
     logging.info("Finished Open Weather Map Ingress.")
     return HttpResponse("Successfully ingressed weather data.", status_code=200)

@@ -2,16 +2,13 @@
 Python module to import data using the Openweathermap API
 """
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Tuple, Union
 
 import pandas as pd
 import requests
 
-from dtbase.core.constants import (
-    CONST_OPENWEATHERMAP_FORECAST_URL,
-    CONST_OPENWEATHERMAP_HISTORICAL_URL,
-)
 from dtbase.ingress.ingress_base import BaseIngress
 
 # Mapping of Openweathermap metrics to sensor measures in the database.
@@ -73,6 +70,25 @@ SENSOR_OPENWEATHERMAPFORECAST = {
 }
 
 
+# see https://openweathermap.org/api/one-call-3
+def openweathermap_forecast_url(
+    api_key: str, latitude: float | str, longitude: float | str
+) -> str:
+    return (
+        f"https://api.openweathermap.org/data/3.0/onecall?"
+        f"lat={latitude}&lon={longitude}&units=metric&appid={api_key}"
+    )
+
+
+def openweathermap_historical_url(
+    api_key: str, latitude: float | str, longitude: float | str
+) -> str:
+    return (
+        f"https://api.openweathermap.org/data/2.5/onecall/timemachine?"
+        f"lat={latitude}&lon={longitude}&units=metric&appid={api_key}"
+    )
+
+
 class OpenWeatherDataIngress(BaseIngress):
     """
     Custom class inheriting from the BaseIngress class for interacting with the
@@ -121,6 +137,9 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: datetime,
         to_dt: datetime,
+        api_key: str,
+        latitude: float | str,
+        longitude: float | str,
     ) -> Tuple[str, dict[str, str]]:
         """
         Determine whether to call the historical or forecast API.
@@ -129,14 +148,16 @@ class OpenWeatherDataIngress(BaseIngress):
         API is called or the correct error is raised.
         """
         if self.present >= to_dt:
-            return CONST_OPENWEATHERMAP_HISTORICAL_URL, SENSOR_OPENWEATHERMAPHISTORICAL
+            url = openweathermap_historical_url(api_key, latitude, longitude)
+            return url, SENSOR_OPENWEATHERMAPHISTORICAL
         elif self.present <= from_dt:
-            return CONST_OPENWEATHERMAP_FORECAST_URL, SENSOR_OPENWEATHERMAPFORECAST
+            url = openweathermap_forecast_url(api_key, latitude, longitude)
+            return url, SENSOR_OPENWEATHERMAPFORECAST
         else:
             raise ValueError(
-                "Some unforeseen combinations of from_dt and to_dt has been given.    "
-                f"             To help debug, the present time is {self.present},"
-                f" from_dt: {from_dt}                 and to_dt: {to_dt}"
+                "Some unforeseen combinations of from_dt and to_dt has been given."
+                f" To help debug, the present time is {self.present},"
+                f" from_dt: {from_dt} and to_dt: {to_dt}"
             )
 
     def _handling_datetime_range(self, from_dt: datetime, to_dt: datetime) -> None:
@@ -149,23 +170,23 @@ class OpenWeatherDataIngress(BaseIngress):
             raise ValueError("from_dt must be before to_dt")
         elif from_dt < self.present and to_dt > self.present:
             raise ValueError(
-                "This call spans both historical and forecast data.                "
+                "This call spans both historical and forecast data."
                 " Please make two separate calls."
             )
         elif from_dt < (self.present - timedelta(days=5)):
             raise ValueError(
-                "from_dt cannot be more than 5 days in the past.                    "
+                "from_dt cannot be more than 5 days in the past."
                 f" Current value is: {from_dt}"
             )
         elif to_dt > self.present + timedelta(days=2):
             raise ValueError(
-                "to_dt cannot be more than 2 days in the future.                     "
+                "to_dt cannot be more than 2 days in the future."
                 f" Current value is: {to_dt}"
             )
         # Check from_dt and to_dt are at least an hour apart
         elif (to_dt - from_dt) < timedelta(hours=1):
             raise ValueError(
-                "from_dt and to_dt must be at least an hour apart.                    "
+                "from_dt and to_dt must be at least an hour apart."
                 f" Current values are: {from_dt} and {to_dt}"
             )
         else:
@@ -175,12 +196,15 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: Union[datetime, str],
         to_dt: Union[datetime, str],
+        api_key: str,
+        latitude: float | str,
+        longitude: float | str,
     ) -> Tuple[str, dict[str, str], datetime, datetime]:
         from_dt = self._set_now(from_dt)
         to_dt = self._set_now(to_dt)
         self._handling_datetime_range(from_dt, to_dt)
         base_url, sensor_payload = self._determine_if_historic_or_forecast(
-            from_dt, to_dt
+            from_dt, to_dt, api_key, latitude, longitude
         )
         return base_url, sensor_payload, from_dt, to_dt
 
@@ -188,6 +212,9 @@ class OpenWeatherDataIngress(BaseIngress):
         self,
         from_dt: Union[datetime, str],
         to_dt: Union[datetime, str],
+        api_key: str,
+        longitude: float,
+        latitude: float,
     ) -> list:
         """
         Please read the docstring for BaseIngress.get_data()
@@ -216,6 +243,11 @@ class OpenWeatherDataIngress(BaseIngress):
             Max 2 days in the future.
             If 'present' is passed, then the present time is used.
             DON'T USE datetime.now() as this will cause problems.
+            api_key: str, The API key for OpenWeatherMap.
+            longitude: float, The longitude of the location to query, as
+            a fractional degree.
+            latitude: float, The latitude of the location to query, as a
+            fractional degree.
 
         Returns:
             List of tuples. A tuple should be in the format
@@ -223,7 +255,7 @@ class OpenWeatherDataIngress(BaseIngress):
             It gives Sensor type, Sensor and Sensor measurements.
         """
         base_url, sensor_payload, from_dt, to_dt = self.get_api_base_url_and_sensor(
-            from_dt, to_dt
+            from_dt, to_dt, api_key, latitude, longitude
         )
 
         logging.info(f"Calling Openweathermap API from {from_dt} to {to_dt}.")
@@ -315,18 +347,33 @@ def example_weather_ingress() -> None:
     seperate calls. This is likely to be specific to the weather ingress. Other
     ingress methods may not need to do this.
     """
+    api_key = os.environ.get("DT_OPENWEATHERMAP_API_KEY")
+    latitude = 51.53
+    longitude = -0.127
 
     # First do calls from before now
-    dt_from = datetime.now() - timedelta(hours=60)
-    dt_to = "present"
+    from_dt = datetime.now() - timedelta(hours=60)
+    to_dt = "present"
     weather_ingress = OpenWeatherDataIngress()
-    weather_ingress.ingress_data(dt_from, dt_to)
+    weather_ingress.ingress_data(
+        from_dt=from_dt,
+        to_dt=to_dt,
+        api_key=api_key,
+        latitude=latitude,
+        longitude=longitude,
+    )
 
     # Now repeat for after
-    dt_from = "present"
-    dt_to = datetime.now() + timedelta(days=2)
+    from_dt = "present"
+    to_dt = datetime.now() + timedelta(days=2)
     weather_ingress = OpenWeatherDataIngress()
-    weather_ingress.ingress_data(dt_from, dt_to)
+    weather_ingress.ingress_data(
+        from_dt=from_dt,
+        to_dt=to_dt,
+        api_key=api_key,
+        latitude=latitude,
+        longitude=longitude,
+    )
 
 
 if __name__ == "__main__":
