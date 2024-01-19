@@ -1,4 +1,4 @@
-interface XYDataPoint<T1, T2> {
+export interface XYDataPoint<T1, T2> {
   x: T1;
   y: T2;
 }

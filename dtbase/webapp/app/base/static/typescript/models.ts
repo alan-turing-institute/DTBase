@@ -1,6 +1,7 @@
 import { ModelScenario, TimeseriesDataPoint } from "./interfaces";
-import { dictionary_scatter } from "./utility";
+import { dictionary_scatter, XYDataPoint } from "./utility";
 import {
+  ChartConfiguration,
   Chart,
   Colors,
   LinearScale,
@@ -108,7 +109,7 @@ export function plot(
     datasets: datasets,
   };
 
-  const config = {
+  const config: ChartConfiguration<"scatter", XYDataPoint<Date, number>[]> = {
     type: "scatter",
     data: data,
     options: {
@@ -133,16 +134,14 @@ export function plot(
         },
         x: {
           type: "time",
-          options: {
-            time: {
-              displayFormats: {
-                hour: "DD MMM hA",
-              },
+          time: {
+            displayFormats: {
+              hour: "DD MMM hA",
             },
-            ticks: {
-              maxTicksLimit: 13,
-              includeBounds: false,
-            },
+          },
+          ticks: {
+            maxTicksLimit: 13,
+            includeBounds: false,
           },
         },
       },
@@ -150,9 +149,10 @@ export function plot(
   };
   const ctx = document.getElementById(canvas_name) as HTMLCanvasElement;
   // TODO: Typescript seems to be raising a type error on the below line.
-  // This is caused by the config["options"]["scales"]["x"]["type"] field, which it
-  // doesn't like, though it seems to be a valid config for Chart. Don't know what's
-  // going on, maybe a Chart.js bug?
+  // This is because our data is of type XYDataPoint<Date, number>[], but
+  // the Chart.js types expect XYDataPoint<number, number>[].
+  // There's an issue about this here:
+  // https://github.com/chartjs/Chart.js/issues/11611
   return new Chart(ctx, config);
 }
 
