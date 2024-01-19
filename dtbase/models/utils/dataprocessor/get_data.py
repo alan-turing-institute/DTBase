@@ -4,13 +4,12 @@ Data access module for ARIMA model and potentially others
 
 import datetime as dt
 import logging
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
-from dtbase.models.utils.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +31,7 @@ def remove_time_zone(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_training_data(
-    measures_list: Optional[List[str]] = None,
-    sensors_list: Optional[List[str]] = None,
-    delta_days: Optional[int] = None,
-    token: Optional[str] = None,
+    config: dict, token: Optional[str] = None
 ) -> Tuple[pd.DataFrame, ...]:
     """Fetch data from one or more measures/sensors for training of the ARIMA model.
 
@@ -43,12 +39,7 @@ def get_training_data(
     the data_config.ini file.
 
     Args:
-        measures_list (list of str): if given, override the 'include_measures' from the
-            config.
-        sensors_list (list of str): if given, override the 'include_sensors' from the
-            config.
-        delta_days (int): Number of days in the past from which to retrieve data.
-            Defaults to None.
+        config (dict): A dictionary containing the configuration parameters.
         token (str): An authencation token for the backend. Optional.
 
     Returns:
@@ -60,10 +51,7 @@ def get_training_data(
         token = login()[0]
 
     # get number of training days
-    if delta_days is None:
-        num_days_training = config(section="data")["num_days_training"]
-    else:
-        num_days_training = delta_days
+    num_days_training = config["data"]["num_days_training"]
     if num_days_training > 365:
         logger.error(
             "The 'num_days_training' setting in config_arima.ini cannot be set to a "
@@ -78,11 +66,9 @@ def get_training_data(
     # get one table per measure_name x sensor_uniq_id
     # each table can be produced by joining two tables, as specified in the config file.
     data_tables = []
-    sensors_config = config(section="sensors")
-    if not sensors_list:
-        sensors_list = sensors_config["include_sensors"]
-    if not measures_list:
-        measures_list = sensors_config["include_measures"]
+    sensors_config = config["sensors"]
+    sensors_list = sensors_config["include_sensors"]
+    measures_list = sensors_config["include_measures"]
     for measure_name, units in measures_list:
         for sensor in sensors_list:
             response = auth_backend_call(

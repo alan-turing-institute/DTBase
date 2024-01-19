@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import logging
+import os
 import sys
+from typing import Optional
 
 import coloredlogs
 
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.utils.config import config
+from dtbase.models.utils.config import read_config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
@@ -15,7 +17,7 @@ from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 logger = logging.getLogger(__name__)
 
 
-def run_pipeline() -> None:
+def run_pipeline(config: Optional[dict] = None) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     field_styles = coloredlogs.DEFAULT_FIELD_STYLES
@@ -24,24 +26,31 @@ def run_pipeline() -> None:
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
+    # Populate the config dictionary with default values from the config files.
+    if config is None:
+        config = {}
+    for section in ["sensors", "data", "others"]:
+        config[section] = read_config(section=section) | config.get(section, {})
+    arima_config_file_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "arima/config_arima.ini"
+    )
+    config["arima"] = read_config(
+        section="arima", filename=arima_config_file_path
+    ) | config.get("arima", {})
+
     # Log into the backend
     token = login()[0]
 
-    sensors_config = config(section="sensors")
-    sensors_list = sensors_config["include_sensors"]
-    base_measures_list = sensors_config["include_measures"]
     scenario = "Business as usual"
 
     # fetch training data from the database
-    sensor_data = get_training_data(
-        sensors_list=sensors_list, measures_list=base_measures_list, token=token
-    )
+    sensor_data = get_training_data(config=config, token=token)
     if not sensor_data:
         raise ValueError("No training data")
 
     # clean the training data
-    cleaned_data = clean_data_list(sensor_data)
-    prep_data = prepare_data(cleaned_data)
+    cleaned_data = clean_data_list(sensor_data, config)
+    prep_data = prepare_data(cleaned_data, config)
 
     # ensure we have the Model in the db, or insert if not
     response = auth_backend_call(
@@ -63,6 +72,7 @@ def run_pipeline() -> None:
     # Ensure that we have all measures in the database, or insert if not.
     # We should have mean, upper bound, and lower bound for each of the measures that
     # the sensor we are trying to forecast for reports.
+    base_measures_list = config["sensors"]["include_measures"]
     logging.info(f"measures to use: {base_measures_list}")
     # base_measures_list is a list of tuples (measure_name, units)
     for base_measure_name, base_measure_units in base_measures_list:
@@ -90,7 +100,7 @@ def run_pipeline() -> None:
                 sensor,
                 base_measure[0],
             )
-            mean_forecast, conf_int, metrics = arima_pipeline(values)
+            mean_forecast, conf_int, metrics = arima_pipeline(values, config["arima"])
             mean = {
                 "measure_name": "Mean " + base_measure[0],
                 "values": list(mean_forecast),

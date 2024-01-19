@@ -1,5 +1,4 @@
 import logging
-import os
 from copy import deepcopy
 from datetime import timedelta
 from typing import Tuple, Union
@@ -10,25 +9,17 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
-from dtbase.models.utils.config import config
-
 logger = logging.getLogger(__name__)
 
-arima_config = config(
-    section="arima",
-    filename=os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "config_arima.ini"
-    ),
-)
 
-
-def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:
+def get_forecast_timestamp(data: pd.Series, arima_config: dict) -> pd.Timestamp:
     """
     Return the end-of-forecast timestamp.
 
     Parameters:
         data: pandas Series containing a time series.
             Must be indexed by timestamp.
+        arima_config: a dictionary containing configuration parameters.
 
     Returns:
         forecast_timestamp: end-of-forecast timestamp,
@@ -49,7 +40,7 @@ def get_forecast_timestamp(data: pd.Series) -> pd.Timestamp:
     return forecast_timestamp
 
 
-def fit_arima(train_data: pd.Series) -> SARIMAXResultsWrapper:
+def fit_arima(train_data: pd.Series, arima_config: dict) -> SARIMAXResultsWrapper:
     """
     Fit a SARIMAX statsmodels model to a
     training dataset (time series).
@@ -60,6 +51,7 @@ def fit_arima(train_data: pd.Series) -> SARIMAXResultsWrapper:
     Parameters:
         train_data: a pandas Series containing the
             training data on which to fit the model.
+        arima_config: a dictionary containing configuration parameters.
 
     Returns:
         model_fit: the fitted model, which can now be
@@ -78,7 +70,9 @@ def fit_arima(train_data: pd.Series) -> SARIMAXResultsWrapper:
 
 
 def forecast_arima(
-    model_fit: SARIMAXResultsWrapper, forecast_timestamp: pd.Timestamp
+    model_fit: SARIMAXResultsWrapper,
+    forecast_timestamp: pd.Timestamp,
+    arima_config: dict,
 ) -> Tuple[pd.Series, pd.DataFrame]:
     """
     Produce a forecast given a trained SARIMAX model.
@@ -87,6 +81,7 @@ def forecast_arima(
         model_fit: the SARIMAX model fitted to training data.
             This is the output of `fit_arima`.
         forecast_timestamp: the end-of-forecast timestamp.
+        arima_config: a dictionary containing configuration parameters.
 
     Returns:
         mean_forecast: the forecast mean. A pandas Series, indexed
@@ -150,7 +145,10 @@ def construct_cross_validator(
 
 
 def cross_validate_arima(
-    data: pd.Series, tscv: TimeSeriesSplit, refit: bool = False
+    data: pd.Series,
+    tscv: TimeSeriesSplit,
+    arima_config: dict,
+    refit: bool = False,
 ) -> dict:
     """
     Cross-validate a SARIMAX statsmodel model.
@@ -160,6 +158,7 @@ def cross_validate_arima(
             for which the SARIMAX model is built.
         tscv: the time series cross-validator object,
             returned by `construct_cross_validator`.
+        arima_config: a dictionary containing configuration parameters.
         refit: specify whether to refit the model
             parameters when new observations are added
             to the training set in successive cross-
@@ -191,7 +190,7 @@ def cross_validate_arima(
     # only force model fitting in the first fold
     train_index, test_index = next(data_split)
     cv_train, cv_test = data.iloc[train_index], data.iloc[test_index]
-    model_fit = fit_arima(cv_train)
+    model_fit = fit_arima(cv_train, arima_config)
     update_result(model_fit, cv_test, test_index)
 
     # loop through all folds
@@ -217,7 +216,7 @@ def cross_validate_arima(
 
 
 def arima_pipeline(
-    data: pd.Series,
+    data: pd.Series, arima_config: dict
 ) -> Tuple[pd.Series, pd.DataFrame, Union[dict, None]]:
     """
     Run the ARIMA model pipeline, using the SARIMAX model provided
@@ -229,6 +228,7 @@ def arima_pipeline(
     Arguments:
         data: the time series on which to train the SARIMAX model,
             as a pandas Series indexed by timestamp.
+        arima_config: a dictionary containing configuration parameters.
     Returns:
         mean_forecast: a pandas Series, indexed by timestamp,
             containing the forecast mean. The number of hours to
@@ -276,7 +276,7 @@ def arima_pipeline(
         try:
             tscv = construct_cross_validator(data)
             try:
-                metrics = cross_validate_arima(data, tscv, refit=refit)
+                metrics = cross_validate_arima(data, tscv, arima_config, refit=refit)
             # TODO This except clause should be more specific. What are the possible
             # errors we might expect from cross_validate_arima?
             except Exception:
@@ -305,16 +305,18 @@ def arima_pipeline(
         metrics = None
     # fit the model and compute the forecast
     logger.info("Fitting the model...")
-    model_fit = fit_arima(data)
+    model_fit = fit_arima(data, arima_config)
     logger.info("Done fitting the model.")
-    forecast_timestamp = get_forecast_timestamp(data)
+    forecast_timestamp = get_forecast_timestamp(data, arima_config)
     logger.info("Computing forecast...")
     logger.info(
         "Start of forecast timestamp: {0}. End of forecast timestamp: {1}".format(
             data.index[-1], forecast_timestamp
         )
     )
-    mean_forecast, conf_int = forecast_arima(model_fit, forecast_timestamp)
+    mean_forecast, conf_int = forecast_arima(
+        model_fit, forecast_timestamp, arima_config
+    )
     logger.info("Done forecasting.")
 
     return mean_forecast, conf_int, metrics

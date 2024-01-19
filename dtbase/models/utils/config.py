@@ -1,6 +1,5 @@
 """
-Python module to read the parameters specified in the configuration file,
-including parameters required to connect to the PostgreSQL database server
+Python module to read the parameters specified in the configuration file.
 """
 
 import ast
@@ -9,7 +8,7 @@ from configparser import ConfigParser
 from typing import Any
 
 
-def config(
+def read_config(
     # gets config.ini file from the parent directory, no matter where the script is run
     # from
     section: str,
