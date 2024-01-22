@@ -9,7 +9,7 @@ import pandas as pd
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.hodmd.hodmd_model import hodmd_pipeline
-from dtbase.models.utils.config import config
+from dtbase.models.utils.config import read_config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
@@ -18,17 +18,17 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def fetch_data() -> Tuple[Dict, pd.DataFrame]:
+def fetch_data(config: dict) -> Tuple[Dict, pd.DataFrame]:
     # fetch training data from the database
-    sensor_data = get_training_data()
+    sensor_data = get_training_data(config)
     if not sensor_data:
         raise ValueError("No training data")
 
     # clean the training data
-    cleaned_data = clean_data_list(sensor_data)
+    cleaned_data = clean_data_list(sensor_data, config)
 
     # prepare the clean data for the HODMD model
-    prep_data = prepare_data(cleaned_data)
+    prep_data = prepare_data(cleaned_data, config)
 
     return prep_data
 
@@ -36,6 +36,7 @@ def fetch_data() -> Tuple[Dict, pd.DataFrame]:
 def run_pipeline(
     plots_save_path: Optional[str] = None,
     multi_measure: bool = False,
+    config: Optional[dict] = None,
 ) -> None:
     # set up logging
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -45,10 +46,16 @@ def run_pipeline(
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
+    # Populate the config dictionary with default values from the config files.
+    if config is None:
+        config = {}
+    for section in ["sensors", "data", "others"]:
+        config[section] = read_config(section=section) | config.get(section, {})
+
     # Log into the backend
     token = login()[0]
 
-    prep_data = fetch_data()
+    prep_data = fetch_data(config)
 
     scenario = "Business as usual"
     # ensure we have the Model in the db, or insert if not
@@ -69,7 +76,7 @@ def run_pipeline(
         raise BackendCallError(response)
 
     # Ensure that we have all measures in the database, or insert if not.
-    measures_list = config(section="sensors")["include_measures"]
+    measures_list = config["sensors"]["include_measures"]
     logging.info(f"measures to use: {measures_list}")
     # base_measures_list is a list of tuples (measure_name, units)
     for measure_name, measure_units in measures_list:
@@ -82,7 +89,7 @@ def run_pipeline(
         )
 
     # run the HODMD pipeline for every sensor
-    sensor_unique_ids = config(section="sensors")["include_sensors"]
+    sensor_unique_ids = config["sensors"]["include_sensors"]
 
     # run HODMD pipeline
     if multi_measure:
