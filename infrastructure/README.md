@@ -13,7 +13,7 @@
 10. Make sure you're in a Python virtual environment with Pulumi SDK installed (`pip install .[infrastructure]` should cover your needs).
 11. Set all the necessary configurations with `pulumi config set` and `pulumi config set --secret`. You'll find these in `__main__.py`, or you can keep adding them until `pulumi up` stops complaining.
 12. Run `pulumi up` to stand up your new Pulumi stack.
-13. As of 2023-11-30, the creation of one resource, the PostgreSQL database, fails. This
+13. As of 2024-01-23, the creation of one resource, the PostgreSQL database, fails. This
     seems to be an issue with Pulumi, see comments in `__main__.create_pg_database`.
     Once all the other resources have been created with `pulumi up`, and it's only
     complaining about the database failing, you can manually login to the PostgreSQL
