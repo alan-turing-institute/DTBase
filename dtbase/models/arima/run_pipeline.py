@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-import os
 import sys
 from typing import Optional
 
@@ -9,8 +8,13 @@ import coloredlogs
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.utils.config import read_config
+from dtbase.models.arima.arima.config import ConfigArima
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
+from dtbase.models.utils.dataprocessor.config import (
+    ConfigData,
+    ConfigOthers,
+    ConfigSensors,
+)
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 
@@ -26,17 +30,13 @@ def run_pipeline(config: Optional[dict] = None) -> None:
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
-    # Populate the config dictionary with default values from the config files.
+    # Populate the config dictionary
     if config is None:
         config = {}
-    for section in ["sensors", "data", "others"]:
-        config[section] = read_config(section=section) | config.get(section, {})
-    arima_config_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "arima/config_arima.ini"
-    )
-    config["arima"] = read_config(
-        section="arima", filename=arima_config_file_path
-    ) | config.get("arima", {})
+    config["data"] = ConfigData.model_validate(config.get("data", {}))
+    config["sensors"] = ConfigSensors.model_validate(config.get("sensors", {}))
+    config["others"] = ConfigOthers.model_validate(config.get("others", {}))
+    config["arima"] = ConfigArima.model_validate(config.get("arima", {}))
 
     # Log into the backend
     token = login()[0]
@@ -72,7 +72,7 @@ def run_pipeline(config: Optional[dict] = None) -> None:
     # Ensure that we have all measures in the database, or insert if not.
     # We should have mean, upper bound, and lower bound for each of the measures that
     # the sensor we are trying to forecast for reports.
-    base_measures_list = config["sensors"]["include_measures"]
+    base_measures_list = config["sensors"].include_measures
     logging.info(f"measures to use: {base_measures_list}")
     # base_measures_list is a list of tuples (measure_name, units)
     for base_measure_name, base_measure_units in base_measures_list:

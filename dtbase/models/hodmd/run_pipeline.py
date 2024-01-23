@@ -9,8 +9,12 @@ import pandas as pd
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
 from dtbase.models.hodmd.hodmd_model import hodmd_pipeline
-from dtbase.models.utils.config import read_config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
+from dtbase.models.utils.dataprocessor.config import (
+    ConfigData,
+    ConfigOthers,
+    ConfigSensors,
+)
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 
@@ -46,11 +50,12 @@ def run_pipeline(
     coloredlogs.ColoredFormatter(field_styles=field_styles)
     coloredlogs.install(level="INFO")
 
-    # Populate the config dictionary with default values from the config files.
+    # Populate the config dictionary
     if config is None:
         config = {}
-    for section in ["sensors", "data", "others"]:
-        config[section] = read_config(section=section) | config.get(section, {})
+    config["data"] = ConfigData.model_validate(config.get("data", {}))
+    config["sensors"] = ConfigSensors.model_validate(config.get("sensors", {}))
+    config["others"] = ConfigOthers.model_validate(config.get("others", {}))
 
     # Log into the backend
     token = login()[0]
@@ -76,7 +81,7 @@ def run_pipeline(
         raise BackendCallError(response)
 
     # Ensure that we have all measures in the database, or insert if not.
-    measures_list = config["sensors"]["include_measures"]
+    measures_list = config["sensors"].include_measures
     logging.info(f"measures to use: {measures_list}")
     # base_measures_list is a list of tuples (measure_name, units)
     for measure_name, measure_units in measures_list:
@@ -89,7 +94,7 @@ def run_pipeline(
         )
 
     # run the HODMD pipeline for every sensor
-    sensor_unique_ids = config["sensors"]["include_sensors"]
+    sensor_unique_ids = config["sensors"].include_sensors
 
     # run HODMD pipeline
     if multi_measure:

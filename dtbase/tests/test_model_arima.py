@@ -1,12 +1,15 @@
-import os
-
 import pandas as pd
 import pytest
 from sqlalchemy.orm import Session
 
 from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.utils.config import read_config
+from dtbase.models.arima.arima.config import ConfigArima
 from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.config import (
+    ConfigData,
+    ConfigOthers,
+    ConfigSensors,
+)
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
@@ -21,8 +24,8 @@ def test_arima_get_temperature(
 ) -> None:
     insert_trh_readings(session)
     config = {
-        "data": {"num_days_training": 20},
-        "sensors": read_config(section="sensors"),
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(),
     }
     tables = get_training_data(config)
     assert isinstance(tables, tuple)
@@ -40,10 +43,9 @@ def test_arima_get_temperature(
 def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
     config = {
-        "data": {"num_days_training": 20},
-        "sensors": read_config(section="sensors"),
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Humidity", "Percent")]),
     }
-    config["sensors"]["include_measures"] = [("Humidity", "Percent")]
     tables = get_training_data(config)
     assert isinstance(tables, tuple)
     assert len(tables) == 1
@@ -58,13 +60,11 @@ def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
 def test_arima_get_temperature_humidity(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
     config = {
-        "data": {"num_days_training": 20},
-        "sensors": read_config(section="sensors"),
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(
+            include_measures=[("Temperature", "Degrees C"), ("Humidity", "Percent")]
+        ),
     }
-    config["sensors"]["include_measures"] = [
-        ("Temperature", "Degrees C"),
-        ("Humidity", "Percent"),
-    ]
     tables = get_training_data(config)
     assert isinstance(tables, tuple)
     assert len(tables) == 2
@@ -84,10 +84,9 @@ def test_arima_get_temperature_humidity(conn_backend: None, session: Session) ->
 def test_arima_clean(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
     config = {
-        "data": read_config(section="data"),
-        "sensors": read_config(section="sensors"),
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(),
     }
-    config["data"]["num_days_training"] = 20
     tables = get_training_data(config)
     cleaned_data = clean_data(tables[0], config)
     # should be a dict keyed by sensor unique ID
@@ -101,9 +100,9 @@ def test_arima_clean(conn_backend: None, session: Session) -> None:
 def test_arima_prepare(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
     config = {
-        "data": read_config(section="data"),
-        "sensors": read_config(section="sensors"),
-        "others": read_config(section="others"),
+        "data": ConfigData(),
+        "sensors": ConfigSensors(),
+        "others": ConfigOthers(),
     }
     tables = get_training_data(config)
     cleaned_data = clean_data(tables[0], config)
@@ -118,20 +117,12 @@ def test_arima_prepare(conn_backend: None, session: Session) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_pipeline(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    arima_config_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "../models/arima/arima/config_arima.ini",
-    )
     config = {
-        "data": read_config(section="data"),
-        "sensors": read_config(section="sensors"),
-        "others": read_config(section="others"),
-        "arima": read_config(section="arima", filename=arima_config_file_path),
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Temperature", "Degrees C")]),
+        "others": ConfigOthers(),
+        "arima": ConfigArima(),
     }
-    config["data"]["num_days_training"] = 20
-    config["sensors"]["include_measures"] = [
-        ("Temperature", "Degrees C"),
-    ]
     tables = get_training_data(config)
     cleaned_data = clean_data(tables[0], config)
     prepared_data = prepare_data(cleaned_data, config)

@@ -9,17 +9,19 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
+from dtbase.models.arima.arima.config import ConfigArima
+
 logger = logging.getLogger(__name__)
 
 
-def get_forecast_timestamp(data: pd.Series, arima_config: dict) -> pd.Timestamp:
+def get_forecast_timestamp(data: pd.Series, arima_config: ConfigArima) -> pd.Timestamp:
     """
     Return the end-of-forecast timestamp.
 
     Parameters:
         data: pandas Series containing a time series.
             Must be indexed by timestamp.
-        arima_config: a dictionary containing configuration parameters.
+        arima_config: A ConfigArima object containing parameters for the model.
 
     Returns:
         forecast_timestamp: end-of-forecast timestamp,
@@ -27,7 +29,7 @@ def get_forecast_timestamp(data: pd.Series, arima_config: dict) -> pd.Timestamp:
             parameter of config_arima.ini to the last timestamp
             of `data`.
     """
-    if arima_config["hours_forecast"] <= 0:
+    if arima_config.hours_forecast <= 0:
         logger.error(
             "The 'hours_forecast' parameter in config_arima.ini must be greater than "
             "zero."
@@ -35,12 +37,14 @@ def get_forecast_timestamp(data: pd.Series, arima_config: dict) -> pd.Timestamp:
         raise Exception
     end_of_sample_timestamp = data.index[-1]
     forecast_timestamp = end_of_sample_timestamp + timedelta(
-        hours=arima_config["hours_forecast"]
+        hours=arima_config.hours_forecast
     )
     return forecast_timestamp
 
 
-def fit_arima(train_data: pd.Series, arima_config: dict) -> SARIMAXResultsWrapper:
+def fit_arima(
+    train_data: pd.Series, arima_config: ConfigArima
+) -> SARIMAXResultsWrapper:
     """
     Fit a SARIMAX statsmodels model to a
     training dataset (time series).
@@ -51,7 +55,7 @@ def fit_arima(train_data: pd.Series, arima_config: dict) -> SARIMAXResultsWrappe
     Parameters:
         train_data: a pandas Series containing the
             training data on which to fit the model.
-        arima_config: a dictionary containing configuration parameters.
+        arima_config: A ConfigArima object containing parameters for the model.
 
     Returns:
         model_fit: the fitted model, which can now be
@@ -59,9 +63,9 @@ def fit_arima(train_data: pd.Series, arima_config: dict) -> SARIMAXResultsWrappe
     """
     model = SARIMAX(
         train_data,
-        order=arima_config["arima_order"],
-        seasonal_order=arima_config["seasonal_order"],
-        trend=arima_config["trend"],
+        order=arima_config.arima_order,
+        seasonal_order=arima_config.seasonal_order,
+        trend=arima_config.trend,
     )
     model_fit = model.fit(
         disp=False
@@ -72,7 +76,7 @@ def fit_arima(train_data: pd.Series, arima_config: dict) -> SARIMAXResultsWrappe
 def forecast_arima(
     model_fit: SARIMAXResultsWrapper,
     forecast_timestamp: pd.Timestamp,
-    arima_config: dict,
+    arima_config: ConfigArima,
 ) -> Tuple[pd.Series, pd.DataFrame]:
     """
     Produce a forecast given a trained SARIMAX model.
@@ -81,7 +85,7 @@ def forecast_arima(
         model_fit: the SARIMAX model fitted to training data.
             This is the output of `fit_arima`.
         forecast_timestamp: the end-of-forecast timestamp.
-        arima_config: a dictionary containing configuration parameters.
+        arima_config: A ConfigArima object containing parameters for the model.
 
     Returns:
         mean_forecast: the forecast mean. A pandas Series, indexed
@@ -91,7 +95,7 @@ def forecast_arima(
             by timestamp. Specify the confidence level through parameter
             `alpha` in config_arima.ini.
     """
-    alpha = arima_config["alpha"]
+    alpha = arima_config.alpha
     forecast = model_fit.get_forecast(steps=forecast_timestamp).summary_frame(
         alpha=alpha
     )
@@ -147,7 +151,7 @@ def construct_cross_validator(
 def cross_validate_arima(
     data: pd.Series,
     tscv: TimeSeriesSplit,
-    arima_config: dict,
+    arima_config: ConfigArima,
     refit: bool = False,
 ) -> dict:
     """
@@ -158,7 +162,7 @@ def cross_validate_arima(
             for which the SARIMAX model is built.
         tscv: the time series cross-validator object,
             returned by `construct_cross_validator`.
-        arima_config: a dictionary containing configuration parameters.
+        arima_config: A ConfigArima object containing parameters for the model.
         refit: specify whether to refit the model
             parameters when new observations are added
             to the training set in successive cross-
@@ -216,7 +220,7 @@ def cross_validate_arima(
 
 
 def arima_pipeline(
-    data: pd.Series, arima_config: dict
+    data: pd.Series, arima_config: ConfigArima
 ) -> Tuple[pd.Series, pd.DataFrame, Union[dict, None]]:
     """
     Run the ARIMA model pipeline, using the SARIMAX model provided
@@ -228,7 +232,7 @@ def arima_pipeline(
     Arguments:
         data: the time series on which to train the SARIMAX model,
             as a pandas Series indexed by timestamp.
-        arima_config: a dictionary containing configuration parameters.
+        arima_config: A ConfigArima object containing parameters for the model.
     Returns:
         mean_forecast: a pandas Series, indexed by timestamp,
             containing the forecast mean. The number of hours to
@@ -248,25 +252,25 @@ def arima_pipeline(
             "timestamp."
         )
         raise ValueError
-    if arima_config["arima_order"] != (4, 1, 2):
+    if arima_config.arima_order != (4, 1, 2):
         logger.warning(
             "The 'arima_order' setting in config_arima.ini has been set to something "
             "different than (4, 1, 2)."
         )
-    if arima_config["seasonal_order"] != (1, 1, 0, 24):
+    if arima_config.seasonal_order != (1, 1, 0, 24):
         logger.warning(
             "The 'seasonal_order' setting in config_arima.ini has been set to "
             "something different than (1, 1, 0, 24)."
         )
-    if arima_config["hours_forecast"] != 48:
+    if arima_config.hours_forecast != 48:
         logger.warning(
             "The 'hours_forecast' setting in config_arima.ini has been set to "
             "something different than 48."
         )
     # perform time series cross-validation if requested by the user
-    cross_validation = arima_config["perform_cv"]
+    cross_validation = arima_config.perform_cv
     if cross_validation:
-        refit = arima_config["cv_refit"]
+        refit = arima_config.cv_refit
         if refit:
             logger.info("Running time series cross-validation WITH parameter refit...")
         else:

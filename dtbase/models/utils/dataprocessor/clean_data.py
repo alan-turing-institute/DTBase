@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
@@ -79,7 +79,7 @@ def hourly_average_sensor(
             performed. Note that the column "timestamp_hour_plus_minus"
             is renamed to "timestamp".
     """
-    sensors_list = config["sensors"]["include_sensors"]
+    sensors_list = config["sensors"].include_sensors
     _all_ids = set(sensors_list)
     _ids = set(sensor_data["sensor_unique_id"].unique())
     filtered_sensors_list = list(_all_ids.intersection(_ids))
@@ -192,7 +192,7 @@ def clean_sensor_data(
     # the timestamp of the rounded hour. Times outside this range are assigned None.
     sensor_data["timestamp_hour_plus_minus"] = sensor_data.apply(
         lambda x: x["timestamp"].round(freq="H")
-        if x["timedelta_in_secs"] <= config["data"]["mins_from_the_hour"] * SECS_PER_MIN
+        if x["timedelta_in_secs"] <= config["data"].mins_from_the_hour * SECS_PER_MIN
         else None,
         axis=1,
     )
@@ -200,10 +200,7 @@ def clean_sensor_data(
     sensor_data = sensor_data.dropna(subset="timestamp_hour_plus_minus")
     # create the time vector for which hourly-averaged data will be returned
     # first, parse the `time_delta` parameter of `data_config.ini` into total seconds.
-    frequency = datetime.strptime(config["data"]["time_delta"], "%Hh%Mm%Ss")
-    frequency = timedelta(
-        hours=frequency.hour, minutes=frequency.minute, seconds=frequency.second
-    )
+    frequency = config["data"].time_delta
     frequency = int(frequency.total_seconds())
     if frequency != SECS_PER_MIN * MINS_PER_HR:
         logger.warning(
@@ -243,12 +240,12 @@ def clean_data(sensor_readings: pd.DataFrame, config: dict) -> Dict:
             Specify the timedelta between successive timestamps using the "time_delta"
             parameter in "data_config.ini".
     """
-    if config["data"]["mins_from_the_hour"] != 15:
+    if config["data"].mins_from_the_hour != 15:
         logger.warning(
             "The 'mins_from_the_hour' setting in data_config.ini has been set to "
             "something different than 15."
         )
-    if config["data"]["window"] != 3:
+    if config["data"].window != 3:
         logger.warning(
             "The 'window' setting in data_config.ini has been set to something "
             "different than 3."

@@ -37,18 +37,16 @@ def standardize_timestamp(
             - Otherwise, the output timestamp is the date of the
             input timestamp at time (`farm_cycle_start` - 12 hours).
     """
-    farm_cycle_start = config["others"][
-        "farm_cycle_start"
-    ]  # time at which the farm cycle starts
+    # time at which the farm cycle starts
+    farm_cycle_start_time = config["others"].farm_cycle_start
     # parse string into a datetime object
-    farm_cycle_start = datetime.datetime.strptime(farm_cycle_start, "%Hh%Mm%Ss")
-    if farm_cycle_start.time() != datetime.time(hour=16, minute=0, second=0):
+    if farm_cycle_start_time != datetime.time(hour=16, minute=0, second=0):
         logger.warning(
             "The `farm_cycle_start` parameter in data_config.ini has been set to "
             "something different than 4 PM."
         )
     farm_cycle_start = datetime.datetime.combine(
-        timestamp.date(), farm_cycle_start.time()
+        timestamp.date(), farm_cycle_start_time
     )
     farm_cycle_start = pytz.utc.localize(farm_cycle_start)
     if timestamp >= farm_cycle_start:
@@ -136,10 +134,10 @@ def impute_missing_values(data: pd.Series, config: dict) -> pd.Series:
     logger.info("Percentage of missing observations: {0: .2f} %".format(stats))
     index_name = data.index.name  # get the index name - should be `timestamp`
     data = data.to_frame()  # first convert Series to DataFrame
-    days_interval = config["others"]["days_interval"]
+    days_interval = config["others"].days_interval
     data = break_up_timestamp(data, days_interval)
     # compute the mean value for the groups, excluding missing values.
-    weekly_seasonality = config["others"]["weekly_seasonality"]
+    weekly_seasonality = config["others"].weekly_seasonality
     # if the user has requested to consider weekly seasonality:
     if weekly_seasonality:
         if days_interval < 30:
@@ -211,12 +209,12 @@ def prepare_data(sensor_data: dict, config: dict) -> Tuple[dict, pd.DataFrame]:
             allows it.
     """
     logger.info("Preparing the data to feed to the model...")
-    if config["others"]["days_interval"] != 30:
+    if config["others"].days_interval != 30:
         logger.warning(
             "The `days_interval` parameter in data_config.ini has been set to "
             "something different than 30."
         )
-    if not config["others"]["weekly_seasonality"]:
+    if not config["others"].weekly_seasonality:
         logger.warning(
             "The `weekly_seasonality` parameter in data_config.ini has been set "
             "to False."
@@ -238,7 +236,7 @@ def prepare_data(sensor_data: dict, config: dict) -> Tuple[dict, pd.DataFrame]:
     # if there are any missing values in the measure's time series of `sensor_data`,
     # replace them with typically observed values. Note that if there is not enough data
     # to compute typically observed values, missing observations will not be replaced.
-    measures = config["sensors"]["include_measures"]
+    measures = config["sensors"].include_measures
     # measures will be a list of tuples (measure_name, units)
     for key in keys_sensor_data:
         sensor_data_cols = set(sensor_data[key].columns.tolist())

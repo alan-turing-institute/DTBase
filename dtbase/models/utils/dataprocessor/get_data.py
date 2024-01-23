@@ -51,7 +51,7 @@ def get_training_data(
         token = login()[0]
 
     # get number of training days
-    num_days_training = config["data"]["num_days_training"]
+    num_days_training = config["data"].num_days_training
     if num_days_training > 365:
         logger.error(
             "The 'num_days_training' setting in config_arima.ini cannot be set to a "
@@ -59,7 +59,7 @@ def get_training_data(
         )
         raise ValueError
 
-    dt_to = dt.datetime.now()
+    dt_to = config["data"].predict_from_datetime
     delta = dt.timedelta(days=num_days_training)
     dt_from = dt_to - delta
     logger.info(f"Training data from {dt_from} to {dt_to}")
@@ -67,8 +67,8 @@ def get_training_data(
     # each table can be produced by joining two tables, as specified in the config file.
     data_tables = []
     sensors_config = config["sensors"]
-    sensors_list = sensors_config["include_sensors"]
-    measures_list = sensors_config["include_measures"]
+    sensors_list = sensors_config.include_sensors
+    measures_list = sensors_config.include_measures
     for measure_name, units in measures_list:
         for sensor in sensors_list:
             response = auth_backend_call(
