@@ -4,10 +4,6 @@ import pytest
 import requests_mock
 from freezegun import freeze_time
 
-from dtbase.core.constants import (
-    CONST_OPENWEATHERMAP_FORECAST_URL,
-    CONST_OPENWEATHERMAP_HISTORICAL_URL,
-)
 from dtbase.ingress.ingress_weather import (
     SENSOR_OPENWEATHERMAPFORECAST,
     SENSOR_OPENWEATHERMAPHISTORICAL,
@@ -23,6 +19,12 @@ from dtbase.tests.resources.data_for_tests import (
 NOW = datetime.now()
 open_weather_data_ingress = OpenWeatherDataIngress()
 
+FORECAST_BASE_URL = "https://api.openweathermap.org/data/3.0/onecall"
+HISTORICAL_BASE_URL = "https://api.openweathermap.org/data/2.5/onecall/timemachine"
+API_KEY = "api_key"
+LATITUDE = 0
+LONGITUDE = 1
+
 
 @pytest.mark.parametrize(
     "dt_from, dt_to, expected",
@@ -31,7 +33,10 @@ open_weather_data_ingress = OpenWeatherDataIngress()
             NOW - timedelta(hours=72),
             "present",
             (
-                CONST_OPENWEATHERMAP_HISTORICAL_URL,
+                (
+                    HISTORICAL_BASE_URL
+                    + f"?lat={LATITUDE}&lon={LONGITUDE}&units=metric&appid={API_KEY}"
+                ),
                 SENSOR_OPENWEATHERMAPHISTORICAL,
                 NOW - timedelta(hours=72),
                 open_weather_data_ingress.present,
@@ -41,7 +46,10 @@ open_weather_data_ingress = OpenWeatherDataIngress()
             "present",
             NOW + timedelta(days=1),
             (
-                CONST_OPENWEATHERMAP_FORECAST_URL,
+                (
+                    FORECAST_BASE_URL
+                    + f"?lat={LATITUDE}&lon={LONGITUDE}&units=metric&appid={API_KEY}"
+                ),
                 SENSOR_OPENWEATHERMAPFORECAST,
                 open_weather_data_ingress.present,
                 NOW + timedelta(days=1),
@@ -50,12 +58,16 @@ open_weather_data_ingress = OpenWeatherDataIngress()
     ],
 )
 def test_get_api_base_url_and_sensor(
-    dt_from: datetime, dt_to: datetime, expected: tuple[str, str]
+    dt_from: datetime,
+    dt_to: datetime,
+    expected: tuple[str, dict[str, str], datetime, datetime],
 ) -> None:
     """Test the get_api_base_url_and_sensor method for scenarios where the correct //
     API base URL and sensor should be returned"""
     assert (
-        open_weather_data_ingress.get_api_base_url_and_sensor(dt_from, dt_to)
+        open_weather_data_ingress.get_api_base_url_and_sensor(
+            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
+        )
         == expected
     )
 
@@ -76,7 +88,9 @@ def test_get_api_base_url_and_sensor_raises(
     """Test the get_api_base_url_and_sensor method for scenarios where an error //
     should be raised"""
     with pytest.raises(expected):
-        open_weather_data_ingress.get_api_base_url_and_sensor(dt_from, dt_to)
+        open_weather_data_ingress.get_api_base_url_and_sensor(
+            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
+        )
 
 
 @freeze_time("2024-01-06")
@@ -87,10 +101,12 @@ def test_get_data_historical_api() -> None:
     dt_from = dt_to - timedelta(hours=2)
     with requests_mock.Mocker() as m:
         m.get(
-            CONST_OPENWEATHERMAP_HISTORICAL_URL,
+            HISTORICAL_BASE_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_HISTORICAL_URL_RESPONSE,
         )
-        response = weather_ingress.get_data(dt_from, dt_to)
+        response = weather_ingress.get_data(
+            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
+        )
         assert response == EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE
 
 
@@ -102,8 +118,10 @@ def test_get_data_forecast_api() -> None:
     dt_to = dt_from + timedelta(hours=2)
     with requests_mock.Mocker() as m:
         m.get(
-            CONST_OPENWEATHERMAP_FORECAST_URL,
+            FORECAST_BASE_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE,
         )
-        response = weather_ingress.get_data(dt_from, dt_to)
+        response = weather_ingress.get_data(
+            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
+        )
         assert response == EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE
