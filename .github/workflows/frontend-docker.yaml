@@ -18,15 +18,15 @@ jobs:
       - name: 'Build main'
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-          docker build -f Dockerfile_frontend -t turingcropapp/dtbase-frontend:main .
-          docker push turingcropapp/dtbase-frontend:main
+          docker build -f Dockerfile_frontend -t turingcropapp/nwtwin-frontend:main .
+          docker push turingcropapp/nwtwin-frontend:main
       - name: 'Build dev'
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
-          docker build -f Dockerfile_frontend -t turingcropapp/dtbase-frontend:dev .
-          docker push turingcropapp/dtbase-frontend:dev
+          docker build -f Dockerfile_frontend -t turingcropapp/nwtwin-frontend:dev .
+          docker push turingcropapp/nwtwin-frontend:dev
       - name: 'Build test-actions'
         if: ${{ github.ref == 'refs/heads/test-actions' }}
         run: |
-          docker build -f Dockerfile_frontend -t turingcropapp/dtbase-frontend:test-actions .
-          docker push turingcropapp/dtbase-frontend:test-actions
+          docker build -f Dockerfile_frontend -t turingcropapp/nwtwin-frontend:test-actions .
+          docker push turingcropapp/nwtwin-frontend:test-actions

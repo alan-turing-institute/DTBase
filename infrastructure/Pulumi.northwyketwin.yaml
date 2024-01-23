@@ -1,0 +1,17 @@
+encryptionsalt: v1:Ye1xj2rNfdQ=:v1:CXgCoZuHUf88XAon:ol0XHCdDD6n4nDqP6Xy5HyEm83QvOA==
+config:
+  azure-native:location: UK South
+  dtbase-azure:backend-docker-url: turingcropapp/nwtwin-backend:main
+  dtbase-azure:default-user-password:
+    secure: v1:aEUmbGVsHoJW3Mc3:M/WFupVTKx+P3Tz6kBHtfCOEfqPHrJDT
+  dtbase-azure:frontend-docker-url: turingcropapp/nwtwin-frontend:main
+  dtbase-azure:frontend-secret-key:
+    secure: v1:do/3uT/nZMj8RkCZ:zfMKEe2N4/gesOw6auF09BWAfWyAy+q1
+  dtbase-azure:jwt-secret-key:
+    secure: v1:QiDeGEFHpab9FAKq:5d9i4J0qZqFbdU/n9TL2Yazhu9YUhAcqNaC2CrPP
+  dtbase-azure:resource-name-prefix: nwtwin
+  dtbase-azure:sql-db-name:
+    secure: v1:LEvoy6Y1KvheeVXX:c+YddPUCvnTz0cDE9cf++PoTH9A=
+  dtbase-azure:sql-server-password:
+    secure: v1:vTYOff2vS4uWYtaE:h7Zfr75B5G1vA/DRHlb9wtK1D041S8dT
+  dtbase-azure:sql-server-user: dbadmin
