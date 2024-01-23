@@ -37,7 +37,6 @@ def run_pipeline(config: Optional[dict] = None) -> None:
     config["sensors"] = ConfigSensors.model_validate(config.get("sensors", {}))
     config["others"] = ConfigOthers.model_validate(config.get("others", {}))
     config["arima"] = ConfigArima.model_validate(config.get("arima", {}))
-
     # Log into the backend
     token = login()[0]
 
