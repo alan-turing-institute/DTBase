@@ -13,6 +13,7 @@ CONFIG = Config()
 
 BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:main"
 FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:main"
+FUNCTIONS_DOCKER_URL = "turingcropapp/dtbase-functions:main"
 RESOURCE_NAME_PREFIX = CONFIG.get("resource-name-prefix")
 SQL_SERVER_USER = "dbadmin"
 SQL_DB_NAME = "dtdb"
@@ -200,6 +201,55 @@ def create_frontend_webapp(
     return webapp
 
 
+def create_function_app(
+    name: str | Output[str],
+    resource_group: resource.ResourceGroup,
+    app_service_plan: Any,
+    app_insights: insights.Component,
+    sa_connection_string: str | Output[str],
+    storage_account: storage.StorageAccount,
+    backend_url: str | Output[str],
+) -> web.WebApp:
+    webapp_settings = [
+        web.NameValuePairArgs(name=name, value=value)
+        for name, value in (
+            ("AzureWebJobsStorage", sa_connection_string),
+            ("FUNCTIONS_EXTENSION_VERSION", "~4"),
+            ("APPINSIGHTS_INSTRUMENTATIONKEY", app_insights.instrumentation_key),
+            (
+                "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                app_insights.instrumentation_key.apply(
+                    lambda key: "InstrumentationKey=" + key
+                ),
+            ),
+            ("WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
+            ("DOCKER_REGISTRY_SERVER_URL", "https://index.docker.io/v1"),
+            ("DOCKER_ENABLE_CI", "true"),
+            ("DT_BACKEND_URL", backend_url),
+            # TODO We should probably use a different user for the functions app.
+            ("DT_DEFAULT_USER_PASS", f"{DEFAULT_USER_PASSWORD}"),
+        )
+    ]
+    models_app = web.WebApp(
+        f"{RESOURCE_NAME_PREFIX}-{name}",
+        resource_group_name=resource_group.name,
+        kind="functionapp",
+        server_farm_id=app_service_plan.id,
+        site_config=web.SiteConfigArgs(
+            app_settings=webapp_settings,
+            linux_fx_version=f"DOCKER|{FUNCTIONS_DOCKER_URL}",
+            azure_storage_accounts=web.AzureStorageInfoValueArgs(
+                account_name=storage_account.name,
+                type=web.AzureStorageType.AZURE_FILES,
+            ),
+            # TODO This should be updated to only include the backend URL.
+            cors={"allowed_origins": ["*"]},
+        ),
+        https_only=True,
+    )
+    return models_app
+
+
 def create_postgres_firewall_rules(
     resource_group: resource.ResourceGroup,
     sql_server: postgresql.Server,
@@ -239,7 +289,10 @@ def main() -> None:
     create_pg_database(resource_group, sql_server)
     app_service_plan = create_app_service_plan(resource_group)
     app_insights = create_app_insights(resource_group)
-    create_storage_account(resource_group)
+    storage_account = create_storage_account(resource_group)
+    sa_connection_string = get_connection_string(
+        storage_account.name, resource_group.name
+    )
     backend = create_backend_webapp(
         "backend", resource_group, app_service_plan, sql_server, app_insights
     )
@@ -267,6 +320,17 @@ def main() -> None:
         "backend_endpoint",
         backend_url,
     )
+
+    create_function_app(
+        "functionapp",
+        resource_group,
+        app_service_plan,
+        app_insights,
+        sa_connection_string,
+        storage_account,
+        backend_url,
+    )
+
     frontend = create_frontend_webapp(
         "frontend",
         resource_group,

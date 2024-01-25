@@ -84,16 +84,34 @@ class BaseIngress:
         """
         self.access_token = login(username, password)[0]
 
-    def ingress_data(self, *args: Any, **kwargs: Any) -> List[Response]:
+    def ingress_data(
+        self,
+        *args: Any,
+        dt_user_email: Optional[str] = None,
+        dt_user_password: Optional[str] = None,
+        **kwargs: Any,
+    ) -> List[Response]:
         """
         Get data from API and upload to the database via the backend.
-        Takes any argument available to the get_data method.
 
-        Args: *args, **kwargs: arguments to be passed to get_data method
+        Passes any extra arguments to the get_data method.
 
+        Args:
+            dt_user_email: email of the backend user to login with. By default read from
+                the environment variable DT_DEFAULT_USER_EMAIL.
+            dt_user_password: password of the backend user to login with. By default
+                read from the environment variable DT_DEFAULT_USER_PASS.
+            *args, **kwargs: arguments to be passed to get_data method
+
+        Returns:
+            List of responses from the backend API calls.
         """
+        if dt_user_email is None:
+            dt_user_email = DEFAULT_USER_EMAIL
+        if dt_user_password is None:
+            dt_user_password = DEFAULT_USER_PASS
         ingress_pairs = self.get_data(*args, **kwargs)
-        self.backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
+        self.backend_login(dt_user_email, dt_user_email)
 
         responses = []
         for ingress_pair in ingress_pairs:

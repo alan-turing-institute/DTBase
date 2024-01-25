@@ -2,8 +2,14 @@ import pandas as pd
 import pytest
 from sqlalchemy.orm import Session
 
-from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.config import ConfigArima
 from dtbase.models.utils.dataprocessor.clean_data import clean_data
+from dtbase.models.utils.dataprocessor.config import (
+    ConfigData,
+    ConfigOthers,
+    ConfigSensors,
+)
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
@@ -17,7 +23,11 @@ def test_arima_get_temperature(
     conn_backend: AuthenticatedClient, session: Session
 ) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(delta_days=20)
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(),
+    }
+    tables = get_training_data(config)
     assert isinstance(tables, tuple)
     assert len(tables) == 2
     for table in tables:
@@ -32,7 +42,11 @@ def test_arima_get_temperature(
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(measures_list=[("Humidity", "Percent")], delta_days=20)
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Humidity", "Percent")]),
+    }
+    tables = get_training_data(config)
     assert isinstance(tables, tuple)
     assert len(tables) == 1
     assert isinstance(tables[0], pd.DataFrame)
@@ -45,10 +59,13 @@ def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_get_temperature_humidity(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(
-        measures_list=[("Temperature", "Degrees"), ("Humidity", "Percent")],
-        delta_days=20,
-    )
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(
+            include_measures=[("Temperature", "Degrees C"), ("Humidity", "Percent")]
+        ),
+    }
+    tables = get_training_data(config)
     assert isinstance(tables, tuple)
     assert len(tables) == 2
     assert isinstance(tables[0], pd.DataFrame)
@@ -66,8 +83,12 @@ def test_arima_get_temperature_humidity(conn_backend: None, session: Session) ->
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_clean(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(delta_days=20)
-    cleaned_data = clean_data(tables[0])
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(),
+    }
+    tables = get_training_data(config)
+    cleaned_data = clean_data(tables[0], config)
     # should be a dict keyed by sensor unique ID
     assert isinstance(cleaned_data, dict)
     assert "TRH1" in cleaned_data.keys()
@@ -78,9 +99,14 @@ def test_arima_clean(conn_backend: None, session: Session) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_prepare(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(delta_days=20)
-    cleaned_data = clean_data(tables[0])
-    prepared_data = prepare_data(cleaned_data)
+    config = {
+        "data": ConfigData(),
+        "sensors": ConfigSensors(),
+        "others": ConfigOthers(),
+    }
+    tables = get_training_data(config)
+    cleaned_data = clean_data(tables[0], config)
+    prepared_data = prepare_data(cleaned_data, config)
     # should be a dict keyed by sensor unique ID
     assert isinstance(prepared_data, dict)
     assert "TRH1" in prepared_data.keys()
@@ -91,13 +117,17 @@ def test_arima_prepare(conn_backend: None, session: Session) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_pipeline(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
-    tables = get_training_data(
-        measures_list=[("Temperature", "Degrees")], delta_days=20
-    )
-    cleaned_data = clean_data(tables[0])
-    prepared_data = prepare_data(cleaned_data)
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Temperature", "Degrees C")]),
+        "others": ConfigOthers(),
+        "arima": ConfigArima(),
+    }
+    tables = get_training_data(config)
+    cleaned_data = clean_data(tables[0], config)
+    prepared_data = prepare_data(cleaned_data, config)
     values = prepared_data["TRH1"]["Temperature"]
-    mean_forecast, conf_int, metrics = arima_pipeline(values)
+    mean_forecast, conf_int, metrics = arima_pipeline(values, config["arima"])
     assert isinstance(mean_forecast, pd.Series)
     assert isinstance(conf_int, pd.DataFrame)
     assert isinstance(metrics, dict)
