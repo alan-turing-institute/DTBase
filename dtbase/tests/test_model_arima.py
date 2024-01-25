@@ -2,8 +2,8 @@ import pandas as pd
 import pytest
 from sqlalchemy.orm import Session
 
-from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import ConfigArima
+from dtbase.models.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.config import ConfigArima
 from dtbase.models.utils.dataprocessor.clean_data import clean_data
 from dtbase.models.utils.dataprocessor.config import (
     ConfigData,

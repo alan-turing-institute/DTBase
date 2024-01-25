@@ -7,8 +7,8 @@ import coloredlogs
 
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
-from dtbase.models.arima.arima.arima_pipeline import arima_pipeline
-from dtbase.models.arima.arima.config import ConfigArima
+from dtbase.models.arima.arima_pipeline import arima_pipeline
+from dtbase.models.arima.config import ConfigArima
 from dtbase.models.utils.dataprocessor.clean_data import clean_data_list
 from dtbase.models.utils.dataprocessor.config import (
     ConfigData,

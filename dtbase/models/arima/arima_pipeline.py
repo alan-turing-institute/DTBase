@@ -9,7 +9,7 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
-from dtbase.models.arima.arima.config import ConfigArima
+from dtbase.models.arima.config import ConfigArima
 
 logger = logging.getLogger(__name__)
 
