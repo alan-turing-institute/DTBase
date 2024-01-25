@@ -49,6 +49,8 @@ dependencies = [
 
     "statsmodels ~= 0.14.0",
     "pydmd ~= 0.4.1",
+
+    "pydantic ~= 2.5",
 ]
 
 [project.optional-dependencies]

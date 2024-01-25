@@ -15,17 +15,17 @@
     </div>
 
 
-    <div class="form-group">
+    <div id="formGroupMeasures" class="form-group">
         <div class="existing-measure-group">
             <label>Select existing measure:</label>
             <div class="add-measure-wrapper d-flex">
-                <select class="form-control custom-select existing-measure-select existing-measure-dropdown">
+                <select id="existingMeasureSelect" class="form-control custom-select existing-measure-select existing-measure-dropdown">
                     <option value="">-- Select measure --</option>
                     {% for measure in existing_measures %}
                         <option value="{{ measure.id }}">{{ measure.name }} ({{ measure.units }})</option>
                     {% endfor %}
                 </select>
-                <button type="button" class="btn btn-primary btn-add-measure">+</button>
+                <button id="addMeasureButton" type="button" class="btn btn-primary btn-add-measure">+</button>
             </div>
         </div>
     </div>
@@ -37,9 +37,10 @@
 {% block javascripts %}
 {{ super()}}
 
+<script src="{{ url_for('static', filename='javascript/sensor_type_form.js') }}"></script>
 <script>
-    const existing_measures = {{ existing_measures|tojson }};
+  const existing_measures = {{ existing_measures|tojson }};
+  document.addEventListener("DOMContentLoaded", () => window.onPageLoad(existing_measures));
 </script>
-<script src="{{ url_for('static', filename='javascript/sensor_type.js') }}"></script>
 
 {% endblock javascripts %}

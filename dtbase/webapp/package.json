@@ -9,28 +9,26 @@
   },
   "dependencies": {
     "bootstrap": "^5.2.3",
-    "chart.js": "^4.2.1",
+    "chart.js": "^4.4.1",
     "chartjs-adapter-moment": "^1.0.1",
-    "datatables.net": "^1.13.4",
-    "datatables.net-bs": "^1.13.4",
-    "datatables.net-buttons": "^2.3.6",
-    "datatables.net-buttons-bs": "^2.3.6",
-    "datatables.net-dt": "^1.13.4",
-    "datatables.net-fixedheader": "^3.3.2",
-    "datatables.net-fixedheader-bs": "^3.3.2",
-    "datatables.net-keytable": "^2.9.0",
-    "datatables.net-responsive": "^2.4.1",
-    "datatables.net-responsive-bs": "^2.4.1",
-    "datatables.net-scroller": "^2.1.1",
-    "datatables.net-scroller-bs": "^2.1.1",
+    "datatables.net-bs5": "^1.13.4",
+    "datatables.net-buttons-bs5": "^2.3.6",
+    "datatables.net-fixedheader-bs5": "^3.3.2",
+    "datatables.net-responsive-bs5": "^2.4.1",
     "font-awesome": "^4.7.0",
-    "jquery": "^3.6.4",
-    "moment": "^2.29.4"
+    "glob": "^10.3.10",
+    "moment": "^2.29.4",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   },
   "devDependencies": {
-    "eslint": "^8.25.0",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.7",
+    "typescript": "^5.3.3"
   }
 }

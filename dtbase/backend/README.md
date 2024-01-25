@@ -184,7 +184,23 @@ The schema name will be a concatenation of the identifier names.
 * A GET request will list all schemas:
     - returns
     ```
-    [{"id": <id:int>, "name": <name:str>, "description":<description:str>,}, ...]
+    [
+      {
+        "id": <id:int>,
+        "name": <name:str>,
+        "description":<description:str>,
+        "identifiers": [
+          {
+            "id": <id:int>,
+            "name": <name:str>,
+            "datatype": <datatype:str>,
+            "units": <units:str>,
+          },
+          ...
+        ]
+      },
+      ...
+    ]
     ```
 
 ### `/location/list-location-identifiers`
@@ -193,10 +209,10 @@ The schema name will be a concatenation of the identifier names.
     ```
     [
       {
-	"id": <id:int>,
-	"name": <name:str>,
-	"datatype":<datatype:str>,
-	"units":<units:str>,
+	    "id": <id:int>,
+	    "name": <name:str>,
+	    "datatype":<datatype:str>,
+	    "units":<units:str>,
       },
       ...
     ]
@@ -516,7 +532,12 @@ API endpoints for the models is as follows.
     - returns status code 200, alongside result in the form:
     ```
     [
-        {"id": <id:int>, "model_id": <model_id:int>, "description": <description:str|None|null>},
+        {
+            "id": <id:int>,
+            "model_id": <model_id:int>,
+            "model_name": <str>,
+            "description": <description:str|None|null>
+        },
         ...
     ]
     ```

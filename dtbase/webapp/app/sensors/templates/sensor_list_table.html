@@ -1,5 +1,13 @@
 {% extends "base_site.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<link href="{{ url_for('static', filename='node_modules/datatables.net-bs5/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-buttons-bs5/css/buttons.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.css') }}" rel="stylesheet">
+{% endblock stylesheets %}
+
 {% block title %} Sensors {% endblock title %}
 
 {% block content %}
@@ -14,14 +22,20 @@
     </select>
 </div>
 
-<div id="sensorTable"></div>
+<div id="sensorTableWrapper"></div>
 {% endblock content %}
 
 {% block javascripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='javascript/sensor_list_table.js') }}"></script>
 <script>
-    window.sensor_types = {{ sensor_types | tojson | safe }};
-    window.sensors_for_each_type = {{ sensors_for_each_type | tojson | safe }};
+  const sensors_for_each_type = {{ sensors_for_each_type | tojson | safe }};
+  window.addEventListener("DOMContentLoaded", (event) => {
+    const sensorTypeSelector = document.getElementById("sensor_type");
+    sensorTypeSelector.addEventListener(
+      "change", () => window.updateSensorTable(sensors_for_each_type)
+    );
+    window.updateSensorTable(sensors_for_each_type);
+  });
 </script>
 {% endblock javascripts %}

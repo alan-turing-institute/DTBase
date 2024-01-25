@@ -1,19 +1,14 @@
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from datetime import datetime
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
 
-from dtbase.models.utils.config import config
-
 logger = logging.getLogger(__name__)
 
-constants = config(section="constants")
-processing_params = config(section="data")
-sensors_config = config(section="sensors")
-sensors_list = sensors_config["include_sensors"]
-measures_list = sensors_config["include_measures"]
+SECS_PER_MIN = 60
+MINS_PER_HR = 60
 
 
 def get_time_vector(
@@ -57,7 +52,10 @@ def get_time_vector(
 
 
 def hourly_average_sensor(
-    sensor_data: pd.DataFrame, col_names: List[str], time_vector: pd.DataFrame
+    sensor_data: pd.DataFrame,
+    col_names: List[str],
+    time_vector: pd.DataFrame,
+    config: dict,
 ) -> Dict:
     """
     Split the pandas dataframe containing the sensor data
@@ -74,12 +72,14 @@ def hourly_average_sensor(
         time_vector: pandas dataframe containing a vector of increasing
             timestamps. Only timestamps contained in "time_vector"
             will be returned in the output ("hour_averages").
+        config: dictionary containing the configuration parameters
     Returns:
         hour_averages: a dict with keys named after the user-requested
             sensors, containing the columns on which averaging has been
             performed. Note that the column "timestamp_hour_plus_minus"
             is renamed to "timestamp".
     """
+    sensors_list = config["sensors"].include_sensors
     _all_ids = set(sensors_list)
     _ids = set(sensor_data["sensor_unique_id"].unique())
     filtered_sensors_list = list(_all_ids.intersection(_ids))
@@ -152,7 +152,7 @@ def centered_ma(series: pd.Series, window: int = 3) -> pd.Series:
 
 
 def clean_sensor_data(
-    sensor_data: pd.DataFrame, measures: list[str]
+    sensor_data: pd.DataFrame, measures: list[str], config: dict
 ) -> Tuple[Dict, pd.DataFrame]:
     """
     Clean the pandas dataframe containing e.g. temperature and humidity data
@@ -162,6 +162,7 @@ def clean_sensor_data(
         sensor_data: pandas dataframe containing e.g. temperature and humidity data
             returned by data_access.get_training_data.
         measures: list of strings, the names of the "measures" in the data.
+        config: dictionary containing the configuration parameters
     Returns:
         cleaned_data: a dictionary with keys named after the user-requested sensors.
             The corresponding values are pandas dataframes containing processed
@@ -191,8 +192,7 @@ def clean_sensor_data(
     # the timestamp of the rounded hour. Times outside this range are assigned None.
     sensor_data["timestamp_hour_plus_minus"] = sensor_data.apply(
         lambda x: x["timestamp"].round(freq="H")
-        if x["timedelta_in_secs"]
-        <= processing_params["mins_from_the_hour"] * constants["secs_per_min"]
+        if x["timedelta_in_secs"] <= config["data"].mins_from_the_hour * SECS_PER_MIN
         else None,
         axis=1,
     )
@@ -200,12 +200,9 @@ def clean_sensor_data(
     sensor_data = sensor_data.dropna(subset="timestamp_hour_plus_minus")
     # create the time vector for which hourly-averaged data will be returned
     # first, parse the `time_delta` parameter of `data_config.ini` into total seconds.
-    frequency = datetime.strptime(processing_params["time_delta"], "%Hh%Mm%Ss")
-    frequency = timedelta(
-        hours=frequency.hour, minutes=frequency.minute, seconds=frequency.second
-    )
+    frequency = config["data"].time_delta
     frequency = int(frequency.total_seconds())
-    if frequency != constants["secs_per_min"] * constants["mins_per_hr"]:
+    if frequency != SECS_PER_MIN * MINS_PER_HR:
         logger.warning(
             "The 'time_delta' setting in data_config.ini has been set to something "
             "different than one hour."
@@ -217,22 +214,19 @@ def clean_sensor_data(
         frequency=str(frequency) + "S",  # S for seconds
     )
     # calculate the hourly-averaged data
-    cleaned_data = hourly_average_sensor(
-        sensor_data,
-        measures,
-        time_vector,
-    )
+    cleaned_data = hourly_average_sensor(sensor_data, measures, time_vector, config)
     logger.info("Done cleaning sensor data.")
     return cleaned_data, time_vector
 
 
-def clean_data(sensor_readings: pd.DataFrame) -> Dict:
+def clean_data(sensor_readings: pd.DataFrame, config: dict) -> Dict:
     """
     Parent function of this module: clean sensor readings retrieved from the database.
 
     Parameters:
         sensor_readings: pandas dataframe containing e.g. temperature or humidity data
             returned by get_data.get_training_data.
+        config: dictionary containing the configuration parameters
 
     Returns:
         cleaned_data: a dictionary with keys named after the user-requested sensors.
@@ -246,12 +240,12 @@ def clean_data(sensor_readings: pd.DataFrame) -> Dict:
             Specify the timedelta between successive timestamps using the "time_delta"
             parameter in "data_config.ini".
     """
-    if processing_params["mins_from_the_hour"] != 15:
+    if config["data"].mins_from_the_hour != 15:
         logger.warning(
             "The 'mins_from_the_hour' setting in data_config.ini has been set to "
             "something different than 15."
         )
-    if processing_params["window"] != 3:
+    if config["data"].window != 3:
         logger.warning(
             "The 'window' setting in data_config.ini has been set to something "
             "different than 3."
@@ -261,7 +255,7 @@ def clean_data(sensor_readings: pd.DataFrame) -> Dict:
     column_names.remove("timestamp")
     measures = column_names
 
-    cleaned_data, time_vector = clean_sensor_data(sensor_readings, measures)
+    cleaned_data, time_vector = clean_sensor_data(sensor_readings, measures, config)
 
     # set the timestamp column of each of the dataframes to index
     keys = list(cleaned_data.keys())
@@ -271,7 +265,7 @@ def clean_data(sensor_readings: pd.DataFrame) -> Dict:
     return cleaned_data
 
 
-def clean_data_list(sensor_readings_list: List[pd.DataFrame]) -> Dict:
+def clean_data_list(sensor_readings_list: Sequence[pd.DataFrame], config: dict) -> dict:
     """
     Meta Parent function of this module: for each sensor readings in the list
     (argument), `clean_data` is called to clean the readings.
@@ -279,6 +273,7 @@ def clean_data_list(sensor_readings_list: List[pd.DataFrame]) -> Dict:
     Parameters:
         sensor_readings: list of pandas dataframe containing e.g. temperature or
             humidity data returned by get_data.get_training_data.
+        config: dictionary containing the configuration parameters
 
     Returns:
         cleaned_data: a dictionary with keys named after the user-requested sensors.
@@ -292,7 +287,7 @@ def clean_data_list(sensor_readings_list: List[pd.DataFrame]) -> Dict:
             Specify the timedelta between successive timestamps using the "time_delta"
             parameter in "data_config.ini".
     """
-    cleaned_data = [clean_data(data_) for data_ in sensor_readings_list]
+    cleaned_data = [clean_data(data_, config) for data_ in sensor_readings_list]
     keys = set([key for data_ in cleaned_data for key in data_.keys()])
     concat_by_sensors = {}
     for key in keys:

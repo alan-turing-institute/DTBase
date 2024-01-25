@@ -7,37 +7,35 @@
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="col-4">
+<div class="col-sm-12 col-md-10 col-lg-8">
   <h3>List of all users</h3>
 
-  <div class='table-responsive'>
-    <table class='table table-striped table-hover'>
-      <thead>
-        <tr>
-          <th scope='col'>Email</th>
-          <th scope='col'>Delete</th>
-        </tr>
-      </thead>
+  <table id="datatable" class="table table-striped table-hover nowrap" style="width:100%">
+    <thead>
+      <tr>
+        <th scope='col'>Email</th>
+        <th scope='col'>Delete</th>
+      </tr>
+    </thead>
 
-      <tbody>
-        {% for t_user in users: %}
-        <tr>
-          <td>{{ t_user }}</td>
-          <td>
-            <form method="post">
-              <input type="hidden" name="email" value={{ t_user }}>
-              <button type="submit" class="btn btn-default submit" name="submitDelete">
-                <i class="fa fa-trash"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    <tbody>
+      {% for t_user in users: %}
+      <tr>
+        <td>{{ t_user }}</td>
+        <td>
+          <form method="post">
+            <input type="hidden" name="email" value={{ t_user }}>
+            <button type="submit" class="btn btn-default submit" name="submitDelete">
+              <i class="fa fa-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-  <div>
+  <div class="mt-4">
     <h3>Create a user</h3>
 
     <form method="post">
@@ -48,7 +46,7 @@
       <div style="position: relative;">
         {{ field(class="form-control required", placeholder=field.label.text) }}
         {% if field.name == "password" %}
-        <i class="fa fa-eye password-toggle" id="show-password" onclick="passwordToggle()"></i>
+        <i class="fa fa-eye password-toggle" id="show-password"></i>
         {% endif %}
       </div>
       {% endfor %}
@@ -63,6 +61,10 @@
 
 {% block javascripts %}
   {{ super() }}
-  <!-- Utility -->
-  <script src="{{url_for('static', filename='javascript/utility.js')}}"></script>
+  <script src="{{ url_for('static', filename='javascript/datatables.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
+  <script>
+    document.getElementById("show-password").addEventListener("click", window.passwordToggle);
+    window.initialiseDataTable("#datatable");
+  </script>
 {% endblock javascripts %}

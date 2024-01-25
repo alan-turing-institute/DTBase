@@ -2,12 +2,6 @@
 
 {% block title %} DTBase {% endblock title %}
 
-{% block stylesheets %}
-{{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
-{% endblock stylesheets %}
-
 {% block content %}
 <div class="row">
   <div class="col">
@@ -21,8 +15,7 @@
             <select
                 id="sensorTypeSelector"
                 class="selectpicker"
-                name="sensorTypeSelector"
-                onchange="changeSensorType()">
+                name="sensorTypeSelector">
               {% for s in sensor_types %}
               <option
                   value="{{ s.name }}"
@@ -67,8 +60,8 @@
         </div>
 
       </div>
-      <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/time-series-plots',false)">Plot</button>
-      <button style="margin-top: 5px" type="button" onclick="requestTimeSeries('/sensors/time-series-plots',true)">Download</button>
+      <button id="plotButton" style="margin-top: 5px" type="button">Plot</button>
+      <button id="downloadButton" style="margin-top: 5px" type="button">Download</button>
     </form>
   </div>
 </div>
@@ -91,29 +84,21 @@
 
 {% block javascripts %}
 {{ super()}}
-<!-- Datatables -->
-<script src="{{ url_for('static', filename='node_modules/datatables.net/js/jquery.dataTables.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-bs/js/dataTables.bootstrap.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive/js/dataTables.responsive.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/js/responsive.bootstrap.js') }}"></script>
-<!-- Utility functions -->
-<script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/time_series_plots.js') }}">
+</script>
 <script>
-  const data = {{data | safe}};
-  Object.keys(data).forEach((sensorId) => {
-      $(`#datatable-responsive-${sensorId}`).DataTable( {
-          responsive: true
-        });
-    });
-  const allSensors = "{{all_sensors}}"
+  document.getElementById('sensorTypeSelector').addEventListener('change', window.changeSensorType);
+  document.getElementById('plotButton').addEventListener('click', function() {
+    window.requestTimeSeries('/sensors/time-series-plots', false);
+  });
+
+  document.getElementById('downloadButton').addEventListener('click', function() {
+    window.requestTimeSeries('/sensors/time-series-plots', true);
+  });
+
+  const data = {{data | tojson }};
   {% for m in measures %}
-  makePlot(data, allSensors, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
+  window.makePlot(data, "{{m.name}}", "{{m.name}}", "{{m.name}}Canvas");
   {% endfor %}
 </script>
 {% endblock javascripts %}

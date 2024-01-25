@@ -2,12 +2,6 @@
 
 {% block title %} Predictive models {% endblock title %}
 
-{% block stylesheets %}
-{{ super() }}
-<link href="{{ url_for('static', filename='node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='node_modules/datatables.net-responsive-bs/css/responsive.bootstrap.min.css') }}" rel="stylesheet">
-{% endblock stylesheets %}
-
 {% block content %}
 <h3>Filter modelling results</h3>
 <form method="post">
@@ -18,7 +12,6 @@
         id="model_name"
         class="selectpicker"
         name="model_name"
-        onchange="updateScenarioSelectorNoArgs()"
         required>
         {% if not selected_model_name %}
         <option value="" selected disabled hidden>Choose model</option>
@@ -91,17 +84,9 @@
 
 {% block javascripts %}
 {{ super()}}
-<!-- Utility functions -->
-<script src="{{ url_for('static', filename='javascript/predictions.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/utility.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/timeseries_dashboard.js') }}"></script>
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='node_modules/chart.js/dist/chart.umd.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/moment/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js') }}"></script>
-
-
+<script src="{{ url_for('static', filename='javascript/models.js') }}"></script>
 <script>
+
   function plot_predictions(model_data) {
     const pred_data = model_data["pred_data"];
     const sensor_data = model_data["sensor_data"];
@@ -113,6 +98,9 @@
     // See static/javascript/predictions.js for the plot function.
     const show_legend = true;
     const axis_title = measure;
+    let mid_line;
+    let top_line;
+    let bot_line;
     if (measure in pred_data) {
       mid_line = pred_data[measure]
     } else if ("Mean "+measure in pred_data) {
@@ -131,7 +119,7 @@
     } else {
       bot_line = null
     }
-    plot(
+    window.plot(
       top_line,
       mid_line,
       bot_line,
@@ -149,11 +137,15 @@
     plot_predictions(model_data);
   }
 
-  scenarios = {{scenarios | tojson | safe}}
-  selectedScenarioDescription = {{selected_scenario_description | tojson | safe}}
+  const scenarios = {{scenarios | tojson | safe}}
+  const selectedScenarioDescription = {{selected_scenario_description | tojson | safe}}
   function updateScenarioSelectorNoArgs() {
-    updateScenarioSelector(scenarios, selectedScenarioDescription);
+    window.updateScenarioSelector(scenarios, selectedScenarioDescription);
   }
+
+  document.getElementById("model_name").addEventListener(
+    "change", updateScenarioSelectorNoArgs
+  );
   updateScenarioSelectorNoArgs();
 </script>
 

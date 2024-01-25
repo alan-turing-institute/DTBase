@@ -5,17 +5,14 @@ from typing import Tuple
 import pandas as pd
 import pytz
 
-from dtbase.models.utils.config import config
-
 logger = logging.getLogger(__name__)
 
-constants = config(section="constants")
-data_config = config(section="data")
-other_config = config(section="others")
-sensors_config = config(section="sensors")
+HRS_PER_DAY = 24
 
 
-def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
+def standardize_timestamp(
+    timestamp: datetime.datetime, config: dict
+) -> datetime.datetime:
     """
     Standardize the input timestamp according to the
     time at which the farm daily cycle starts.
@@ -25,6 +22,7 @@ def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
     Parameters:
         timestamp: a datetime object or equivalent
             (e.g. pandas Timestamp).
+        config: a dictionary containing configuration parameters
 
     Returns:
         timestamp: the input timestamp standardised according
@@ -39,33 +37,27 @@ def standardize_timestamp(timestamp: datetime.datetime) -> datetime.datetime:
             - Otherwise, the output timestamp is the date of the
             input timestamp at time (`farm_cycle_start` - 12 hours).
     """
-    farm_cycle_start = other_config[
-        "farm_cycle_start"
-    ]  # time at which the farm cycle starts
+    # time at which the farm cycle starts
+    farm_cycle_start_time = config["others"].farm_cycle_start
     # parse string into a datetime object
-    farm_cycle_start = datetime.datetime.strptime(farm_cycle_start, "%Hh%Mm%Ss")
-    if farm_cycle_start.time() != datetime.time(hour=16, minute=0, second=0):
+    if farm_cycle_start_time != datetime.time(hour=16, minute=0, second=0):
         logger.warning(
             "The `farm_cycle_start` parameter in data_config.ini has been set to "
             "something different than 4 PM."
         )
     farm_cycle_start = datetime.datetime.combine(
-        timestamp.date(), farm_cycle_start.time()
+        timestamp.date(), farm_cycle_start_time
     )
     farm_cycle_start = pytz.utc.localize(farm_cycle_start)
     if timestamp >= farm_cycle_start:
         timestamp = farm_cycle_start
-    elif timestamp <= (
-        farm_cycle_start - datetime.timedelta(hours=constants["hrs_per_day"] / 2)
-    ):
+    elif timestamp <= (farm_cycle_start - datetime.timedelta(hours=HRS_PER_DAY / 2)):
         timestamp = datetime.datetime.combine(
             (timestamp - datetime.timedelta(days=1)).date(),
             farm_cycle_start.time(),
         )
     else:
-        timestamp = farm_cycle_start - datetime.timedelta(
-            hours=constants["hrs_per_day"] / 2
-        )
+        timestamp = farm_cycle_start - datetime.timedelta(hours=HRS_PER_DAY / 2)
     return timestamp
 
 
@@ -108,7 +100,7 @@ def missing_values_stats(data: pd.Series) -> float:
     return data.isna().sum() / len(data) * 100
 
 
-def impute_missing_values(data: pd.Series) -> pd.Series:
+def impute_missing_values(data: pd.Series, config: dict) -> pd.Series:
     """
     Replace missing values in a time series with "typically observed"
     values. This function makes use of the `days_interval` and
@@ -126,6 +118,7 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     Parameters:
         data: a time series as a pandas Series, potentially containing
             missing values. Must be indexed by timestamp.
+        config: a dictionary containing configuration parameters
 
     Returns:
         data: the input time series as a pandas Series, where any missing
@@ -141,10 +134,10 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     logger.info("Percentage of missing observations: {0: .2f} %".format(stats))
     index_name = data.index.name  # get the index name - should be `timestamp`
     data = data.to_frame()  # first convert Series to DataFrame
-    days_interval = other_config["days_interval"]
+    days_interval = config["others"].days_interval
     data = break_up_timestamp(data, days_interval)
     # compute the mean value for the groups, excluding missing values.
-    weekly_seasonality = other_config["weekly_seasonality"]
+    weekly_seasonality = config["others"].weekly_seasonality
     # if the user has requested to consider weekly seasonality:
     if weekly_seasonality:
         if days_interval < 30:
@@ -191,7 +184,7 @@ def impute_missing_values(data: pd.Series) -> pd.Series:
     return data
 
 
-def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
+def prepare_data(sensor_data: dict, config: dict) -> Tuple[dict, pd.DataFrame]:
     """
     Parent function of this module. Prepares the data in order to feed it into
     the model (e.g. ARIMA, HODMD, ...) pipeline. Parameters relevant to this function in
@@ -202,6 +195,7 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
         sensor_data: this is the output of `clean_data.clean_data`.
             A dictionary containing e.g. temperature and humidity data for
             each of the sensors, in the form of a pandas DataFrame.
+        config: a dictionary containing configuration parameters
 
     Returns:
         sensor_data: a dictionary with the same keys as the input `sensor_data`.
@@ -215,12 +209,12 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
             allows it.
     """
     logger.info("Preparing the data to feed to the model...")
-    if other_config["days_interval"] != 30:
+    if config["others"].days_interval != 30:
         logger.warning(
             "The `days_interval` parameter in data_config.ini has been set to "
             "something different than 30."
         )
-    if not other_config["weekly_seasonality"]:
+    if not config["others"].weekly_seasonality:
         logger.warning(
             "The `weekly_seasonality` parameter in data_config.ini has been set "
             "to False."
@@ -228,7 +222,7 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     # obtain the standardized timestamp.
     keys_sensor_data = list(sensor_data.keys())
     timestamp_standardized = standardize_timestamp(
-        sensor_data[keys_sensor_data[0]].index[-1]
+        sensor_data[keys_sensor_data[0]].index[-1], config
     )
     # keep only the observations whose timestamp is smaller or equal to the
     # standardized timestamp
@@ -242,7 +236,7 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
     # if there are any missing values in the measure's time series of `sensor_data`,
     # replace them with typically observed values. Note that if there is not enough data
     # to compute typically observed values, missing observations will not be replaced.
-    measures = sensors_config["include_measures"]
+    measures = config["sensors"].include_measures
     # measures will be a list of tuples (measure_name, units)
     for key in keys_sensor_data:
         sensor_data_cols = set(sensor_data[key].columns.tolist())
@@ -251,7 +245,7 @@ def prepare_data(sensor_data: dict) -> Tuple[dict, pd.DataFrame]:
         for measure in filtered_measures:
             values = sensor_data[key][measure[0]]
             if values.isna().any():
-                sensor_data[key][measure] = impute_missing_values(values)
+                sensor_data[key][measure] = impute_missing_values(values, config)
     logger.info("Done preparing the data. Ready to feed to the model.")
 
     return sensor_data

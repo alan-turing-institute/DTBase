@@ -1,46 +1,88 @@
-function getCheckedSensorIds() {
-  const sensorCheckboxesDiv = document.getElementById("sensorCheckboxesDiv");
-  const sensorIds = [];
+import { Sensor } from "./interfaces";
+import {
+  Chart,
+  Colors,
+  LinearScale,
+  TimeScale,
+  LineController,
+  PointElement,
+  LineElement,
+  Legend,
+  Title,
+  SubTitle,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import "chartjs-adapter-moment";
+
+// See https://www.chartjs.org/docs/latest/getting-started/usage.html for how importing
+// and registering Chart.js components works.
+Chart.register(
+  Colors,
+  LinearScale,
+  TimeScale,
+  LineController,
+  PointElement,
+  LineElement,
+  Legend,
+  Title,
+  SubTitle,
+  Tooltip,
+  Filler
+);
+
+function getCheckedSensorIds(): string[] {
+  const sensorCheckboxesDiv = document.getElementById(
+    "sensorCheckboxesDiv"
+  ) as HTMLDivElement;
+  const sensorIds: string[] = [];
   for (const childElement of sensorCheckboxesDiv.children) {
-    const id = childElement.children[0].value;
-    const checked = childElement.children[0].checked;
+    const checkbox = childElement.children[0] as HTMLInputElement;
+    const id = checkbox.value;
+    const checked = checkbox.checked;
     if (checked) sensorIds.push(id);
   }
   return sensorIds;
 }
 
-function getSelectedSensorTypeStr() {
-  const sensorTypeSelector = document.getElementById("sensorTypeSelector");
+function getSelectedSensorTypeStr(): string {
+  const sensorTypeSelector = document.getElementById(
+    "sensorTypeSelector"
+  ) as HTMLSelectElement;
   const sensorType = sensorTypeSelector.value;
   const sensorTypeStr = encodeURIComponent(sensorType);
   return sensorTypeStr;
 }
 
-function changeSensorType() {
+export function changeSensorType(): void {
   const sensorTypeStr = encodeURIComponent(getSelectedSensorTypeStr());
   const url = "/sensors/time-series-plots";
   const params = "sensorType=" + sensorTypeStr;
   location.replace(url + "?" + params);
 }
 
-function requestTimeSeries(url, download) {
+export function requestTimeSeries(url: string, download: boolean): void {
   const sensorIds = getCheckedSensorIds();
-  const startDatePicker = document.getElementById("startDatePicker");
-  const endDatePicker = document.getElementById("endDatePicker");
+  const startDatePicker = document.getElementById(
+    "startDatePicker"
+  ) as HTMLInputElement;
+  const endDatePicker = document.getElementById(
+    "endDatePicker"
+  ) as HTMLInputElement;
   const startDate = startDatePicker.value;
   const endDate = endDatePicker.value;
   if (sensorIds === undefined || sensorIds.length === 0) {
     alert("Please select sensors to plot/download data for.");
-    return null;
+    return;
   }
   if (startDate === undefined || endDate === undefined) {
     alert("Please set start and end date.");
-    return null;
+    return;
   }
 
   const startStr = encodeURIComponent(startDate);
   const endStr = encodeURIComponent(endDate);
-  const idsStr = encodeURIComponent(sensorIds);
+  const idsStr = encodeURIComponent(sensorIds.toString());
   const sensorTypeStr = getSelectedSensorTypeStr();
 
   const params =
@@ -105,23 +147,23 @@ const colouramp_redblue = [
   "rgba(137,214,11,1)",
   "rgba(207,19,10,1)",
 ];
-const colouramp_blue = [
-  "rgba(27,55,74,1)",
-  "rgba(0,96,196,1)",
-  "rgba(0,129,196,1)",
-  "rgba(141,245,252,1)",
-];
 
-function makePlot(data, allSensors, yDataName, yLabel, canvasName) {
+interface DataPoint {
+  [key: string]: number | string;
+}
+
+export function makePlot(
+  data: { [key: string]: DataPoint[] },
+  yDataName: string,
+  yLabel: string,
+  canvasName: string
+): void {
   const datasets = [];
   const sensorIds = Object.keys(data);
   const numSensors = sensorIds.length;
   for (let i = 0; i < numSensors; i++) {
     const sensorId = sensorIds[i];
-    let label = sensorId;
-    if (allSensors[sensorId] && allSensors[sensorId].aranet_code) {
-      label = allSensors[sensorId].aranet_code;
-    }
+    const label = sensorId;
     let colour = colouramp_redblue[Math.min(i, numSensors - 1)];
     let pointRadius = 1;
     let borderWidth = 1;
@@ -145,6 +187,23 @@ function makePlot(data, allSensors, yDataName, yLabel, canvasName) {
   const config = JSON.parse(JSON.stringify(plotConfigTemplate)); // Make a copy
   config.options.scales.y.title.text = yLabel;
   config.data = { datasets: datasets };
-  const ctx = document.getElementById(canvasName);
+  const ctx = document.getElementById(canvasName) as HTMLCanvasElement;
   new Chart(ctx, config);
 }
+
+declare global {
+  interface Window {
+    makePlot: (
+      data: { [key: string]: DataPoint[] },
+      yDataName: string,
+      yLabel: string,
+      canvasName: string
+    ) => void;
+    requestTimeSeries: (url: string, download: boolean) => void;
+    changeSensorType: () => void;
+  }
+}
+
+window.makePlot = makePlot;
+window.requestTimeSeries = requestTimeSeries;
+window.changeSensorType = changeSensorType;
