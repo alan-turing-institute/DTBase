@@ -104,9 +104,7 @@ def test_get_data_historical_api() -> None:
             HISTORICAL_BASE_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_HISTORICAL_URL_RESPONSE,
         )
-        response = weather_ingress.get_data(
-            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
-        )
+        response = weather_ingress.call(dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE)
         assert response == EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE
 
 
@@ -121,7 +119,5 @@ def test_get_data_forecast_api() -> None:
             FORECAST_BASE_URL,
             json=MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE,
         )
-        response = weather_ingress.get_data(
-            dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE
-        )
+        response = weather_ingress.call(dt_from, dt_to, API_KEY, LATITUDE, LONGITUDE)
         assert response == EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE

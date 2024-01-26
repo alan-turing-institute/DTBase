@@ -1,7 +1,7 @@
 import pytest
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
-from dtbase.ingress.ingress_base import BaseIngress
+from dtbase.services.base import BaseIngress
 from dtbase.tests.conftest import AuthenticatedClient
 
 test_ingress = BaseIngress()
@@ -37,7 +37,7 @@ SENSOR_READINGS = {
 
 
 class ExampleIngress(BaseIngress):
-    def get_data(self) -> list:
+    def call(self) -> list:
         return [
             ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
             ("/sensor/insert-sensor", TEST_SENSOR),
@@ -45,18 +45,18 @@ class ExampleIngress(BaseIngress):
         ]
 
 
-def test_get_data() -> None:
+def test_call() -> None:
     with pytest.raises(NotImplementedError):
-        test_ingress.get_data()
+        test_ingress.call()
 
 
 def test_backend_login(conn_backend: AuthenticatedClient) -> None:
-    test_ingress.backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
+    test_ingress._backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
     assert test_ingress.access_token is not None
 
 
-def test_ingress_base(conn_backend: AuthenticatedClient) -> None:
-    responses = ExampleIngress().ingress_data()
+def test_run(conn_backend: AuthenticatedClient) -> None:
+    responses = ExampleIngress().run()
     for response in responses:
         assert response.status_code < 300
     assert len(responses) == 3

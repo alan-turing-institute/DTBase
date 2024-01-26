@@ -9,7 +9,7 @@ from typing import Tuple, Union
 import pandas as pd
 import requests
 
-from dtbase.ingress.ingress_base import BaseIngress
+from dtbase.services.base import BaseIngress
 
 # Mapping of Openweathermap metrics to sensor measures in the database.
 METRICS_TO_MEASURES = {
@@ -75,7 +75,7 @@ def openweathermap_forecast_url(
     api_key: str, latitude: float | str, longitude: float | str
 ) -> str:
     return (
-        f"https://api.openweathermap.org/data/3.0/onecall?"
+        "https://api.openweathermap.org/data/3.0/onecall?"
         f"lat={latitude}&lon={longitude}&units=metric&appid={api_key}"
     )
 
@@ -84,7 +84,7 @@ def openweathermap_historical_url(
     api_key: str, latitude: float | str, longitude: float | str
 ) -> str:
     return (
-        f"https://api.openweathermap.org/data/2.5/onecall/timemachine?"
+        "https://api.openweathermap.org/data/2.5/onecall/timemachine?"
         f"lat={latitude}&lon={longitude}&units=metric&appid={api_key}"
     )
 
@@ -208,7 +208,7 @@ class OpenWeatherDataIngress(BaseIngress):
         )
         return base_url, sensor_payload, from_dt, to_dt
 
-    def get_data(
+    def call(
         self,
         from_dt: Union[datetime, str],
         to_dt: Union[datetime, str],
@@ -306,8 +306,6 @@ class OpenWeatherDataIngress(BaseIngress):
             (weather_df.index >= from_dt) & (weather_df.index <= to_dt)
         ]
 
-        logging.debug("Weather dataframe: %s", weather_df)
-
         # Convert dataframe into list of dicts to match expected output format.
         # This format is required by the backend API and can be found in the readme
         # in the backend directory.
@@ -347,7 +345,7 @@ def example_weather_ingress() -> None:
     seperate calls. This is likely to be specific to the weather ingress. Other
     ingress methods may not need to do this.
     """
-    api_key = os.environ.get("DT_OPENWEATHERMAP_API_KEY")
+    api_key = os.environ.get("DT_OPENWEATHERMAP_APIKEY")
     latitude = 51.53
     longitude = -0.127
 
@@ -355,7 +353,7 @@ def example_weather_ingress() -> None:
     from_dt = datetime.now() - timedelta(hours=60)
     to_dt = "present"
     weather_ingress = OpenWeatherDataIngress()
-    weather_ingress.ingress_data(
+    weather_ingress.run(
         from_dt=from_dt,
         to_dt=to_dt,
         api_key=api_key,
@@ -367,7 +365,7 @@ def example_weather_ingress() -> None:
     from_dt = "present"
     to_dt = datetime.now() + timedelta(days=2)
     weather_ingress = OpenWeatherDataIngress()
-    weather_ingress.ingress_data(
+    weather_ingress.run(
         from_dt=from_dt,
         to_dt=to_dt,
         api_key=api_key,
