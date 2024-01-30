@@ -3,7 +3,6 @@ import logging
 from typing import Tuple
 
 import pandas as pd
-import pytz
 
 logger = logging.getLogger(__name__)
 
