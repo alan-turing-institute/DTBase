@@ -35,7 +35,11 @@ class RothamstedIngress(BaseIngress):
         super().__init__()
 
     def get_data(
-        self, from_dt: dt.datetime, to_dt: dt.datetime
+        self,
+        from_dt: dt.datetime,
+        to_dt: dt.datetime,
+        catchment_names: Optional[list[str]],
+        measurement_type_names: Optional[list[str]],
     ) -> list[tuple[str, dict | list]]:
         measurement_types = cast(
             list, query_rothamsted_api("get", "getMeasurementTypes")
@@ -50,11 +54,20 @@ class RothamstedIngress(BaseIngress):
         return_value: list[tuple[str, dict | list]] = []
         for cmt in catchment_measurement_types:
             mt = measurement_types_by_id[cmt["type_id"]]
+            mt_name = mt["DisplayName"]
+            if (
+                measurement_type_names is not None
+                and mt_name not in measurement_type_names
+            ):
+                continue
+
             catchment_name = cmt["catchment_name"]
             if catchment_name is None and cmt["location_Name"] == "Met":
                 # "Met" is considered a catchment by some API endpoints, and not by
                 # others, so this gets a bit confusing.
                 catchment_name = "Met"
+            if catchment_names is not None and catchment_name not in catchment_names:
+                continue
 
             readings = query_rothamsted_api(
                 "post",
@@ -72,14 +85,14 @@ class RothamstedIngress(BaseIngress):
 
             # Only create the sensor type if we actually found data for it, and it
             # hasn't been created before.
-            sensor_type_name = f"{mt['DisplayName']} Sensor"
+            sensor_type_name = f"{mt_name} Sensor"
             if sensor_type_name not in sensor_types_created:
                 payload = {
                     "name": sensor_type_name,
                     "description": None,
                     "measures": [
                         {
-                            "name": mt["DisplayName"],
+                            "name": mt_name,
                             "units": mt["Unit"],
                             "datatype": "float",
                         },
@@ -105,7 +118,7 @@ class RothamstedIngress(BaseIngress):
                 *[(r["DateTime"], float(r["Value"])) for r in readings]
             )
             payload = {
-                "measure_name": mt["DisplayName"],
+                "measure_name": mt_name,
                 "unique_identifier": sensor_id,
                 "readings": values,
                 "timestamps": timestamps,
