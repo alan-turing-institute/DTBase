@@ -3,7 +3,6 @@ import logging
 from typing import Tuple
 
 import pandas as pd
-import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +45,15 @@ def standardize_timestamp(
             "something different than 4 PM."
         )
     farm_cycle_start = datetime.datetime.combine(
-        timestamp.date(), farm_cycle_start_time
+        timestamp.date(), farm_cycle_start_time, tzinfo=timestamp.tzinfo
     )
-    farm_cycle_start = pytz.utc.localize(farm_cycle_start)
     if timestamp >= farm_cycle_start:
         timestamp = farm_cycle_start
     elif timestamp <= (farm_cycle_start - datetime.timedelta(hours=HRS_PER_DAY / 2)):
         timestamp = datetime.datetime.combine(
             (timestamp - datetime.timedelta(days=1)).date(),
             farm_cycle_start.time(),
+            tzinfo=timestamp.tzinfo,
         )
     else:
         timestamp = farm_cycle_start - datetime.timedelta(hours=HRS_PER_DAY / 2)
