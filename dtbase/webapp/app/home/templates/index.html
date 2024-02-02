@@ -1,11 +1,11 @@
 {% extends "base_site.html" %}
 
-{% block title %} DTBase {% endblock title %}
+{% block title %} Home {% endblock title %}
 
 {% block content %}
   <div class="row d-flex align-items-center justify-content-center" style="min-height: 80vh;">
     <div class="col-md-10 text-left">
-      <h3 class="display-4">Welcome to DTBase</h3>
+      <h3 class="display-4">Welcome to {{config['WEBSITE_NAME']}}</h3>
       <p class="lead">A generalised app for digital twins.</p>
       <a href="/sensors/index" class="btn btn-primary btn-lg mt-3">Get started</a>
     </div>
