@@ -157,6 +157,7 @@ def create_backend_webapp(
             linux_fx_version=f"DOCKER|{BACKEND_DOCKER_URL}",
         ),
         https_only=True,
+        name=f"{RESOURCE_NAME_PREFIX}-{name}",
     )
     return webapp
 
@@ -197,6 +198,7 @@ def create_frontend_webapp(
             linux_fx_version=f"DOCKER|{FRONTEND_DOCKER_URL}",
         ),
         https_only=True,
+        name=f"{RESOURCE_NAME_PREFIX}-{name}",
     )
     return webapp
 
