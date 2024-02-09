@@ -5,16 +5,16 @@ A general base software package from which Digital Twins can be developed.
 
 ### Goals of DTBase
 
-The primary aim of DTBase is to provide a software package that developers can fork and use to deploy their own digital twin with minimal effort. This is an ambitious project as digital twins vary significantly and therefore DTBase needs to be both robust and flexible. 
-DTBase consists of three main parts: A PostgreSQL database, a backend app for interacting with the database and a frontend app for visuals. The database, backend and frontend communicate via restful APIs, therefore allowing ssers of DTBase to choose which components of the code base they require for their personal usecase. 
+The primary aim of DTBase is to provide a software package that developers can fork and use to deploy their own digital twin with minimal effort. This is an ambitious project as digital twins vary significantly and therefore DTBase needs to be both robust and flexible.
+DTBase consists of three main parts: A PostgreSQL database, a backend app for interacting with the database and a frontend app for visuals. The database, backend and frontend communicate via restful APIs, therefore allowing ssers of DTBase to choose which components of the code base they require for their personal usecase.
 
-The aim is for as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but Azure is what the developers have access to and therefore is the default service provided. 
+We try to design the code base so as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but Azure is what the developers have access to and therefore is the default service accomodated.
 
 ### Packages and technologies
 
 * The core of DTBase is the database, for which we use PostgresSQL.
 * The backend is written in Python, using the Flask and SQLAlchemy packages.
-* The frontend is a Flask app written in Python. 
+* The frontend is a Flask app written in Python.
 * Continuous Integration and Continuous Deployment are done via Github Actions, which in turn build Docker images and push them to Dockerhub.
 * Data ingress, Modelling and other services are implemented via Azure Functions.
 * Scripted deployment on Azure is done via Pulumi.
@@ -59,6 +59,3 @@ For DTBase, the aim is to replicate some (but not all) of the features of CROP, 
 * We make no assumptions on how *Locations* are defined in the digital twin.
 * Rather than having separate database tables for each sensor type, we have a more flexible and general set of tables for *Sensors* and *Sensor Readings*.
 * We follow the CROP model for defining the data structures around the predictive models, including model runs, the variables predicted in them, and the obtained values.
-
-
-
