@@ -1,21 +1,22 @@
 """Configuration module for unit tests."""
 import time
 from html.parser import HTMLParser
-from typing import Any, Callable, Generator, cast
+from typing import Any, Callable, Generator, Optional
 from unittest import mock
 from urllib.parse import urlparse
 
 import pytest
 import requests_mock
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from flask import Flask
 from flask.testing import FlaskClient
+from httpx import Response as HTTPXResponse
 from requests.models import Response as RequestsResponse
-from sqlalchemy.orm import Session
-from werkzeug.test import TestResponse
-from werkzeug.wrappers import Response
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from dtbase.backend.api import create_app as create_backend_app
-from dtbase.backend.config import config_dict as backend_config
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
@@ -31,7 +32,6 @@ from dtbase.core.db import (
     drop_db,
     drop_tables,
     session_close,  # noqa: F401
-    session_open,
 )
 
 # The below import is for exporting, other modules will import it from there
@@ -46,7 +46,9 @@ from dtbase.webapp.app import create_app as create_frontend_app
 from dtbase.webapp.config import config_dict as frontend_config
 
 # if we start a new docker container, store the ID so we can stop it later
-DOCKER_CONTAINER_ID = None
+DOCKER_CONTAINER_ID: Optional[str] = None
+
+AuthenticatedClient = TestClient  # TODO Remove this once done migration to FastAPI
 
 
 class CSRFTokenParser(HTMLParser):
@@ -75,112 +77,103 @@ def get_csrf_token(client: FlaskClient) -> str:
     return token
 
 
-class AuthenticatedClient(FlaskClient):
-    """Like a FlaskClient, but adds an authentication header to all requests."""
-
-    def __init__(self: "AuthenticatedClient", *args: Any, **kwargs: Any) -> None:
-        """Initialise a client that behaves exactly like a normal FlaskClient."""
-        super().__init__(*args, **kwargs)
-        self._headers = {}
-
-    def authenticate(self: "AuthenticatedClient") -> None:
-        """Authenticate with the /auth/login endpoint.
-
-        After this method has been called all requests sent by this client will include
-        an authentication header with the token.
-        """
-        response = get_token(self)
-        if response.status_code != 200 or response.json is None:
-            raise RuntimeError("Failed to authenticate test client.")
-        token = response.json["access_token"]
-        self._headers = {"Authorization": f"Bearer {token}"}
-
-    def open(self: "AuthenticatedClient", *args: Any, **kwargs: Any) -> TestResponse:
-        """For any request, append the authentication headers, and call the usual
-        request function.
-
-        Note that methods like self.post and self.get all call self.open.
-        """
-        kwargs["headers"] = kwargs.get("headers", {}) | self._headers
-        return super().open(*args, **kwargs)
-
-
-def reset_tables() -> None:
+def reset_tables(engine: Engine) -> None:
     """Reset the database by dropping all tables and recreating them."""
-    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     drop_tables(engine)
     create_tables(engine)
 
 
+@pytest.fixture(scope="session")
+def engine() -> Generator[Engine, None, None]:
+    """Pytest fixture for a database engine.
+
+    This fixture is session-scoped, meaning that it is created once and shared across
+    all tests.
+    """
+    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    with mock.patch("dtbase.backend.utils.DB_ENGINE", wraps=engine):
+        yield engine
+
+
+@pytest.fixture(scope="session")
+def session_maker(engine: Engine) -> Generator[sessionmaker, None, None]:
+    session_maker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    with mock.patch("dtbase.backend.utils.DB_SESSION_MAKER", wraps=session_maker):
+        yield session_maker
+
+
 @pytest.fixture()
-def session() -> Generator[Session, None, None]:
+def session(
+    engine: Engine, session_maker: sessionmaker
+) -> Generator[Session, None, None]:
     """Pytest fixture for a database session.
 
     Handles clean-up of the database after tests finish.
     """
-    engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    session = session_open(engine)
-    yield session
-    session.close()
-    reset_tables()
+    session = session_maker()
+    try:
+        yield session
+    finally:
+        session.close()
+        reset_tables(engine)
 
 
 @pytest.fixture()
-def app() -> Generator[Flask, None, None]:
+def app(engine: Engine) -> Generator[FastAPI, None, None]:
     """Pytest fixture for a backend app.
 
-    Initialises a database and cleans it up afterwards.
+    Cleans up the database after finishing.
     """
-    config = backend_config["Test"]
-    # This would usually be set by an environment variable, but for tests we hardcode
-    # it.
-    config.SECRET_KEY = "the world's second worst kept secret"
-    app = create_backend_app(config)
-    app.test_client_class = AuthenticatedClient
+    app = create_backend_app()
     yield app
-    reset_tables()
+    reset_tables(engine)
 
 
 @pytest.fixture()
-def client(app: Flask) -> AuthenticatedClient:
+def client(app: FastAPI) -> Generator[TestClient, None, None]:
     """Pytest fixture for a client for the backend app."""
-    # The type system can't figure out that app returns an AuthenticatedClient, since we
-    # set that dynamically in the app() fixture. Hence the explicit cast.
-    client = cast(AuthenticatedClient, app.test_client())
-    return client
+    with TestClient(app) as client:
+        yield client
 
 
 @pytest.fixture()
-def test_user(app: Flask, session: Session) -> None:
+def test_user(session: Session) -> None:
     """Pytest fixture that ensures that there is a test user in the database."""
-    with app.app_context():
+    try:
         insert_user(email=TEST_USER_EMAIL, password=TEST_USER_PASSWORD, session=session)
         session.commit()
+    except Exception as e:
+        session.rollback()
+        raise e
 
 
 @pytest.fixture()
-def auth_client(client: AuthenticatedClient, test_user: None) -> AuthenticatedClient:
+def auth_client(client: TestClient, test_user: None) -> TestClient:
     """Pytest fixture for a client for the backend app that is authenticated, and uses
     its credentials in all requests it makes.
     """
-    client.authenticate()
+    response = get_token(client)
+    if response.status_code != 200 or response.json is None:
+        raise RuntimeError("Failed to authenticate test client.")
+    token = response.json()["access_token"]
+    client.headers = {"Authorization": f"Bearer {token}"}
     return client
 
 
-def werkzeug_to_requests_response(werkzeug_response: Response) -> RequestsResponse:
-    """Convert a werkzeug.wrappers.Response into a requests.models.Response."""
+def httpx_to_requests_response(httpx_response: HTTPXResponse) -> RequestsResponse:
+    """Convert a httpx.Response into a requests.models.Response."""
     response = RequestsResponse()
-    response.status_code = werkzeug_response.status_code
-    response._content = werkzeug_response.data
-    response.headers = {**werkzeug_response.headers}
+    response.status_code = httpx_response.status_code
+    response._content = httpx_response.content
+    response.headers = {**httpx_response.headers}
     return response
 
 
 def mock_request_method_builder(
-    client: FlaskClient, method_name: str
+    client: TestClient, method_name: str
 ) -> Callable[..., RequestsResponse]:
     """Return a function that has the same interface as one of the methods of `requests`
-    but behind the scenes actually sends the request to the Flask `client`.
+    but behind the scenes actually sends the request to the TestClient `client`.
     `method_name` can be e.g. `"get"` or `"post"`
 
     The functions returned by this function can be used to make a mocked version of
@@ -190,9 +183,7 @@ def mock_request_method_builder(
 
     def method(url: str, *args: Any, **kwargs: Any) -> RequestsResponse:
         endpoint = urlparse(url).path
-        response = werkzeug_to_requests_response(
-            request_func(endpoint, *args, **kwargs)
-        )
+        response = httpx_to_requests_response(request_func(endpoint, *args, **kwargs))
         return response
 
     return method
@@ -240,7 +231,7 @@ def mock_auth_frontend_client(frontend_client: FlaskClient) -> FlaskClient:
 
 @pytest.fixture()
 def conn_frontend_app(
-    frontend_app: Flask, client: AuthenticatedClient
+    frontend_app: Flask, client: TestClient
 ) -> Generator[Flask, None, None]:
     """Pytest fixture for a frontend Flask app that is connected to a backend.
 
@@ -281,8 +272,8 @@ def auth_frontend_client(conn_frontend_client: FlaskClient) -> FlaskClient:
 
 @pytest.fixture()
 def conn_backend(
-    client: AuthenticatedClient,
-) -> Generator[AuthenticatedClient, None, None]:
+    client: TestClient,
+) -> Generator[TestClient, None, None]:
     """Pytest fixture setting up a backend and making core.utils.backend_call talk to it
 
     This works by mocking dtbase.models.utils.backend_call.requests with an object that

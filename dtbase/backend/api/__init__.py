@@ -1,62 +1,45 @@
-from importlib import import_module
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
-from typing import Optional
 
-import flask_jwt_extended as fjwt
-from flask import Flask
-from flask_cors import CORS
+from fastapi import FastAPI
 from sqlalchemy.exc import SQLAlchemyError
 
-from dtbase.backend.config import Config
+from dtbase.backend.api.auth.routes import router as auth_router
+from dtbase.backend.api.user.routes import router as user_router
+from dtbase.backend.utils import (
+    create_global_database_connection,
+    global_engine,
+    global_session_maker,
+)
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
-    JWT_ACCESS_TOKEN_EXPIRES,
-    JWT_REFRESH_TOKEN_EXPIRES,
+    SQL_CONNECTION_STRING,
+    SQL_DBNAME,
 )
-from dtbase.core.structure import db
+from dtbase.core.structure import Base
 from dtbase.core.users import change_password, delete_user, insert_user
 
 
-def register_extensions(app: Flask) -> None:
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = JWT_ACCESS_TOKEN_EXPIRES
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = JWT_REFRESH_TOKEN_EXPIRES
-    fjwt.JWTManager(app)
-    db.init_app(app)
+def configure_database(app: FastAPI) -> None:
+    create_global_database_connection(SQL_CONNECTION_STRING, SQL_DBNAME)
+    engine = global_engine()
+    Base.metadata.create_all(bind=engine)
 
 
-def register_blueprints(app: Flask) -> None:
-    module_list = ("auth", "location", "sensor", "model", "user")
-
-    for module_name in module_list:
-        module = import_module("dtbase.backend.api.{}.routes".format(module_name))
-        app.register_blueprint(module.blueprint)
-
-
-def configure_database(app: Flask) -> None:
-    with app.app_context():
-        db.create_all()
-
-    @app.teardown_request
-    def shutdown_session(exception: Optional[Exception] = None) -> None:
-        db.session.remove()
-
-
-def configure_logs(app: Flask) -> None:
+def configure_logs() -> None:
     basicConfig(filename="error.log", level=DEBUG)
     logger = getLogger()
     logger.addHandler(StreamHandler())
 
 
-def add_default_user(app: Flask) -> None:
+def add_default_user(app: FastAPI) -> None:
     """Ensure that there's a default user, with the right credentials."""
-    with app.app_context():
-        user_info = {
-            "email": DEFAULT_USER_EMAIL,
-            "password": DEFAULT_USER_PASS,
-        }
-        session = db.session
-        session.begin()
+    user_info = {
+        "email": DEFAULT_USER_EMAIL,
+        "password": DEFAULT_USER_PASS,
+    }
+    session_maker = global_session_maker()
+    with session_maker() as session:
         if DEFAULT_USER_PASS is None:
             try:
                 delete_user(user_info["email"], session=session)
@@ -70,18 +53,14 @@ def add_default_user(app: Flask) -> None:
                 # Presumably the user exists already, so change their password.
                 session.rollback()
                 change_password(**user_info, session=session)
-        session.commit()
+            session.commit()
 
 
-def create_app(config: Config) -> Flask:
-    if not config.SECRET_KEY:
-        raise RuntimeError("The environment variable DT_JWT_SECRET_KEY must be set.")
-    app = Flask(__name__)
-    app.config.from_object(config)
-    register_extensions(app)
-    register_blueprints(app)
+def create_app() -> FastAPI:
+    app = FastAPI()
     configure_database(app)
-    configure_logs(app)
-    CORS(app)
+    configure_logs()
     add_default_user(app)
+    app.include_router(auth_router)
+    app.include_router(user_router)
     return app

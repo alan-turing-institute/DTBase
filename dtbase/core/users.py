@@ -7,6 +7,24 @@ from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core.structure import User
 
 
+def user_exists(email: str, session: Optional[Session] = None) -> bool:
+    """
+    Check that a user with the given email exists.
+
+    Args:
+        email: Email address to check
+        session: SQLAlchemy session. Optional.
+
+    Returns:
+        True if the user exists, False otherwise
+    """
+    session = set_session_if_unset(session)
+    rows = session.execute(
+        sqla.select(User.email).where(User.email == email)
+    ).fetchall()
+    return len(rows) > 0
+
+
 def list_users(session: Optional[Session] = None) -> List[str]:
     """
     List all users in the database
