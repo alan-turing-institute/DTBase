@@ -30,23 +30,26 @@ class BaseService:
         """
         self.access_token = login(username, password)[0]
 
-    def call(self) -> None:
+    def get_service_data(self) -> None:
         """
-        Method for getting data from source and returning Backend API Endpoints names
+        Method for getting data from a source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
         class. The implementation in BaseService only raises a NotImplementedError.
 
         The method should return a list of tuples. A tuple should
         be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
         its a single tuple.
+
+        There is more information in the docstrings of the BaseIngress and BaseModel
+        get_service_data methods about the expected format of the tuples.
         """
         raise NotImplementedError(
             "The user should implement this method"
-            " by inhering from the BaseService class"
-            " and overwriting the call method."
+            " by inheriting from the BaseService class"
+            " and overwriting the get_service_data method."
         )
 
-    def post_call(
+    def post_service_data(
         self,
         data_pairs: List[tuple],
         dt_user_email: Optional[str] = None,
@@ -85,26 +88,25 @@ class BaseService:
             responses.append(response)
         return responses
 
-    def run(
+    def __call__(
         self,
         dt_user_email: Optional[str] = None,
         dt_user_password: Optional[str] = None,
-        *args: Any,
         **kwargs: Any,
     ) -> List[Response]:
         """
-        This method will handle the running of the service. It should call the call()
-        method and then pass the output of that method to the post_call() method.
+        This method will 'call' or run the service.
+        It runs the get_service_data and post_service_data methods in sequence.
 
-        Args and Kwargs are passed to the call method.
+        Args and Kwargs are passed to the get_service_data method.
         """
-        data_pairs = self.call(*args, **kwargs)
-        return self.post_call(data_pairs, dt_user_email, dt_user_password)
+        data_pairs = self.get_service_data(**kwargs)
+        return self.post_service_data(data_pairs, dt_user_email, dt_user_password)
 
     def schedule(self) -> None:
         """
         This method will handle the scheduling of the service.
-        Arguments taken in this method will control how often upload_run() is called.
+        Arguments taken in this method will control how often __call__ method is called.
         """
         pass
 
@@ -122,15 +124,23 @@ class BaseIngress(BaseService):
         super().__init__()
         self.service_type = "ingress"
 
-    def call(self) -> Any:
+    def get_service_data(self) -> None:
         """
-        Method for getting data from source and returning Backend API Endpoints names
+        Method for getting data from a source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
-        class. The implementation in BaseIngress only raises a NotImplementedError.
+        class. The implementation in BaseService only raises a NotImplementedError.
 
         The method should return a list of tuples. A tuple should
         be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
         its a single tuple.
+
+        For an Ingress Service, this would typically look like:
+        return [
+            ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
+            ("/sensor/insert-sensor", TEST_SENSOR),
+            ("/sensor/insert-sensor-readings", SENSOR_READINGS),
+        ]
+
 
         Below is an example return value for inserting a sensor type and a sensor.
         Please look at backend readme for list of backend endpoints
@@ -172,8 +182,8 @@ class BaseIngress(BaseService):
         """
         raise NotImplementedError(
             "The user should implement this method"
-            " by inhering from the BaseIngress class"
-            " and overwriting the call method."
+            " by inheriting from the BaseService class"
+            " and overwriting the get_service_data method."
         )
 
 
@@ -182,18 +192,27 @@ class BaseModel(BaseService):
         super().__init__()
         self.service_type = "model"
 
-    def call(self) -> Any:
+    def get_service_data(self) -> None:
         """
-        Method for getting data from source and returning Backend API Endpoints names
+        Method for getting data from a source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
-        class. The implementation in BaseModel only raises a NotImplementedError.
+        class. The implementation in BaseService only raises a NotImplementedError.
 
         The method should return a list of tuples. A tuple should
         be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
         its a single tuple.
+
+        For a Model Service, this would typically look like:
+        return [
+            ("/model/insert-model", MODEL_PAYLOAD),
+            ("/model/insert-model-parameters", MODEL_PARAMETERS_PAYLOAD),
+            ("/model/insert-model-predictions", MODEL_PREDICTIONS_PAYLOAD),
+        ]
+
+        Below is an example return value for inserting a model and its parameters.
         """
         raise NotImplementedError(
             "The user should implement this method"
-            " by inhering from the BaseModel class"
-            " and overwriting the call method."
+            " by inheriting from the BaseModel class"
+            " and overwriting the get_service_data method."
         )
