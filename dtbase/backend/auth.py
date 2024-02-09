@@ -80,7 +80,6 @@ def _authenticate_token(
             algorithms=[JWT_ALGORITHM],
             require=["exp", "sub", "token_type"],
         )
-        print(payload)
         parsed_token = ParsedToken(**payload)
     except jwt.ExpiredSignatureError:
         raise HTTPException(

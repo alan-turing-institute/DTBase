@@ -1,4 +1,8 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, RootModel
+
+ValueTypes = float | bool | int | str
 
 
 class MessageResponse(BaseModel):
@@ -23,3 +27,22 @@ class ParsedToken(BaseModel):
     sub: str
     exp: int
     token_type: str
+
+
+class LocationIdentifier(BaseModel):
+    name: str
+    units: Optional[str]
+    datatype: str
+
+
+class LocationSchema(BaseModel):
+    name: str
+    description: Optional[str]
+    identifiers: list[LocationIdentifier]
+
+
+Coordinates = RootModel[dict[str, ValueTypes]]
+
+
+class LocationSchemaIdentifier(BaseModel):
+    schema_name: str
