@@ -4,8 +4,6 @@ from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
 from dtbase.services.base import BaseIngress
 from dtbase.tests.conftest import AuthenticatedClient
 
-test_ingress = BaseIngress()
-
 TEST_SENSOR_TYPE = {
     "name": "random type",
     "description": "Random type for testing purposes.",
@@ -37,7 +35,7 @@ SENSOR_READINGS = {
 
 
 class ExampleIngress(BaseIngress):
-    def call(self) -> list:
+    def get_service_data(self) -> list:
         return [
             ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
             ("/sensor/insert-sensor", TEST_SENSOR),
@@ -45,18 +43,43 @@ class ExampleIngress(BaseIngress):
         ]
 
 
-def test_call() -> None:
+exampleingress = ExampleIngress()
+
+
+def test_ingress_default_get_service_data() -> None:
+    baseingress = BaseIngress()
     with pytest.raises(NotImplementedError):
-        test_ingress.call()
+        baseingress.get_service_data()
 
 
-def test_backend_login(conn_backend: AuthenticatedClient) -> None:
-    test_ingress._backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
-    assert test_ingress.access_token is not None
+def test_ingress_get_service_data() -> None:
+    assert exampleingress.get_service_data() == [
+        ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
+        ("/sensor/insert-sensor", TEST_SENSOR),
+        ("/sensor/insert-sensor-readings", SENSOR_READINGS),
+    ]
 
 
-def test_run(conn_backend: AuthenticatedClient) -> None:
-    responses = ExampleIngress().run()
+def test_ingress_backend_login(conn_backend: AuthenticatedClient) -> None:
+    exampleingress._backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
+    assert exampleingress.access_token is not None
+
+
+def test_ingress_post_service_data(conn_backend: AuthenticatedClient) -> None:
+    responses = exampleingress.post_service_data(
+        [
+            ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
+            ("/sensor/insert-sensor", TEST_SENSOR),
+            ("/sensor/insert-sensor-readings", SENSOR_READINGS),
+        ]
+    )
+    for response in responses:
+        assert response.status_code < 300
+    assert len(responses) == 3
+
+
+def test_ingress_call__(conn_backend: AuthenticatedClient) -> None:
+    responses = exampleingress()
     for response in responses:
         assert response.status_code < 300
     assert len(responses) == 3
