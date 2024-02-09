@@ -4,7 +4,7 @@ import logging
 
 from azure.functions import HttpRequest, HttpResponse
 
-from dtbase.models.arima.run_pipeline import run_pipeline
+from dtbase.models.arima_old.run_pipeline import run_pipeline
 
 
 def main(req: HttpRequest) -> HttpResponse:

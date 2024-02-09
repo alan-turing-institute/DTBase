@@ -85,7 +85,7 @@ These constants are dictionaries and define the sensor type and sensor payloads.
 
 We then write a custom class that inherits from `BaseIngress`. There are a number of `_*` methods that are used to handle different combinations of start and end dates given by the user. A lot of this complexity comes from there being two different APIs.
 
-The important method is the `get_data`. This method takes in `from_dt` and `to_dt` arguments to define when the user wants to extract information from the API. There is then some specific preprocessing to get the exact data we want from the API.
+The important method is the `get_data`. This method takes in `dt_from` and `dt_to` arguments to define when the user wants to extract information from the API. There is then some specific preprocessing to get the exact data we want from the API.
 
 Finally, we return data in a very specific format:
 
