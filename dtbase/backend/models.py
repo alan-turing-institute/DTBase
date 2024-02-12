@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, RootModel
 
-ValueTypes = float | bool | int | str
+ValueType = float | bool | int | str
 
 
 class MessageResponse(BaseModel):
@@ -41,8 +41,29 @@ class LocationSchema(BaseModel):
     identifiers: list[LocationIdentifier]
 
 
-Coordinates = RootModel[dict[str, ValueTypes]]
+Coordinates = RootModel[dict[str, ValueType]]
 
 
 class LocationSchemaIdentifier(BaseModel):
     schema_name: str
+
+
+class Model(BaseModel):
+    name: str
+
+
+class ModelScenario(BaseModel):
+    model_name: str
+    description: Optional[str]
+
+
+class ModelMeasure(BaseModel):
+    name: str
+    units: str
+    datatype: str
+
+
+class SensorMeasure(BaseModel):
+    name: str
+    units: str
+    datatype: str

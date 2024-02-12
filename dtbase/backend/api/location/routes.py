@@ -15,7 +15,7 @@ from dtbase.backend.models import (
     LocationSchema,
     LocationSchemaIdentifier,
     MessageResponse,
-    ValueTypes,
+    ValueType,
 )
 from dtbase.backend.utils import db_session
 from dtbase.core import locations
@@ -61,7 +61,7 @@ def insert_location_schema(
 
 class InsertLocationData(BaseModel):
     identifiers: list[LocationIdentifier]
-    values: list[ValueTypes]
+    values: list[ValueType]
 
 
 @router.post("/insert-location", status_code=status.HTTP_201_CREATED)
