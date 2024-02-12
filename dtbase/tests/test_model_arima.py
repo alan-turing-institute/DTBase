@@ -9,6 +9,9 @@ from dtbase.models.utils.dataprocessor.config import (
     ConfigSensors,
 )
 from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
+from dtbase.tests.resources.data_for_tests import (
+    EXPECTED_ARIMA_GET_SERVICE_DATA_RESPONSE,
+)
 from dtbase.tests.upload_synthetic_data import insert_trh_readings
 
 DOCKER_RUNNING = check_for_docker()
@@ -20,7 +23,7 @@ def test_arima_get_temperature(
 ) -> None:
 
     # Insert synthetic data into database
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
 
     # Create config and Arima Object
     config = {
@@ -43,7 +46,7 @@ def test_arima_get_temperature(
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
     config = {
         "data": ConfigData(num_days_training=20),
         "sensors": ConfigSensors(include_measures=[("Humidity", "Percent")]),
@@ -61,7 +64,7 @@ def test_arima_get_humidity(conn_backend: None, session: Session) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_get_temperature_humidity(conn_backend: None, session: Session) -> None:
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
     config = {
         "data": ConfigData(num_days_training=20),
         "sensors": ConfigSensors(
@@ -86,7 +89,7 @@ def test_arima_get_temperature_humidity(conn_backend: None, session: Session) ->
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_clean(conn_backend: None, session: Session) -> None:
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
     config = {
         "data": ConfigData(num_days_training=20),
         "sensors": ConfigSensors(),
@@ -104,7 +107,7 @@ def test_arima_clean(conn_backend: None, session: Session) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_prepare(conn_backend: None, session: Session) -> None:
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
     config = {
         "data": ConfigData(),
         "sensors": ConfigSensors(),
@@ -124,7 +127,7 @@ def test_arima_prepare(conn_backend: None, session: Session) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_arima_pipeline(conn_backend: None, session: Session) -> None:
-    insert_trh_readings(session)
+    insert_trh_readings(session, add_noise=False)
     config = {
         "data": ConfigData(num_days_training=20),
         "sensors": ConfigSensors(include_measures=[("Temperature", "Degrees C")]),
@@ -147,3 +150,32 @@ def test_arima_pipeline(conn_backend: None, session: Session) -> None:
     assert isinstance(metrics, dict)
     assert "MAPE" in metrics.keys()
     assert "RMSE" in metrics.keys()
+
+
+def test_arima_get_service_data(conn_backend: None, session: Session) -> None:
+    insert_trh_readings(session, add_noise=False)
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Temperature", "Degrees C")]),
+        "others": ConfigOthers(),
+        "arima": ConfigArima(),
+    }
+
+    arima = ArimaModel(config)
+    assert arima.get_service_data() == EXPECTED_ARIMA_GET_SERVICE_DATA_RESPONSE
+
+
+def test_arima_call(conn_backend: None, session: Session) -> None:
+    insert_trh_readings(session, add_noise=False)
+    config = {
+        "data": ConfigData(num_days_training=20),
+        "sensors": ConfigSensors(include_measures=[("Temperature", "Degrees C")]),
+        "others": ConfigOthers(),
+        "arima": ConfigArima(),
+    }
+
+    arima = ArimaModel(config)
+    responses = arima()
+    for response in responses:
+        assert response.status_code < 300
+    assert len(responses) == 6
