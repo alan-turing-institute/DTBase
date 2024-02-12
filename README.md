@@ -6,7 +6,7 @@ A general base software package from which Digital Twins can be developed.
 ### Goals of DTBase
 
 The primary aim of DTBase is to provide a software package that developers can fork and use to deploy their own digital twin with minimal effort. This is an ambitious project as digital twins vary significantly and therefore DTBase needs to be both robust and flexible.
-DTBase consists of three main parts: A PostgreSQL database, a backend app for interacting with the database and a frontend app for visuals. The database, backend and frontend communicate via restful APIs, therefore allowing ssers of DTBase to choose which components of the code base they require for their personal usecase.
+DTBase consists of three main parts: A PostgreSQL database, a backend app for interacting with the database and a frontend app for visuals. The database, backend and frontend communicate via restful APIs, therefore allowing users of DTBase to choose which components of the code base they require for their personal usecase.
 
 We try to design the code base so as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but Azure is what the developers have access to and therefore is the default service accomodated.
 
