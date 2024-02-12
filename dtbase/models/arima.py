@@ -13,8 +13,6 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
-from dtbase.core.exc import BackendCallError
-from dtbase.core.utils import auth_backend_call
 from dtbase.models.utils.config import read_config
 from dtbase.models.utils.dataprocessor.clean_data import clean_data, clean_data_list
 from dtbase.models.utils.dataprocessor.config import (
@@ -455,10 +453,6 @@ class ArimaModel(BaseModel):
         via the backend.
         """
 
-        # Log into the backend
-        if self.access_token is None:
-            self._backend_login()
-
         scenario = "Business as usual"
 
         # fetch training data from the database
@@ -471,21 +465,14 @@ class ArimaModel(BaseModel):
         prep_data = self.prepare_data(cleaned_data)
 
         # ensure we have the Model in the db, or insert if not
-        response = auth_backend_call(
-            "post", "/model/insert-model", {"name": "Arima"}, token=self.access_token
-        )
-        if response.status_code not in {201, 409}:
-            raise BackendCallError(response)
+        model_payload = [("/model/insert-model", {"name": "Arima"})]
 
-        # ensure we have the model scenario in the db, or insert if not
-        response = auth_backend_call(
-            "post",
-            "/model/insert-model-scenario",
-            {"model_name": "Arima", "description": scenario},
-            token=self.access_token,
-        )
-        if response.status_code not in {201, 409}:
-            raise BackendCallError(response)
+        model_scenario = [
+            (
+                "/model/insert-model-scenario",
+                {"model_name": "Arima", "description": scenario},
+            )
+        ]
 
         # Ensure that we have all measures in the database, or insert if not.
         # We should have mean, upper bound, and lower bound for
@@ -493,21 +480,27 @@ class ArimaModel(BaseModel):
         # the sensor we are trying to forecast for reports.
         base_measures_list = self.config["sensors"].include_measures
         logging.info(f"measures to use: {base_measures_list}")
+
         # base_measures_list is a list of tuples (measure_name, units)
+        model_measures_payload = []
         for base_measure_name, base_measure_units in base_measures_list:
             for m in ["Mean ", "Upper Bound ", "Lower Bound "]:
                 measure = m + base_measure_name
-                logging.info(f"Inserting measure {measure} to db")
-                response = auth_backend_call(
-                    "post",
-                    "/model/insert-model-measure",
-                    {"name": measure, "units": base_measure_units, "datatype": "float"},
-                    token=self.access_token,
+                model_measures_payload.append(
+                    (
+                        "/model/insert-model-measure",
+                        {
+                            "name": measure,
+                            "units": base_measure_units,
+                            "datatype": "float",
+                        },
+                    )
                 )
 
         # run the ARIMA pipeline for every sensor
         sensor_unique_ids = list(prep_data.keys())
         logging.info(f"Will look at sensors {sensor_unique_ids}")
+        model_run_payloads = []
         for sensor in sensor_unique_ids:
             base_measures_list = [
                 b for b in base_measures_list if b[0] in prep_data[sensor].columns
@@ -519,9 +512,7 @@ class ArimaModel(BaseModel):
                     sensor,
                     base_measure[0],
                 )
-                mean_forecast, conf_int, metrics = self.pipeline(
-                    values, self.config["arima"]
-                )
+                mean_forecast, conf_int, metrics = self.pipeline(values)
                 mean = {
                     "measure_name": "Mean " + base_measure[0],
                     "values": list(mean_forecast),
@@ -537,24 +528,26 @@ class ArimaModel(BaseModel):
                     "values": list(conf_int.mean_ci_lower),
                     "timestamps": [t.isoformat() for t in conf_int.index],
                 }
-                response = auth_backend_call(
-                    "post",
-                    "/model/insert-model-run",
-                    {
-                        "model_name": "Arima",
-                        "scenario_description": scenario,
-                        "measures_and_values": [mean, upper, lower],
-                        "sensor_unique_id": sensor,
-                        "sensor_measure": {
-                            "name": base_measure[0],
-                            "units": base_measure[1],
+                model_run_payloads.append(
+                    (
+                        "/model/insert-model-run",
+                        {
+                            "model_name": "Arima",
+                            "scenario_description": scenario,
+                            "measures_and_values": [mean, upper, lower],
+                            "sensor_unique_id": sensor,
+                            "sensor_measure": {
+                                "name": base_measure[0],
+                                "units": base_measure[1],
+                            },
                         },
-                    },
-                    token=self.access_token,
+                    )
                 )
-                if response.status_code != 201:
-                    raise BackendCallError(response)
-                logger.info("Inserted run")
+
+        payload_pairs = (
+            model_payload + model_scenario + model_measures_payload + model_run_payloads
+        )
+        return payload_pairs
 
     def run_pipeline_locally(self) -> dict:
         """
