@@ -548,39 +548,3 @@ class ArimaModel(BaseModel):
             model_payload + model_scenario + model_measures_payload + model_run_payloads
         )
         return payload_pairs
-
-    def run_pipeline_locally(self) -> dict:
-        """
-        Runs the ARIMA pipeline locally. By this, we mean that the pipeline
-        still pulls data from the database in line with the config file.
-        However, the results are not inserted back into the database
-        but rather returned as a dictionary.
-        """
-        # fetch training data from the database
-        sensor_data = get_training_data(self.config)
-
-        # clean the training data
-        cleaned_data = clean_data_list(sensor_data, self.config)
-        prep_data = prepare_data(cleaned_data, self.config)
-
-        # run the ARIMA pipeline for every temperature sensor
-        sensor_ids = self.config["sensors"].include_sensors
-        measures = self.config["sensors"].include_measures
-        forecast_results = {}
-
-        # loop through every sensor/measure
-        for sensor in sensor_ids:
-            for measure_name, measure_units in measures:
-                key = sensor + "_" + measure_name
-                values = prep_data[sensor][measure_name]
-                # save 10% of the data for testing
-                n_samples = len(values)
-                values = values.iloc[: int(0.9 * n_samples)]
-                mean_forecast, conf_int, metrics = self.arima_pipeline(values)
-                forecast_results[key]["mean_forecast"] = mean_forecast
-                forecast_results[key]["conf_int"] = conf_int
-                forecast_results[key]["metrics"] = metrics
-                conf_int["mean_forecast"] = mean_forecast
-                conf_int["sensor"] = sensor
-                conf_int["measure"] = measure_name
-        return forecast_results
