@@ -240,7 +240,7 @@ if __name__ == "__main__":
     run1 = generate_trh_readings(add_noise=False)
     run2 = generate_trh_readings(add_noise=False)
 
-    print(run1)
-    print(run2)
+    print(run1.head())
+    print(run2.head())
 
     print(run1.equals(run2))
