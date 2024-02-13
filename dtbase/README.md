@@ -21,10 +21,18 @@ The endpoints are grouped into `location`, `model`, and `sensor`, and within eac
 This is another Flask application, providing a basic web interface.   This will send and receive HTTP requests to and from the backend, allowing users to insert sensors, locations etc. to the database, and to view time-series plots or data tables.
 The frontend pages are grouped into `locations`, `models`, and `sensors` and within each there is a `routes.py` file and at least one `templates/xyz.html` file defining the URLs and the content to be displayed.  There is also Javascript code in `base/static/javascript` that contains code for making plots and tables.
 
+## functions
+
+Contains the required code to use services (ingress or models) in Azure Functions.
+
+## services
+
+This contains the base Classes for all services, including BaseService, BaseModel and BaseIngress. BaseModel and BaseIngress inherit from the BaseService Class.
+
 ## models
 
-This is where the code for predictive models goes.   Common code for retrieving and cleaning training data is located in the `utils/dataprocessor` directory.
+This is where the code for specific models is located. Instructions for how to write custom models can be found [here](models/README.md).
 
-## ingress
+## Ingress
 
-This is where code to retrieve data from e.g. external APIs will live.   The scripts here will retrieve such data and use the backend API endpoints to insert it into the database.
+This is where code for specific data ingress is located. Data ingress is the act of pulling in data from another source such as an external API or database and inserting into the dtbase database via the backend. Instructions for how to write custom models can be found [here](ingress/README.md).
