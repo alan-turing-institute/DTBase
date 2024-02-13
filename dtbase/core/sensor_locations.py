@@ -1,20 +1,19 @@
 """Functions for accessing the sensor_location table."""
 import datetime as dt
-from typing import Optional
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, set_session_if_unset
+from dtbase.backend.utils import Session
 from dtbase.core import queries, sensors, utils
 from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocation
 
 
 def insert_sensor_location(
-    sensor_uniq_id: int,
+    sensor_uniq_id: str,
     schema_name: str,
     coordinates: dict,
     installation_datetime: dt.datetime,
-    session: Optional[Session] = None,
+    session: Session,
 ) -> None:
     """Add a sensor location installation.
 
@@ -25,12 +24,11 @@ def insert_sensor_location(
             being measure names.
         installation_datetime: Date from which onwards the sensor has been at this
             location.
-        session: Optional. SQLAlchemy session.
+        session: SQLAlchemy session.
 
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     sensor_id = sensors.sensor_id_from_unique_identifier(
         sensor_uniq_id, session=session
     )
@@ -54,21 +52,18 @@ def insert_sensor_location(
     session.flush()
 
 
-def get_location_history(
-    sensor_uniq_id: str, session: Optional[Session] = None
-) -> None:
+def get_location_history(sensor_uniq_id: str, session: Session) -> None:
     """Location history of one sensor.
 
     Args:
         sensor_uniq_id: Unique identifier of the sensor.
-        session: Optional. SQLAlchemy session.
+        session: SQLAlchemy session.
 
 
     Returns:
         A list of dictionaries, naming the coordinates where this sensor was installed
         at different times.
     """
-    session = set_session_if_unset(session)
     query = (
         sqla.select(
             SensorLocation.installation_datetime,

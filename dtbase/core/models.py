@@ -350,9 +350,9 @@ def insert_model_run(
 def list_model_runs(
     model_name: str,
     session: Session,
-    dt_from: dt.datetime = None,
-    dt_to: dt.datetime = None,
-    scenario: str = None,
+    dt_from: Optional[dt.datetime] = None,
+    dt_to: Optional[dt.datetime] = None,
+    scenario: Optional[str] = None,
 ) -> List[dict]:
     """List model runs in a time window.
 

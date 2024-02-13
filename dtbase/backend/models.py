@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, ConfigDict, RootModel
 
 ValueType = float | bool | int | str
 
@@ -55,6 +55,9 @@ class Model(BaseModel):
 class ModelScenario(BaseModel):
     model_name: str
     description: Optional[str]
+
+    # Needed because the field `model_name` conflicts with some Pydantic internals.
+    model_config = ConfigDict(protected_namespaces=[])
 
 
 class ModelMeasure(BaseModel):

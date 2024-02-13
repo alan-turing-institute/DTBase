@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -154,17 +154,20 @@ class MeasureResults(BaseModel):
 
 class SensorMeasureIdentifier(BaseModel):
     name: str
-    units: str
+    units: Optional[str]
 
 
 class InsertModelRunData(BaseModel):
     model_name: str
     scenario_description: str
     measures_and_values: list[MeasureResults]
-    time_created: Optional[datetime]
+    time_created: datetime = Field(default_factory=datetime.now)
     create_scenario: bool = Field(default=False)
-    sensor_unique_id: Optional[str]
-    sensor_measure: Optional[SensorMeasureIdentifier]
+    sensor_unique_id: Optional[str] = Field(default=None)
+    sensor_measure: Optional[SensorMeasureIdentifier] = Field(default=None)
+
+    # Needed because the field `model_name` conflicts with some Pydantic internals.
+    model_config = ConfigDict(protected_namespaces=[])
 
 
 @router.post("/insert-model-run", status_code=status.HTTP_201_CREATED)
@@ -213,9 +216,14 @@ def insert_model_run(
 
 class ListModelRunsData(BaseModel):
     model_name: str
-    dt_from: datetime = Field(default=datetime.now() - timedelta(weeks=1))
-    dt_to: datetime = Field(default=datetime.now())
-    scenario: Optional[str]
+    dt_from: datetime = Field(
+        default_factory=(lambda: datetime.now() - timedelta(weeks=1))
+    )
+    dt_to: datetime = Field(default_factory=datetime.now)
+    scenario: Optional[str] = Field(default=None)
+
+    # Needed because the field `model_name` conflicts with some Pydantic internals.
+    model_config = ConfigDict(protected_namespaces=[])
 
 
 class ModelRunData(BaseModel):
@@ -225,8 +233,11 @@ class ModelRunData(BaseModel):
     scenario_id: int
     scenario_description: str
     time_created: datetime
-    sensor_unique_id: Optional[str]
-    sensor_measure: Optional[SensorMeasureIdentifier]
+    sensor_unique_id: Optional[str] = Field(default=None)
+    sensor_measure: Optional[SensorMeasureIdentifier] = Field(default=None)
+
+    # Needed because the field `model_name` conflicts with some Pydantic internals.
+    model_config = ConfigDict(protected_namespaces=[])
 
 
 @router.post("/list-model-runs", status_code=status.HTTP_200_OK)
@@ -306,24 +317,23 @@ def get_model_run(
     )
 
 
-class ModelRunSensorMeasure(BaseModel):
-    sensor_unique_id: str
-    sensor_measure: SensorMeasureIdentifier
+class ModelRunSensorMeasureOutput(BaseModel):
+    sensor_unique_id: Optional[str]
+    sensor_measure: Optional[SensorMeasureIdentifier]
 
 
 @router.post("/get-model-run-sensor-measure", status_code=status.HTTP_200_OK)
 def get_model_run_sensor_measure(
     payload: ModelRunIdentifier, session: Session = Depends(db_session)
-) -> ModelRunSensorMeasure:
+) -> ModelRunSensorMeasureOutput:
     """
-    Get the sensor and sensor measure that the output of a model run should
-    be compared to.
+    Get the sensor and sensor measure that the output of a model run should be compared
+    to.
     """
     try:
         result = models.get_model_run_sensor_measure(
             **payload.model_dump(), session=session
         )
-        # The sensor_id is not needed in the API return value
     except RowMissingError:
         raise HTTPException(status_code=400, detail="No such model run")
-    return ModelRunSensorMeasure(**result)
+    return ModelRunSensorMeasureOutput(**result)

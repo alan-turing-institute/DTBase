@@ -19,4 +19,4 @@ else
     bport=5000
 fi
 
-flask run --host=0.0.0.0 --port $bport
+uvicorn dtbase_app:app --port $bport --reload

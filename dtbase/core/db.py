@@ -76,7 +76,7 @@ def connect_db(conn_string: str, db_name: str) -> Engine:
 
     # Connect to an engine
     if not database_exists(db_conn_string):
-        raise DatabaseConnectionError("Cannot find db: %s")
+        raise DatabaseConnectionError("Cannot find db: %s", db_conn_string)
     try:
         engine = sqla.create_engine(db_conn_string, pool_size=20, max_overflow=-1)
     except SQLAlchemyError:

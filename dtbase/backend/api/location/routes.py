@@ -64,10 +64,14 @@ class InsertLocationData(BaseModel):
     values: list[ValueType]
 
 
+class InsertLocationOutput(BaseModel):
+    schema_name: str
+
+
 @router.post("/insert-location", status_code=status.HTTP_201_CREATED)
 def insert_location(
     location_data: InsertLocationData, session: Session = Depends(db_session)
-) -> MessageResponse:
+) -> InsertLocationOutput:
     """
     Add a location to the database, defining the schema at the same time.
     """
@@ -97,7 +101,7 @@ def insert_location(
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Location or schema exists already")
-    return MessageResponse(detail="Location inserted")
+    return InsertLocationOutput(schema_name=schema_name)
 
 
 class InsertLocationDataExistingSchema(BaseModel):

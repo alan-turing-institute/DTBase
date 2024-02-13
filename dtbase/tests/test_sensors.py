@@ -332,7 +332,7 @@ def test_list_sensors(session: Session) -> None:
     assert all_sensors[1]["sensor_type_name"] == "weather"
     assert all_sensors[2]["unique_identifier"] == SENSOR_ID3
     assert all_sensors[2]["sensor_type_name"] == "temperature"
-    weather_sensors = sensors.list_sensors("weather", session=session)
+    weather_sensors = sensors.list_sensors(type_name="weather", session=session)
     assert len(weather_sensors) == 2
     assert weather_sensors[0]["unique_identifier"] == SENSOR_ID1
     assert weather_sensors[0]["sensor_type_name"] == "weather"
@@ -441,6 +441,7 @@ def test_edit_sensor(session: Session) -> None:
     sensors.edit_sensor(
         SENSOR_ID1, new_name="new_name", new_notes="new_notes", session=session
     )
+    session.commit()
     all_sensors = sensors.list_sensors(session=session)
     assert len(all_sensors) == 3
 
