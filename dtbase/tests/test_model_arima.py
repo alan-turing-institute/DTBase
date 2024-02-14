@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from dtbase.models.arima.arima_pipeline import arima_pipeline
@@ -12,16 +13,14 @@ from dtbase.models.utils.dataprocessor.config import (
 )
 from dtbase.models.utils.dataprocessor.get_data import get_training_data
 from dtbase.models.utils.dataprocessor.prepare_data import prepare_data
-from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
+from dtbase.tests.conftest import check_for_docker
 from dtbase.tests.upload_synthetic_data import insert_trh_readings
 
 DOCKER_RUNNING = check_for_docker()
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_get_temperature(
-    conn_backend: AuthenticatedClient, session: Session
-) -> None:
+def test_arima_get_temperature(conn_backend: TestClient, session: Session) -> None:
     insert_trh_readings(session)
     config = {
         "data": ConfigData(num_days_training=20),

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.routing import Route
 
-from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
+from dtbase.tests.conftest import check_for_docker
 from dtbase.tests.utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
@@ -19,7 +19,7 @@ def test_user(test_user: None) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_schema(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_schema(auth_client: TestClient) -> None:
     schema = {
         "name": "building-floor-room",
         "description": "Find something within a building",
@@ -34,7 +34,7 @@ def test_insert_location_schema(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_schema_duplicate(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_schema_duplicate(auth_client: TestClient) -> None:
     schema = {
         "name": "building-floor-room",
         "description": "Find something within a building",
@@ -51,7 +51,7 @@ def test_insert_location_schema_duplicate(auth_client: AuthenticatedClient) -> N
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_get_location_schema_details(auth_client: AuthenticatedClient) -> None:
+def test_get_location_schema_details(auth_client: TestClient) -> None:
     schema = {
         "name": "building-floor-room",
         "description": "Find something within a building",
@@ -78,7 +78,7 @@ def test_get_location_schema_details(auth_client: AuthenticatedClient) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_get_nonexistent_location_schema_details(
-    auth_client: AuthenticatedClient,
+    auth_client: TestClient,
 ) -> None:
     response = auth_client.post(
         "/location/get-schema-details", json={"schema_name": "nope"}
@@ -87,7 +87,7 @@ def test_get_nonexistent_location_schema_details(
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_no_schema(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_no_schema(auth_client: TestClient) -> None:
     location = {
         "identifiers": [
             {"name": "x_distance", "units": "m", "datatype": "float"},
@@ -102,7 +102,7 @@ def test_insert_location_no_schema(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_no_schema_duplicate(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_no_schema_duplicate(auth_client: TestClient) -> None:
     location = {
         "identifiers": [
             {"name": "x_distance", "units": "m", "datatype": "float"},
@@ -119,7 +119,7 @@ def test_insert_location_no_schema_duplicate(auth_client: AuthenticatedClient) -
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_nonexisting_schema(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_nonexisting_schema(auth_client: TestClient) -> None:
     # use a non-existing schema name to insert a location
     location = {"coordinates": {"a": 123.4, "b": 432.1}, "schema_name": "fakey"}
     response = auth_client.post("/location/insert-location-for-schema", json=location)
@@ -127,7 +127,7 @@ def test_insert_location_nonexisting_schema(auth_client: AuthenticatedClient) ->
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_insert_location_existing_schema(auth_client: AuthenticatedClient) -> None:
+def test_insert_location_existing_schema(auth_client: TestClient) -> None:
     schema = {
         "name": "xy",
         "description": "x-y coordinates in mm",
@@ -147,7 +147,7 @@ def test_insert_location_existing_schema(auth_client: AuthenticatedClient) -> No
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_location_existing_schema_duplicate(
-    auth_client: AuthenticatedClient,
+    auth_client: TestClient,
 ) -> None:
     schema = {
         "name": "xy",
@@ -168,14 +168,14 @@ def test_insert_location_existing_schema_duplicate(
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_locations_no_coords(auth_client: AuthenticatedClient) -> None:
+def test_list_locations_no_coords(auth_client: TestClient) -> None:
     response = auth_client.post("/location/list-locations", json={"schema_name": "xy"})
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_identifiers(auth_client: AuthenticatedClient) -> None:
+def test_list_location_identifiers(auth_client: TestClient) -> None:
     # Insert location schemas with unique identifiers
     schema1 = {
         "name": "test-schema1",
@@ -210,7 +210,7 @@ def test_list_location_identifiers(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_list_location_schemas(auth_client: AuthenticatedClient) -> None:
+def test_list_location_schemas(auth_client: TestClient) -> None:
     # Insert location schemas
     schema1 = {
         "name": "test-schema1",
@@ -242,7 +242,7 @@ def test_list_location_schemas(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location_schema(auth_client: AuthenticatedClient) -> None:
+def test_delete_location_schema(auth_client: TestClient) -> None:
     # First, insert a location schema to delete later
     schema = {
         "name": "test-schema",
@@ -273,7 +273,7 @@ def test_delete_location_schema(auth_client: AuthenticatedClient) -> None:
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_delete_location(auth_client: AuthenticatedClient) -> None:
+def test_delete_location(auth_client: TestClient) -> None:
     # Insert a location schema and a location
     schema = {
         "name": "test-schema",

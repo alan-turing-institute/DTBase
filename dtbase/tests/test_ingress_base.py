@@ -1,8 +1,8 @@
 import pytest
+from fastapi.testclient import TestClient
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
 from dtbase.ingress.ingress_base import BaseIngress
-from dtbase.tests.conftest import AuthenticatedClient
 
 test_ingress = BaseIngress()
 
@@ -50,12 +50,12 @@ def test_get_data() -> None:
         test_ingress.get_data()
 
 
-def test_backend_login(conn_backend: AuthenticatedClient) -> None:
+def test_backend_login(conn_backend: TestClient) -> None:
     test_ingress.backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
     assert test_ingress.access_token is not None
 
 
-def test_ingress_base(conn_backend: AuthenticatedClient) -> None:
+def test_ingress_base(conn_backend: TestClient) -> None:
     responses = ExampleIngress().ingress_data()
     for response in responses:
         assert response.status_code < 300

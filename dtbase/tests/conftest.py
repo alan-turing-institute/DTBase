@@ -48,8 +48,6 @@ from dtbase.webapp.config import config_dict as frontend_config
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID: Optional[str] = None
 
-AuthenticatedClient = TestClient  # TODO Remove this once done migration to FastAPI
-
 
 class CSRFTokenParser(HTMLParser):
     """HTML parser that finds a CSRF token in a page."""
