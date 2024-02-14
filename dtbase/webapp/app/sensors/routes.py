@@ -45,7 +45,7 @@ def fetch_all_sensors(sensor_type: str) -> List[dict[str, Any]]:
     if not sensor_type:
         return []
     payload = {"type_name": sensor_type}
-    response = current_user.backend_call("get", "/sensor/list-sensors", payload)
+    response = current_user.backend_call("post", "/sensor/list-sensors", payload)
     if response.status_code != 200:
         # TODO Write a more useful reaction to this.
         raise RuntimeError(f"A backend call failed: {response}")
@@ -85,7 +85,7 @@ def fetch_sensor_data(
                 "unique_identifier": sensor_id,
             }
             response = current_user.backend_call(
-                "get", "/sensor/sensor-readings", payload
+                "post", "/sensor/sensor-readings", payload
             )
             if response.status_code != 200:
                 # TODO Write a more useful reaction to this.
@@ -357,7 +357,7 @@ def submit_sensor() -> Response:
     for sensor_type in sensor_type_response.json():
         payload_check = {"type_name": sensor_type["name"]}
         sensors_list = current_user.backend_call(
-            "get", "/sensor/list-sensors", payload_check
+            "post", "/sensor/list-sensors", payload_check
         )
         for sensor in sensors_list.json():
             if sensor["unique_identifier"] == payload["unique_identifier"]:
@@ -394,7 +394,7 @@ def sensor_list_table() -> Response:
     for sensor_type in sensor_types:
         payload = {"type_name": sensor_type["name"]}
         sensors_response = current_user.backend_call(
-            "get", "/sensor/list-sensors", payload
+            "post", "/sensor/list-sensors", payload
         )
 
         sensors_for_each_type[sensor_type["name"]] = sensors_response.json()
@@ -424,7 +424,7 @@ def sensor_edit_form() -> Response:
     if request.method == "DELETE":
         unique_identifier = request.args.get("unique_identifier")
         payload["unique_identifier"] = unique_identifier
-        response = current_user.backend_call("delete", "/sensor/delete-sensor", payload)
+        response = current_user.backend_call("post", "/sensor/delete-sensor", payload)
         if response.status_code == 200:
             flash("Sensor deleted successfully", "success")
         return "", 200

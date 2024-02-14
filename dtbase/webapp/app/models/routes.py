@@ -63,7 +63,7 @@ def get_runs(
         "dt_to": dt_to.isoformat(),
         "scenario": scenario_description,
     }
-    response = current_user.backend_call("get", "/model/list-model-runs", payload)
+    response = current_user.backend_call("post", "/model/list-model-runs", payload)
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
     runs = response.json()
@@ -81,7 +81,7 @@ def get_run_pred_data(run_id: int | str) -> Dict[str, Any]:
         {"timestamp":<ts:str>, "value": <val:int|float|str|bool>}
     """
     response = current_user.backend_call(
-        "get", "/model/get-model-run", {"run_id": run_id}
+        "post", "/model/get-model-run", {"run_id": run_id}
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -102,7 +102,7 @@ def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str,
        a list of (value, timestamp) tuples.
     """
     response = current_user.backend_call(
-        "get", "/model/get-model-run-sensor-measure", {"run_id": run_id}
+        "post", "/model/get-model-run-sensor-measure", {"run_id": run_id}
     )
     if response.status_code != 200:
         raise RuntimeError(f"A backend call failed: {response}")
@@ -111,7 +111,7 @@ def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str,
     dt_from = earliest_timestamp
     dt_to = dt.datetime.now().isoformat()
     response = current_user.backend_call(
-        "get",
+        "post",
         "/sensor/sensor-readings",
         payload={
             "measure_name": measure_name,

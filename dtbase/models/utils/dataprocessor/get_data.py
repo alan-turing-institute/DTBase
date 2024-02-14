@@ -72,7 +72,7 @@ def get_training_data(
     for measure_name, units in measures_list:
         for sensor in sensors_list:
             response = auth_backend_call(
-                "get",
+                "post",
                 "/sensor/sensor-readings",
                 {
                     "measure_name": measure_name,
