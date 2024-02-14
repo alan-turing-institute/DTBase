@@ -2,9 +2,10 @@
 Module (routes.py) to handle API endpoints related to Locations
 """
 import logging
+from typing import Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -13,7 +14,6 @@ from dtbase.backend.models import (
     Coordinates,
     LocationIdentifier,
     LocationSchema,
-    LocationSchemaIdentifier,
     MessageResponse,
     ValueType,
 )
@@ -24,16 +24,30 @@ from dtbase.core.exc import RowExistsError, RowMissingError
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/location", tags=["location"], dependencies=[Depends(authenticate_access)]
+    prefix="/location",
+    tags=["location"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
 )
 
 
-@router.post("/insert-location-schema", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/insert-location-schema",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
 def insert_location_schema(
     location_schema: LocationSchema, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Add a location schema to the database.
+
+    A location is defined by its name description and a list of location identifiers
+    that are used to specify locations in this schema.
+
+    For instance, a location schema might be "latitude-longitude" with identifiers
+    "latitude" and "longitude", or "campus-room-numbering" with identifiers
+    "building name", "floor", and "room".
     """
     idnames = []
     for identifier in location_schema.identifiers:
@@ -59,21 +73,29 @@ def insert_location_schema(
     return MessageResponse(detail="Location schema inserted")
 
 
-class InsertLocationData(BaseModel):
+class InsertLocationRequest(BaseModel):
     identifiers: list[LocationIdentifier]
     values: list[ValueType]
 
 
-class InsertLocationOutput(BaseModel):
+class InsertLocationResponse(BaseModel):
     schema_name: str
 
 
-@router.post("/insert-location", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/insert-location",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
 def insert_location(
-    location_data: InsertLocationData, session: Session = Depends(db_session)
-) -> InsertLocationOutput:
+    location_data: InsertLocationRequest, session: Session = Depends(db_session)
+) -> InsertLocationResponse:
     """
     Add a location to the database, defining the schema at the same time.
+
+    There should be as many values in the "values" list as there are identifiers in the
+    "identifiers" list. The order of the values should correspond to the order of the
+    identifiers, and the datatypes should match.
     """
     try:
         idnames = []
@@ -101,29 +123,30 @@ def insert_location(
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Location or schema exists already")
-    return InsertLocationOutput(schema_name=schema_name)
+    return InsertLocationResponse(schema_name=schema_name)
 
 
-class InsertLocationDataExistingSchema(BaseModel):
+class InsertLocationForExistingSchemaRequest(BaseModel):
     schema_name: str
     coordinates: Coordinates
 
 
-@router.post("/insert-location-for-schema", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/insert-location-for-schema",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_409_CONFLICT: {"model": MessageResponse},
+        status.HTTP_400_BAD_REQUEST: {"model": MessageResponse},
+    },
+)
 def insert_location_existing_schema(
-    payload: InsertLocationDataExistingSchema, session: Session = Depends(db_session)
+    payload: InsertLocationForExistingSchemaRequest,
+    session: Session = Depends(db_session),
 ) -> MessageResponse:
     """
     Add a location to the database, given an existing schema name.
-    POST request should have json data (mimetype "application/json")
-    containing
-    {
-      "schema_name": <schema_name:str>,
-      "identifier1_name": "value1",
-       ...
-    }
-    with an identifier name and value for every identifier in the schema
 
+    The keys of the coordinates should match the identifiers of the schema.
     """
     try:
         locations.insert_location(
@@ -137,28 +160,24 @@ def insert_location_existing_schema(
     return MessageResponse(detail="Location inserted")
 
 
-@router.post("/list-locations", status_code=status.HTTP_200_OK)
+class ListLocationRequest(BaseModel):
+    schema_name: str
+    coordinates: Optional[Coordinates] = Field(default=None)
+
+
+@router.post(
+    "/list-locations",
+    status_code=status.HTTP_200_OK,
+)
 def list_locations(
-    payload: dict = Body(), session: Session = Depends(db_session)
+    payload: ListLocationRequest, session: Session = Depends(db_session)
 ) -> list[Coordinates]:
     """
     List location in the database, filtered by schema name.
-    Optionally also filter by coordinates, if given identifiers in the payload.
-    Payload should be of the form:
-    {
-      "schema_name": <schema_name:str>,
-      "identifier1_name": <value1:float|int|str|bool>,
-       ...
-    }
 
-    Returns results in the form:
-    [
-     { <identifier1:str>: <value1:str>, ...}, ...
-    ]
+    Optionally also filter by coordinates, if given identifiers in the payload.
     """
-    if "schema_name" not in payload:
-        raise HTTPException(status_code=400, detail="Schema name not provided")
-    result = locations.list_locations(**payload, session=session)
+    result = locations.list_locations(**payload.model_dump(), session=session)
     return [Coordinates(**r) for r in result]
 
 
@@ -168,21 +187,6 @@ def list_location_schemas(
 ) -> list[LocationSchema]:
     """
     List location schemas in the database.
-
-    Returns results in the form:
-    [
-      {
-       "name": <name:str>,
-       "description": <description:str>,
-       "identifiers": [
-          {
-            "name": <identifier_name:str>,
-            "units": <units:str>,
-            "datatype":<"float"|"integer"|"string"|"boolean">
-           }, ...
-       ]
-      }
-    ]
     """
     result = locations.list_location_schemas(session=session)
     return [LocationSchema(**r) for r in result]
@@ -199,58 +203,70 @@ def list_location_identifiers(
     return [LocationIdentifier(**r) for r in result]
 
 
-@router.post("/get-schema-details", status_code=status.HTTP_200_OK)
+class GetSchemaDetailsRequest(BaseModel):
+    schema_name: str
+
+
+@router.post(
+    "/get-schema-details",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def get_schema_details(
-    schema_identifier: LocationSchemaIdentifier, session: Session = Depends(db_session)
+    payload: GetSchemaDetailsRequest, session: Session = Depends(db_session)
 ) -> LocationSchema:
     """
     Get a location schema and its identifiers from the database.
     """
     try:
-        result = locations.get_schema_details(
-            schema_identifier.schema_name, session=session
-        )
+        result = locations.get_schema_details(payload.schema_name, session=session)
     except RowMissingError:
         raise HTTPException(status_code=400, detail="No such schema")
     return LocationSchema(**result)
 
 
-@router.post("/delete-location-schema", status_code=status.HTTP_200_OK)
+class DeleteLocationSchemaRequest(BaseModel):
+    schema_name: str
+
+
+@router.post(
+    "/delete-location-schema",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def delete_location_schema(
-    schema_identifier: LocationSchemaIdentifier, session: Session = Depends(db_session)
+    payload: DeleteLocationSchemaRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Delete a location schema from the database.
-    Payload should have the form:
-    {'schema_name': <schema_name:str>}
-
     """
-    schema_name = schema_identifier.schema_name
+    schema_name = payload.schema_name
     try:
         locations.delete_location_schema(schema_name=schema_name, session=session)
         session.commit()
-        return MessageResponse(
-            detail=f"Location schema '{schema_name}' has been deleted."
-        )
     except RowMissingError:
         raise HTTPException(
             status_code=400, detail=f"Location schema '{schema_name}' not found."
         )
+    return MessageResponse(detail=f"Location schema '{schema_name}' has been deleted.")
 
 
-class DeleteLocationData(BaseModel):
+class DeleteLocationRequest(BaseModel):
     schema_name: str
     coordinates: Coordinates
 
 
-@router.post("/delete-location", status_code=status.HTTP_200_OK)
+@router.post(
+    "/delete-location",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def delete_location(
-    payload: DeleteLocationData, session: Session = Depends(db_session)
+    payload: DeleteLocationRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Delete a location with the specified schema name and coordinates.
     """
-
     try:
         locations.delete_location_by_coordinates(
             payload.schema_name, payload.coordinates.model_dump(), session=session

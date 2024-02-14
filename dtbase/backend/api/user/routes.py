@@ -11,7 +11,10 @@ from dtbase.backend.utils import db_session
 from dtbase.core import users
 
 router = APIRouter(
-    prefix="/user", tags=["user"], dependencies=[Depends(authenticate_access)]
+    prefix="/user",
+    tags=["user"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
 )
 
 

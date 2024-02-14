@@ -16,7 +16,10 @@ from dtbase.core import sensor_locations, sensors
 from dtbase.core.exc import RowMissingError
 
 router = APIRouter(
-    prefix="/sensor", tags=["sensor"], dependencies=[Depends(authenticate_access)]
+    prefix="/sensor",
+    tags=["sensor"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
 )
 
 

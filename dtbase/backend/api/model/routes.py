@@ -22,7 +22,10 @@ from dtbase.core import models
 from dtbase.core.exc import RowMissingError
 
 router = APIRouter(
-    prefix="/model", tags=["model"], dependencies=[Depends(authenticate_access)]
+    prefix="/model",
+    tags=["model"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
 )
 
 
@@ -167,7 +170,7 @@ class InsertModelRunData(BaseModel):
     sensor_measure: Optional[SensorMeasureIdentifier] = Field(default=None)
 
     # Needed because the field `model_name` conflicts with some Pydantic internals.
-    model_config = ConfigDict(protected_namespaces=[])
+    model_config = ConfigDict(protected_namespaces=())
 
 
 @router.post("/insert-model-run", status_code=status.HTTP_201_CREATED)
@@ -223,7 +226,7 @@ class ListModelRunsData(BaseModel):
     scenario: Optional[str] = Field(default=None)
 
     # Needed because the field `model_name` conflicts with some Pydantic internals.
-    model_config = ConfigDict(protected_namespaces=[])
+    model_config = ConfigDict(protected_namespaces=())
 
 
 class ModelRunData(BaseModel):
@@ -237,7 +240,7 @@ class ModelRunData(BaseModel):
     sensor_measure: Optional[SensorMeasureIdentifier] = Field(default=None)
 
     # Needed because the field `model_name` conflicts with some Pydantic internals.
-    model_config = ConfigDict(protected_namespaces=[])
+    model_config = ConfigDict(protected_namespaces=())
 
 
 @router.post("/list-model-runs", status_code=status.HTTP_200_OK)

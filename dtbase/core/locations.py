@@ -407,9 +407,7 @@ def list_locations(
     return result
 
 
-def get_schema_details(
-    schema_name: str, session: Session
-) -> Dict[str, int | str | list[dict[str, Any]]]:
+def get_schema_details(schema_name: str, session: Session) -> Dict[str, Any]:
     """Fetch details of a location schema from the database, including the identifiers
     associated with the schema.
 
