@@ -19,6 +19,7 @@ dependencies = [
     "flask_login ~= 0.6.3",
 
     "fastapi[all] ~= 0.109",
+    "PyJWT ~= 2.3",
 
     "Jinja2 ~= 3.1.2 ",
     "jinjasql ~= 0.1.8",
