@@ -1,8 +1,5 @@
-import typing as ty
-from collections.abc import Container, Mapping
-from typing import Generator, Optional, Tuple, Union
+from typing import Generator, Optional
 
-from flask import Response, jsonify
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session as SqlaSession
 from sqlalchemy.orm.scoping import scoped_session
@@ -53,39 +50,3 @@ def db_session() -> Generator[Session, None, None]:
     session_maker = global_session_maker()
     with session_maker() as session:
         yield session
-
-
-def set_session_if_unset(session: Optional[Session]) -> Session:
-    """Returns a default value for a `session` argument if it isn't set."""
-    if session is not None:
-        return session
-    else:
-        raise NotImplementedError("No default session is set.")
-
-
-T = ty.TypeVar("T")
-
-
-def check_keys(
-    payload: Mapping[T, str], keys: Container[T], api_endpoint: str
-) -> Union[Tuple[Response, int], None]:
-    """Check if `keys` are in `payload` and return a json response if not.
-
-    Args:
-        payload: Dictionary to check.
-        keys: List required keys to check for.
-        api_endpoint: API endpoint that was called.
-
-    Returns:
-        None if all keys are in payload, otherwise a json response with an error.
-    """
-
-    missing = [k for k in keys if k not in payload.keys()]
-    if missing:
-        return (
-            jsonify(
-                {"error": f"Must include {missing} in POST request to {api_endpoint}."}
-            ),
-            400,
-        )
-    return None
