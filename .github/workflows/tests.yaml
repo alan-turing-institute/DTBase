@@ -20,6 +20,7 @@ jobs:
       DT_SQL_TESTDBNAME: "test_db"
       DT_SQL_TESTPORT: "5432"
       DT_DEFAULT_USER_PASS: "password"
+      DT_JWT_SECRET_KEY: "this is a very random secret key"
     steps:
       - uses: actions/setup-python@v4
         with:
