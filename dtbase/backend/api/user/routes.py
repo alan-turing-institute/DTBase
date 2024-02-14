@@ -25,20 +25,16 @@ def list_users(session: Session = Depends(db_session)) -> list[str]:
     return emails
 
 
-@router.post("/create-user", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/create-user",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
 def create_user(
     credentials: LoginCredentials, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Create a new user.
-
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "email": <type_email:str>,
-      "password": <type_password:str>
-    }
-
-    Returns 409 if user already exists, otherwise 201.
     """
     email = credentials.email
     password = credentials.password
@@ -50,7 +46,11 @@ def create_user(
     return MessageResponse(detail="User created")
 
 
-@router.post("/delete-user", status_code=status.HTTP_200_OK)
+@router.post(
+    "/delete-user",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def delete_user(
     user_id: UserIdentifier, session: Session = Depends(db_session)
 ) -> MessageResponse:
@@ -63,11 +63,18 @@ def delete_user(
     return MessageResponse(detail="User deleted")
 
 
-@router.post("/change-password", status_code=status.HTTP_200_OK)
+@router.post(
+    "/change-password",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def change_password(
     credentials: LoginCredentials, session: Session = Depends(db_session)
 ) -> MessageResponse:
-    """Change a user's password."""
+    """Change a user's password.
+
+    The `password` field is the name password.
+    """
     email = credentials.email
     password = credentials.password
     try:

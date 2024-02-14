@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_access
-from dtbase.backend.models import MessageResponse, ValueType
+from dtbase.backend.models import MessageResponse, SensorMeasure, SensorType, ValueType
 from dtbase.backend.utils import db_session
 from dtbase.core import sensor_locations, sensors
 from dtbase.core.exc import RowMissingError
@@ -23,19 +23,11 @@ router = APIRouter(
 )
 
 
-class SensorMeasure(BaseModel):
-    name: str
-    units: Optional[str] = Field(default=None)
-    datatype: str
-
-
-class SensorType(BaseModel):
-    name: str
-    description: Optional[str] = Field(default=None)
-    measures: list[SensorMeasure]
-
-
-@router.post("/insert-sensor-type", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/insert-sensor-type",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
 def insert_sensor_type(
     payload: SensorType, session: Session = Depends(db_session)
 ) -> MessageResponse:
@@ -71,16 +63,20 @@ def insert_sensor_type(
     return MessageResponse(detail="Sensor type inserted")
 
 
-class InsertSensorInput(BaseModel):
+class InsertSensorRequest(BaseModel):
     type_name: str
     unique_identifier: str
     name: Optional[str] = Field(default=None)
     notes: Optional[str] = Field(default=None)
 
 
-@router.post("/insert-sensor", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/insert-sensor",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
 def insert_sensor(
-    payload: InsertSensorInput, session: Session = Depends(db_session)
+    payload: InsertSensorRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Add a sensor to the database.
@@ -94,7 +90,7 @@ def insert_sensor(
     return MessageResponse(detail="Sensor inserted")
 
 
-class SensorLocation(BaseModel):
+class InsertSensorLocationRequest(BaseModel):
     unique_identifier: str
     schema_name: str
     coordinates: dict[str, ValueType]
@@ -103,10 +99,12 @@ class SensorLocation(BaseModel):
 
 @router.post("/insert-sensor-location", status_code=status.HTTP_201_CREATED)
 def insert_sensor_location(
-    payload: SensorLocation, session: Session = Depends(db_session)
+    payload: InsertSensorLocationRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Add a sensor location installation to the database.
+
+    The `unique_identifier` field is the unique identifier of the sensor.
     """
     sensor_locations.insert_sensor_location(
         sensor_uniq_id=payload.unique_identifier,
@@ -119,27 +117,30 @@ def insert_sensor_location(
     return MessageResponse(detail="Sensor location inserted")
 
 
-class SensorIdentifier(BaseModel):
+class ListSensorLocationsRequest(BaseModel):
     unique_identifier: str
 
 
-LocationHistoryEntry = RootModel[dict[str, ValueType | datetime]]
+LocationHistoryResponse = RootModel[dict[str, ValueType | datetime]]
 
 
 @router.post("/list-sensor-locations", status_code=status.HTTP_200_OK)
 def list_sensor_locations(
-    payload: SensorIdentifier, session: Session = Depends(db_session)
-) -> list[LocationHistoryEntry]:
+    payload: ListSensorLocationsRequest, session: Session = Depends(db_session)
+) -> list[LocationHistoryResponse]:
     """
     Get the location history of a sensor.
+
+    The elements in the return value will have the keys `installation_datetime`, and
+    whatever location identifiers the relevant location schema has.
     """
     result = sensor_locations.get_location_history(
         sensor_uniq_id=payload.unique_identifier, session=session
     )
-    return [LocationHistoryEntry(**entry) for entry in result]
+    return [LocationHistoryResponse(**entry) for entry in result]
 
 
-class SensorReadings(BaseModel):
+class InsertSensorReadingsRequest(BaseModel):
     measure_name: str
     unique_identifier: str
     readings: list[ValueType]
@@ -148,10 +149,13 @@ class SensorReadings(BaseModel):
 
 @router.post("/insert-sensor-readings", status_code=status.HTTP_201_CREATED)
 def insert_sensor_readings(
-    payload: SensorReadings, session: Session = Depends(db_session)
+    payload: InsertSensorReadingsRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Add sensor readings to the database.
+
+    The `unique_identifier` field is the unique identifier of the sensor. There should
+    as mayn readings as there are timestamps.
     """
     sensors.insert_sensor_readings(
         measure_name=payload.measure_name,
@@ -164,11 +168,11 @@ def insert_sensor_readings(
     return MessageResponse(detail="Sensor readings inserted")
 
 
-class ListSensorsInput(BaseModel):
+class ListSensorsRequest(BaseModel):
     type_name: Optional[str] = Field(default=None)
 
 
-class ListSensorsOutput(BaseModel):
+class ListSensorsResponse(BaseModel):
     unique_identifier: str
     name: Optional[str] = Field(default=None)
     notes: Optional[str] = Field(default=None)
@@ -176,13 +180,13 @@ class ListSensorsOutput(BaseModel):
 
 @router.post("/list-sensors", status_code=status.HTTP_200_OK)
 def list_sensors(
-    payload: ListSensorsInput, session: Session = Depends(db_session)
-) -> list[ListSensorsOutput]:
+    payload: ListSensorsRequest, session: Session = Depends(db_session)
+) -> list[ListSensorsResponse]:
     """
     List sensors of a particular type in the database.
     """
     result = sensors.list_sensors(type_name=payload.type_name, session=session)
-    return [ListSensorsOutput(**sensor) for sensor in result]
+    return [ListSensorsResponse(**sensor) for sensor in result]
 
 
 @router.get("/list-sensor-types", status_code=status.HTTP_200_OK)
@@ -203,32 +207,39 @@ def list_sensor_measures(session: Session = Depends(db_session)) -> list[SensorM
     return [SensorMeasure(**measure) for measure in result]
 
 
-class SensorReadingsPayload(BaseModel):
+class SensorReadingsRequest(BaseModel):
     measure_name: str
     unique_identifier: str
     dt_from: datetime
     dt_to: datetime
 
 
-class Reading(BaseModel):
+class SensorReadingsResponse(BaseModel):
     value: ValueType
     timestamp: datetime
 
 
 @router.post("/sensor-readings", status_code=status.HTTP_200_OK)
 def get_sensor_readings(
-    payload: SensorReadingsPayload, session: Session = Depends(db_session)
-) -> list[Reading]:
+    payload: SensorReadingsRequest, session: Session = Depends(db_session)
+) -> list[SensorReadingsResponse]:
     """
     Get sensor readings for a specific measure and sensor between two dates.
     """
     readings = sensors.get_sensor_readings(**payload.model_dump(), session=session)
-    return [Reading(value=reading[0], timestamp=reading[1]) for reading in readings]
+    return [
+        SensorReadingsResponse(value=reading[0], timestamp=reading[1])
+        for reading in readings
+    ]
+
+
+class DeleteSensorRequest(BaseModel):
+    unique_identifier: str
 
 
 @router.post("/delete-sensor", status_code=status.HTTP_200_OK)
 def delete_sensor(
-    payload: SensorIdentifier, session: Session = Depends(db_session)
+    payload: DeleteSensorRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Delete a sensor from the database.
@@ -238,13 +249,13 @@ def delete_sensor(
     return MessageResponse(detail="Sensor deleted")
 
 
-class SensorTypeIdentifier(BaseModel):
+class DeleteSensorTypeRequest(BaseModel):
     type_name: str
 
 
 @router.post("/delete-sensor-type", status_code=status.HTTP_200_OK)
 def delete_sensor_type(
-    payload: SensorTypeIdentifier, session: Session = Depends(db_session)
+    payload: DeleteSensorTypeRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Delete a sensor type from the database.
@@ -254,18 +265,25 @@ def delete_sensor_type(
     return MessageResponse(detail="Sensor type deleted")
 
 
-class EditSensorInput(BaseModel):
+class EditSensorRequest(BaseModel):
     unique_identifier: str
     name: str
     notes: str
 
 
-@router.post("/edit-sensor", status_code=status.HTTP_200_OK)
+@router.post(
+    "/edit-sensor",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
 def edit_sensor(
-    payload: EditSensorInput, session: Session = Depends(db_session)
+    payload: EditSensorRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
     """
     Edit a sensor in the database.
+
+    The `unique_identifier` field identifies the sensor, the `name` and `notes` fields
+    are the new values.
     """
     try:
         sensors.edit_sensor(

@@ -5,7 +5,7 @@ contains models used by multiple endpoints.
 """
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 ValueType = float | bool | int | str
 
@@ -69,5 +69,16 @@ class ModelMeasure(BaseModel):
 
 class SensorMeasure(BaseModel):
     name: str
-    units: str
+    units: Optional[str]
     datatype: str
+
+
+class SensorType(BaseModel):
+    name: str
+    description: Optional[str] = Field(default=None)
+    measures: list[SensorMeasure]
+
+
+class SensorMeasureIdentifier(BaseModel):
+    name: str
+    units: Optional[str]

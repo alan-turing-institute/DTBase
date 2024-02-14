@@ -16,7 +16,7 @@ from dtbase.core.structure import (
 
 
 def measure_id_from_name_and_units(
-    measure_name: str, measure_units: str, session: Session
+    measure_name: str, measure_units: Optional[str], session: Session
 ) -> Any:
     """
     Find the id of a sensor measure of the given name and units.
@@ -24,7 +24,7 @@ def measure_id_from_name_and_units(
 
     Args:
         measure_name: Name of the sensor measure
-        measure_units: Name of the sensor measure
+        measure_units: Name of the sensor measure. Can be None.
         session: SQLAlchemy session. Optional.
 
     Returns:
@@ -86,7 +86,7 @@ def sensor_id_from_unique_identifier(unique_identifier: str, session: Session) -
 
 def insert_sensor_measure(
     name: str,
-    units: str,
+    units: Optional[str],
     datatype: str | int | int | float,
     session: Session,
 ) -> None:
@@ -97,7 +97,7 @@ def insert_sensor_measure(
 
     Args:
         name: Name of this measure, e.g. "temperature".
-        units: Units in which this measure is specified.
+        units: Units in which this measure is specified. Can be None.
         datatype: Value type of this sensor measure. Has to be one of "string",
             "integer", "float", or "boolean".
         session: SQLAlchemy session. Optional.
@@ -113,7 +113,7 @@ def insert_sensor_measure(
 
 def insert_sensor_type(
     name: str,
-    description: str,
+    description: Optional[str],
     measures: list[dict[str, Optional[str]]],
     session: Session,
 ) -> None:
@@ -125,7 +125,7 @@ def insert_sensor_type(
 
     Args:
         name: Name of this sensor type
-        description: Free form text description, for human consumption.
+        description: Free form text description, for human consumption. Can be None.
         measures: List of sensor measures that this sensor type can report.
             This should be a list of dicts with keys 'name' and 'units', that
             correspond to existing measures in the database.

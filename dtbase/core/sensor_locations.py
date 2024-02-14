@@ -1,5 +1,6 @@
 """Functions for accessing the sensor_location table."""
 import datetime as dt
+from typing import Any
 
 import sqlalchemy as sqla
 
@@ -52,7 +53,7 @@ def insert_sensor_location(
     session.flush()
 
 
-def get_location_history(sensor_uniq_id: str, session: Session) -> None:
+def get_location_history(sensor_uniq_id: str, session: Session) -> list[dict[str, Any]]:
     """Location history of one sensor.
 
     Args:
