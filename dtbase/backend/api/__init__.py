@@ -8,7 +8,7 @@ from dtbase.backend.api.location.routes import router as location_router
 from dtbase.backend.api.model.routes import router as model_router
 from dtbase.backend.api.sensor.routes import router as sensor_router
 from dtbase.backend.api.user.routes import router as user_router
-from dtbase.backend.utils import (
+from dtbase.backend.db import (
     create_global_database_connection,
     global_engine,
     global_session_maker,
@@ -27,8 +27,8 @@ def add_routers(app: FastAPI) -> None:
     app.include_router(auth_router)
     app.include_router(location_router)
     app.include_router(model_router)
-    app.include_router(sensor_router)
     app.include_router(user_router)
+    app.include_router(sensor_router)
 
 
 def configure_database(app: FastAPI) -> None:

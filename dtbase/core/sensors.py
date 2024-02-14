@@ -4,8 +4,8 @@ from typing import Any, List, Optional, Sequence
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session
 from dtbase.core import queries, utils
+from dtbase.core.db import Session
 from dtbase.core.exc import RowMissingError
 from dtbase.core.structure import (
     Sensor,

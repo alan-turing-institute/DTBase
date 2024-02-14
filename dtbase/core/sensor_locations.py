@@ -4,8 +4,8 @@ from typing import Any
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session
 from dtbase.core import queries, sensors, utils
+from dtbase.core.db import Session
 from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocation
 
 

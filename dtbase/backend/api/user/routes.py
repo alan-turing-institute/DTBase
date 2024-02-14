@@ -6,8 +6,8 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_access
+from dtbase.backend.db import db_session
 from dtbase.backend.models import LoginCredentials, MessageResponse, UserIdentifier
-from dtbase.backend.utils import db_session
 from dtbase.core import users
 
 router = APIRouter(

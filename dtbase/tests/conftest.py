@@ -89,14 +89,14 @@ def engine() -> Generator[Engine, None, None]:
     all tests.
     """
     engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    with mock.patch("dtbase.backend.utils.DB_ENGINE", wraps=engine):
+    with mock.patch("dtbase.backend.db.DB_ENGINE", wraps=engine):
         yield engine
 
 
 @pytest.fixture(scope="session")
 def session_maker(engine: Engine) -> Generator[sessionmaker, None, None]:
     session_maker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    with mock.patch("dtbase.backend.utils.DB_SESSION_MAKER", wraps=session_maker):
+    with mock.patch("dtbase.backend.db.DB_SESSION_MAKER", wraps=session_maker):
         yield session_maker
 
 

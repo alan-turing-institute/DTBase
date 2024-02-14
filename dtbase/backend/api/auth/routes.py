@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_refresh, create_token_pair
+from dtbase.backend.db import db_session
 from dtbase.backend.models import (
     LoginCredentials,
     MessageResponse,
     ParsedToken,
     TokenPair,
 )
-from dtbase.backend.utils import db_session
 from dtbase.core import users
 
 router = APIRouter(prefix="/auth", tags=["auth"])

@@ -3,7 +3,7 @@ from typing import List
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session
+from dtbase.core.db import Session
 from dtbase.core.structure import User
 
 

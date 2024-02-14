@@ -1,16 +1,10 @@
 from typing import Generator, Optional
 
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session as SqlaSession
-from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.orm.session import sessionmaker
 
+from dtbase.core.db import Session
 from dtbase.core.utils import connect_db
-
-# We may have to deal with various objects that represent a database connection session,
-# so make a union type of all of them. This is used for type annotations around the
-# codebase.
-Session = scoped_session[SqlaSession] | SqlaSession
 
 # These are the global database connection objects. They start out being None, since we
 # don't want simply importing this module to create a database connection. One is

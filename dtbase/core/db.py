@@ -8,12 +8,19 @@ import sqlalchemy as sqla
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session as SqlaSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy_utils import database_exists, drop_database
 
 from dtbase.core.constants import SQL_DEFAULT_DBNAME
 from dtbase.core.exc import DatabaseConnectionError
 from dtbase.core.structure import Base
+
+# We may have to deal with various objects that represent a database connection session,
+# so make a union type of all of them. This is used for type annotations around the
+# codebase.
+Session = scoped_session[SqlaSession] | SqlaSession
 
 
 def create_tables(engine: Engine) -> None:

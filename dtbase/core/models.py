@@ -4,8 +4,8 @@ from typing import Any, List, Optional, Tuple
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session
 from dtbase.core import sensors, utils
+from dtbase.core.db import Session
 from dtbase.core.exc import RowMissingError, TooManyRowsError
 from dtbase.core.structure import (
     Model,
