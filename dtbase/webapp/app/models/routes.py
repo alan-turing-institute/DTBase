@@ -4,6 +4,7 @@ A module for the main dashboard actions
 import datetime as dt
 from typing import Any, Dict, List, Optional
 
+from dateutil.parser import parse
 from flask import render_template, request
 from flask_login import current_user, login_required
 
@@ -161,11 +162,9 @@ def index() -> str:
     run_id = int(run_id) if run_id is not None else None
     date_from = request.form.get("startDate", None)
     date_to = request.form.get("endDate", None)
-    date_to = dt.date.today() if date_to is None else dt.date.fromisoformat(date_to)
+    date_to = dt.date.today() if date_to is None else parse(date_to)
     date_from = (
-        date_to - dt.timedelta(days=1)
-        if date_from is None
-        else dt.date.fromisoformat(date_from)
+        date_to - dt.timedelta(days=1) if date_from is None else parse(date_from)
     )
     # Make the date limits into inclusive datetime limits
     dt_from = dt.datetime.combine(date_from, dt.time(hour=0, minute=0, second=0))

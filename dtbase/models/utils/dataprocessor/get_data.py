@@ -7,6 +7,7 @@ import logging
 from typing import Optional, Tuple
 
 import pandas as pd
+from dateutil.parser import parse
 
 from dtbase.core.exc import BackendCallError
 from dtbase.core.utils import auth_backend_call, login
@@ -89,7 +90,7 @@ def get_training_data(
                 {
                     measure_name: r["value"],
                     "sensor_unique_id": sensor,
-                    "timestamp": dt.datetime.fromisoformat(r["timestamp"]),
+                    "timestamp": parse(r["timestamp"]),
                 }
                 for r in readings
             ]

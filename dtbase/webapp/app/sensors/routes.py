@@ -7,6 +7,7 @@ import re
 from typing import Any, Dict, List
 
 import pandas as pd
+from dateutil.parser import parse
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
@@ -93,7 +94,7 @@ def fetch_sensor_data(
             readings = response.json()
             index = [x["timestamp"] for x in readings]
             values = [x["value"] for x in readings]
-            index = list(map(dt.datetime.fromisoformat, index))
+            index = list(map(parse, index))
             series = pd.Series(data=values, index=index, name=measure["name"])
             measure_readings_list.append(series)
         df = pd.concat(measure_readings_list, axis=1)
@@ -153,12 +154,8 @@ def time_series_plots() -> Response:
 
     # Convert datetime strings to objects and make dt_to run to the end of the day in
     # question.
-    dt_from = dt.datetime.fromisoformat(dt_from)
-    dt_to = (
-        dt.datetime.fromisoformat(dt_to)
-        + dt.timedelta(days=1)
-        + dt.timedelta(milliseconds=-1)
-    )
+    dt_from = parse(dt_from)
+    dt_to = parse(dt_to) + dt.timedelta(days=1) + dt.timedelta(milliseconds=-1)
 
     # Get all the sensor measures for this sensor type.
     measures = next(

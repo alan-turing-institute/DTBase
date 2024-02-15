@@ -4,6 +4,7 @@ Test API endpoints for models
 import datetime as dt
 
 import pytest
+from dateutil.parser import parse
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
@@ -316,9 +317,7 @@ def test_list_model_runs(auth_client: TestClient) -> None:
         if "time_created" in run:
             # The conversion to and from isoformat is because of ambiguity in having a
             # trailing Z vs +00:00.
-            run["time_created"] = dt.datetime.fromisoformat(
-                run["time_created"]
-            ).isoformat()
+            run["time_created"] = parse(run["time_created"]).isoformat()
         assert set(run.keys()) == expected_keys
         expected_run = RUN1 if run["id"] == 1 else RUN2
         for k in expected_keys:
@@ -351,7 +350,7 @@ def test_get_model_run(auth_client: TestClient) -> None:
         if "timestamp" in v:
             # The conversion to and from isoformat is because of ambiguity in having a
             # trailing Z vs +00:00.
-            v["timestamp"] = dt.datetime.fromisoformat(v["timestamp"]).isoformat()
+            v["timestamp"] = parse(v["timestamp"]).isoformat()
     assert key in {MEASURE_NAME1, MEASURE_NAME2}
     if key == MEASURE_NAME1:
         expected_product = PRODUCT1
