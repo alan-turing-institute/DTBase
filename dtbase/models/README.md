@@ -5,13 +5,13 @@ This readme details how to write your own models in DTBase.
 ## BaseModel
 
 The `BaseModel` class has all the general purpose tools for interacting with the backend (and TODO: Azure Functions). It inherits from `BaseService`.
-For a custom models, the user should create their own custom DataModelClass inheriting from the `BaseModel` class.
+For a custom models, the user should create their own custom Model Class inheriting from the `BaseModel` class.
 For example:
 
 ```
-class CustomDataModel(BaseModel):
+class CustomModel(BaseModel):
     """
-    Custom class inheriting from the BaseModel class for interacting with the OpenWeatherData API.
+    Custom model inheriting from the BaseModel class.
     """
 
     def __init__(self) -> None:
@@ -37,9 +37,9 @@ The structure of the data being returned by the function should be as follows:
 ```
 For models, the endpoints that likely need to be returned are:
 
-- /model/insert-model
-- insert-model-scenario
-- insert-model-measure
-- /model/insert-model-run
+- `/model/insert-model`
+- `/model/insert-model-scenario`
+- `/model/insert-model-measure`
+- `/model/insert-model-run`
 
 TODO Provide a simple example
