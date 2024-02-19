@@ -19,3 +19,4 @@
     complaining about the database failing, you can manually login to the PostgreSQL
     server you've created and create the database yourself. You will then have a
     functioning deployment of DTBase. Hopefully soon this workaround won't be necessary.
+14. Set up continuous deployment by selecting your WebApp in the Azure Portal, navigating to Deployment Center, enabling continuous deployment under Container Registry, adding the image name, and copying the generated Webhook URL; then, head to DockerHub, select the linked container, create a new webhook using the copied URL, and repeat for each WebApp.
