@@ -1,11 +1,9 @@
 import logging
 import os
-import sys
 from copy import deepcopy
 from datetime import timedelta
 from typing import Optional, Tuple, Union
 
-import coloredlogs
 import numpy as np
 import pandas as pd
 import pydantic
@@ -32,13 +30,6 @@ _defaults = read_config(_config_file_path, "arima")
 
 # set up logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-field_styles = coloredlogs.DEFAULT_FIELD_STYLES
-
-# change the default levelname color from black to yellow
-field_styles["levelname"]["color"] = "yellow"
-coloredlogs.ColoredFormatter(field_styles=field_styles)
-coloredlogs.install(level="INFO")
 
 
 class ConfigArima(pydantic.BaseModel):
@@ -74,13 +65,12 @@ class ArimaModel(BaseModel):
         Report errors if the input data is not a pandas Series indexed by timestamp.
         """
         if not isinstance(data.index, pd.DatetimeIndex):
-            logger.error(
+            raise ValueError(
                 "The time series on which to train the ARIMA model must be indexed by "
                 "timestamp."
             )
-            raise ValueError
 
-    def get_config_from_config_files(self) -> ConfigArima:
+    def set_config_defaults(self) -> None:
         # Populate the config dictionary
         if self.config is None:
             self.config = {}
@@ -197,11 +187,10 @@ class ArimaModel(BaseModel):
         """
         arima_config = self.config["arima"]
         if arima_config.hours_forecast <= 0:
-            logger.error(
+            raise ValueError(
                 "The 'hours_forecast' parameter in config_arima.ini "
                 "must be greater than zero."
             )
-            raise Exception
         end_of_sample_timestamp = data.index[-1]
         forecast_timestamp = end_of_sample_timestamp + timedelta(
             hours=arima_config.hours_forecast
