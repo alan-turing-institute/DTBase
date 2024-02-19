@@ -14,8 +14,9 @@ from dtbase.core.utils import auth_backend_call, log_rest_response, login
 
 class BaseService:
     """
-    Base class for all services. Users inherit this class to write custom modelling and
-    data ingress services. The user should implement the following methods:
+    Base class for all services. This class should provide all generic methods for any
+    services such as ingress and models. BaseModel and BaseIngress inherit from this
+    method.
     """
 
     def __init__(self) -> None:
@@ -30,7 +31,7 @@ class BaseService:
         """
         self.access_token = login(username, password)[0]
 
-    def get_service_data(self) -> None:
+    def get_service_data(self) -> list[tuple[str, dict]]:
         """
         Method for getting data from a source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
@@ -56,15 +57,15 @@ class BaseService:
         dt_user_password: Optional[str] = None,
     ) -> List[Response]:
         """
-        Upload data to the database via the backend via a post request.
+        Upload data to the database using the backend API.
         Handles unpacking of data pairs and returns responses from the backend.
 
         Args:
             data_pairs: list of tuples of the form [(<endpoint_name>, <payload>)].
             It must be a list even if its a single tuple. Typically, this is the output
             from self.run().
-            dt_user_email: email of the backend user to login with. By default read from
-                the environment variable DT_DEFAULT_USER_EMAIL.
+            dt_user_email: email of the backend user to login with. By default read
+              from the environment variable DT_DEFAULT_USER_EMAIL.
             dt_user_password: password of the backend user to login with. By default
                 read from the environment variable DT_DEFAULT_USER_PASS.
 
@@ -103,19 +104,12 @@ class BaseService:
         data_pairs = self.get_service_data(**kwargs)
         return self.post_service_data(data_pairs, dt_user_email, dt_user_password)
 
-    def schedule(self) -> None:
-        """
-        This method will handle the scheduling of the service.
-        Arguments taken in this method will control how often __call__ method is called.
-        """
-        pass
-
 
 class BaseIngress(BaseService):
     """
     Class to be inherited for custom data Ingress.
-    The user should implement the call method.
-    The call method should return a list of tuples. A tuple should
+    The user should implement the get_service_data method.
+    The get_service_data method should return a list of tuples. A tuple should
     be in the format [(<endpoint_name>, <payload>)]. It must be a list even if
     its a single tuple.
     """
@@ -124,7 +118,7 @@ class BaseIngress(BaseService):
         super().__init__()
         self.service_type = "ingress"
 
-    def get_service_data(self) -> None:
+    def get_service_data(self) -> list[tuple[str, dict]]:
         """
         Method for getting data from a source and returning Backend API Endpoints names
         and payload pairs. This method should be implemented when inheriting from this
@@ -204,12 +198,26 @@ class BaseModel(BaseService):
 
         For a Model Service, this would typically look like:
         return [
-            ("/model/insert-model", MODEL_PAYLOAD),
-            ("/model/insert-model-parameters", MODEL_PARAMETERS_PAYLOAD),
-            ("/model/insert-model-predictions", MODEL_PREDICTIONS_PAYLOAD),
+            ("/model/insert-model", {'name': 'test_model'}),
+
+            ("/model/insert-model-scenario",
+            {'model_name': 'test_model', 'description': 'business as usual'}),
+
+            ("/model/insert-model-measures",
+            "name": 'measure_name', "units": 'measure_units', "datatype": 'float'),
+
+            ("/model/insert-model-run", {'model_name': 'test_model',
+            'scenario_description': 'business as usual',
+            'measure_and_values': {'measure_name': 'measure_value',
+            'values': [1, 2, 3], timestamps: ['2021-01-01 00:00:00',
+            '2021-01-01 00:00:01', '2021-01-01 00:00:02']},
+            'sensor_unique_id': 0,
+            'sensor_measure': {
+                'name': 'measure_name',
+                'units': 'measure_units',π
+            }}),
         ]
 
-        Below is an example return value for inserting a model and its parameters.
         """
         raise NotImplementedError(
             "The user should implement this method"
