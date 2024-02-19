@@ -4,7 +4,7 @@ import logging
 
 from azure.functions import HttpRequest, HttpResponse
 
-from dtbase.models.arima_old.run_pipeline import run_pipeline
+from dtbase.models.arima import ArimaModel
 
 
 def main(req: HttpRequest) -> HttpResponse:
@@ -16,7 +16,9 @@ def main(req: HttpRequest) -> HttpResponse:
         if req.get_body():
             return HttpResponse("Malformed body, JSON expected", status_code=400)
         config = None
-    run_pipeline(config)
+
+    arima = ArimaModel(config)
+    arima()
 
     logging.info("Finished Arima function.")
     return HttpResponse("Successfully ran Arima.", status_code=200)
