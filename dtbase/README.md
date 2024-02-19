@@ -35,4 +35,4 @@ This is where the code for specific models is located. Instructions for how to w
 
 ## Ingress
 
-This is where code for specific data ingress is located. Data ingress is the act of pulling in data from another source such as an external API or database and inserting into the dtbase database via the backend. Instructions for how to write custom models can be found [here](ingress/README.md).
+This is where code for specific data ingress is located. Data ingress is the act of pulling in data from another source such as an external API or database and inserting into the dtbase database via the backend. Instructions for how to write custom ingress classes can be found [here](ingress/README.md).
