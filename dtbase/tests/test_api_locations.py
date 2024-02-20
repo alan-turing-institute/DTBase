@@ -317,7 +317,7 @@ def test_unauthorized(client: TestClient, app: FastAPI) -> None:
             # Route, raise an error.
             raise ValueError(f"route {route} is not a Route")
         methods = route.methods
-        if not methods or not route.path.startswith("/user"):
+        if not methods or not route.path.startswith("/location"):
             continue
         for method in methods:
             assert_unauthorized(client, method.lower(), route.path)
