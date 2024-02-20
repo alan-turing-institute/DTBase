@@ -25,3 +25,9 @@ repos:
   - id: prettier
     files: ^dtbase/webapp
     args: [--ignore-path=dtbase/webapp/.prettierignore]
+- repo: https://github.com/pre-commit/mirrors-eslint
+  rev: v7.32.0
+  hooks:
+  - id: eslint
+    files: \.tsx?$
+    types: [file]
