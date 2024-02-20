@@ -12,12 +12,6 @@ from dtbase.tests.utils import assert_unauthorized
 DOCKER_RUNNING = check_for_docker()
 
 
-# use the test_user fixture to add a user to the database
-@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_user(test_user: None) -> None:
-    assert True
-
-
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_location_schema(auth_client: TestClient) -> None:
     schema = {
