@@ -115,6 +115,30 @@ def delete_parameter_set(service_name: str, name: str, session: Session) -> None
     session.flush()
 
 
+def edit_parameter_set(
+    service_name: str,
+    name: str,
+    parameters: dict,
+    session: Session,
+) -> None:
+    """
+    Edits a parameter set in the database.
+    """
+    service_id = get_service_id(service_name, session)
+    query_result = (
+        session.query(ServiceParameterSet)
+        .filter(ServiceParameterSet.service_id == service_id)
+        .filter(ServiceParameterSet.name == name)
+        .scalar()
+    )
+    if query_result is None:
+        raise RowMissingError(
+            f"No parameter set with name {name} for service {service_name} exists."
+        )
+    query_result.parameters = parameters
+    session.flush()
+
+
 def run_service(
     service_name: str,
     session: Session,
@@ -174,7 +198,7 @@ def run_service(
     session.flush()
 
 
-def list_service_runs(
+def list_runs(
     session: Session,
     service_name: Optional[str] = None,
     parameter_set_name: Optional[str] = None,
@@ -198,7 +222,6 @@ def list_service_runs(
 
     query = (
         sqla.select(
-            ServiceRunLog.id,
             Service.name.label("service_name"),
             ServiceParameterSet.name.label("parameter_set_name"),
             ServiceRunLog.parameters,

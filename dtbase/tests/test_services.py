@@ -146,6 +146,45 @@ def test_insert_parameter_set_duplicate(session: Session) -> None:
         insert_parameter_sets(session)
 
 
+def test_edit_parameter_set(session: Session) -> None:
+    """
+    Test the edit_parameter_set function.
+    """
+    insert_parameter_sets(session)
+    service.edit_parameter_set(
+        service_name=SERVICE1_NAME,
+        name=SERVICE_PARAMETERS1_NAME,
+        parameters={"new_param": "new_value"},
+        session=session,
+    )
+    session.commit()
+    assert service.list_parameter_sets(service_name=SERVICE1_NAME, session=session) == [
+        {
+            "service_name": SERVICE1_NAME,
+            "name": SERVICE_PARAMETERS1_NAME,
+            "parameters": {"new_param": "new_value"},
+        },
+        {
+            "service_name": SERVICE1_NAME,
+            "name": SERVICE_PARAMETERS2_NAME,
+            "parameters": SERVICE_PARAMETERS2,
+        },
+    ]
+
+
+def test_edit_parameter_set_nonexistent(session: Session) -> None:
+    """
+    Test the edit_parameter_set function.
+    """
+    with pytest.raises(RowMissingError):
+        service.edit_parameter_set(
+            service_name=SERVICE1_NAME,
+            name=SERVICE_PARAMETERS1_NAME,
+            parameters={"new_param": "new_value"},
+            session=session,
+        )
+
+
 def test_run_service_with_parameter_set(session: Session) -> None:
     """
     Test the run_service function.
@@ -202,7 +241,7 @@ def test_run_service_with_conflicting_parameters(session: Session) -> None:
         )
 
 
-def test_list_service_runs(session: Session) -> None:
+def test_list_runs(session: Session) -> None:
     """
     Test the run_service function.
     """
@@ -237,17 +276,17 @@ def test_list_service_runs(session: Session) -> None:
         )
         session.commit()
 
-        runs = service.list_service_runs(service_name=SERVICE1_NAME, session=session)
+        runs = service.list_runs(service_name=SERVICE1_NAME, session=session)
         assert len(runs) == 3
-        runs = service.list_service_runs(service_name=SERVICE2_NAME, session=session)
+        runs = service.list_runs(service_name=SERVICE2_NAME, session=session)
         assert len(runs) == 1
-        runs = service.list_service_runs(
+        runs = service.list_runs(
             service_name=SERVICE1_NAME,
             parameter_set_name=SERVICE_PARAMETERS2_NAME,
             session=session,
         )
         assert len(runs) == 1
-        runs = service.list_service_runs(session=session)
+        runs = service.list_runs(session=session)
         assert len(runs) == 4
 
         expected_run1 = {
