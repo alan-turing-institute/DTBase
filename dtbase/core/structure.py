@@ -674,16 +674,16 @@ class Service(Base):
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
 
-class ServiceParameters(Base):
+class ServiceParameterSet(Base):
     """
     Services that can be called.
     """
 
-    __tablename__ = "service_parameters"
+    __tablename__ = "service_parameter_set"
 
     # columns
     id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False, unique=True)
+    name = Column(Text, nullable=False)
     service_id = Column(
         Integer,
         ForeignKey("service.id", ondelete="CASCADE", onupdate="CASCADE"),
@@ -692,6 +692,9 @@ class ServiceParameters(Base):
     parameters = Column(JSON, nullable=False)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("service_id", "name"),)
 
 
 class ServiceRunLog(Base):
@@ -707,13 +710,14 @@ class ServiceRunLog(Base):
         ForeignKey("service.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
     )
-    parameters_id = Column(
+    parameters = Column(JSON, nullable=False)
+    parameter_set_id = Column(
         Integer,
-        ForeignKey("service_parameters.id", ondelete="CASCADE", onupdate="CASCADE"),
-        nullable=False,
+        ForeignKey("service_parameter_set.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=True,
     )
     response_status_code = Column(Integer, nullable=False)
-    response = Column(JSON, nullable=False)
+    response_json = Column(JSON, nullable=True)
     timestamp = Column(DateTime(timezone=True), nullable=False)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())

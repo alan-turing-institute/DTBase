@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from dtbase.core import utils
 from dtbase.core.db import Session
 from dtbase.core.exc import RowExistsError, RowMissingError
-from dtbase.core.structure import Service, ServiceParameters, ServiceRunLog
+from dtbase.core.structure import Service, ServiceParameterSet, ServiceRunLog
 
 HTTPMethods = Literal["GET", "POST", "PUT", "DELETE"]
 
@@ -39,14 +39,14 @@ def insert_service(
         raise RowExistsError(f"A service with name {name} already exists.")
 
 
-def insert_service_parameters(
+def insert_parameter_set(
     service_name: str, name: str, parameters: dict, session: Session
 ) -> None:
     """
-    Inserts new service parameters into the database.
+    Inserts new parameter set into the database.
     """
     service_id = get_service_id(service_name, session)
-    new_parameters = ServiceParameters(
+    new_parameters = ServiceParameterSet(
         service_id=service_id, parameters=parameters, name=name
     )
     session.add(new_parameters)
@@ -58,13 +58,7 @@ def list_services(session: Session) -> List[dict[str, Any]]:
     Return all services from the database.
     """
     result = (
-        session.execute(
-            sqla.select(
-                Service.name,
-                Service.url,
-                Service.http_method,
-            )
-        )
+        session.execute(sqla.select(Service.name, Service.url, Service.http_method))
         .mappings()
         .all()
     )
@@ -72,25 +66,25 @@ def list_services(session: Session) -> List[dict[str, Any]]:
     return result
 
 
-def list_service_parameters(
+def list_parameter_sets(
     session: Session, service_name: Optional[str] = None
 ) -> List[dict[str, Any]]:
     """
-    Return all service parameters from the database.
+    Return all parameter sets from the database.
 
     Args:
         session: SQLAlchemy session.
-        service_name: Optional service name. If None (default), return parameters for
-            all services.
+        service_name: Optional service name. If None (default), return parameter sets
+        for all services.
 
     Return:
-        List of rows from the ServiceParameters table, as dictionaries.
+        List of rows from the ServiceParameterSet table, as dictionaries.
     """
     query = sqla.select(
-        ServiceParameters.name,
+        ServiceParameterSet.name,
         Service.name.label("service_name"),
-        ServiceParameters.parameters,
-    ).join(Service, Service.id == ServiceParameters.service_id)
+        ServiceParameterSet.parameters,
+    ).join(Service, Service.id == ServiceParameterSet.service_id)
     if service_name is not None:
         query = query.where(Service.name == service_name)
     result = session.execute(query).mappings().all()
@@ -102,48 +96,78 @@ def delete_service(service_name: str, session: Session) -> None:
     """
     Deletes a service from the database.
     """
-    session.query(Service).filter(Service.name == service_name).delete()
+    try:
+        session.query(Service).filter(Service.name == service_name).delete()
+    except IntegrityError:
+        session.rollback()
+        raise RowMissingError(f"No service with name {service_name} exists.")
     session.flush()
 
 
-def delete_service_parameters(service_name: str, name: str, session: Session) -> None:
+def delete_parameter_set(service_name: str, name: str, session: Session) -> None:
     """
-    Deletes service parameters from the database.
+    Deletes service parameter set from the database.
     """
     service_id = get_service_id(service_name, session)
-    session.query(ServiceParameters).filter(
-        ServiceParameters.service_id == service_id
+    session.query(ServiceParameterSet).filter(
+        ServiceParameterSet.service_id == service_id
     ).delete()
     session.flush()
 
 
-def run_service(service_name: str, parameters_name: str, session: Session) -> None:
+def run_service(
+    service_name: str,
+    session: Session,
+    parameters: Optional[dict] = None,
+    parameter_set_name: Optional[str] = None,
+) -> None:
     """
     Runs a service with the given parameters.
+
+    One, but not both, of parameters and parameter_set_name can be provided.
     """
-    service_parameters = (
-        session.query(ServiceParameters)
-        .join(Service, Service.id == ServiceParameters.service_id)
-        .filter(Service.name == service_name)
-        .filter(ServiceParameters.name == parameters_name)
-        .one_or_none()
+    service_query_result = (
+        session.query(Service).filter(Service.name == service_name).scalar()
     )
-    if service_parameters is None:
-        raise RowMissingError(
-            f"No parameters with name {parameters_name} for service {service_name}."
-        )
-    url = session.query(Service.url).filter(Service.name == service_name).scalar()
-    if url is None:
+    if service_query_result is None:
         raise RowMissingError(f"No service with name {service_name} exists.")
+    url = service_query_result.url
+    service_id = service_query_result.id
+    method = service_query_result.http_method
+
+    if parameters is not None and parameter_set_name is not None:
+        raise ValueError("parameters and parameter_set_name cannot both be provided.")
+    if parameter_set_name is not None:
+        parameter_query_result = (
+            session.query(ServiceParameterSet)
+            .join(Service, Service.id == ServiceParameterSet.service_id)
+            .filter(Service.name == service_name)
+            .filter(ServiceParameterSet.name == parameter_set_name)
+            .scalar()
+        )
+        if parameter_query_result is None:
+            raise RowMissingError(
+                f"No parameter set called {parameter_set_name} "
+                f"for service {service_name}."
+            )
+        parameters = parameter_query_result.parameters
+        parameter_set_id = parameter_query_result.id
+    else:
+        parameter_set_id = None
 
     timestamp = dt.datetime.now()
-    response = requests.post(url, json=service_parameters.parameters)
-    service_id = get_service_id(service_name, session)
+    request_method = getattr(requests, method.lower())
+    response = request_method(url, json=parameters)
+    try:
+        body = response.json()
+    except requests.exceptions.JSONDecodeError:
+        body = None
     new_log = ServiceRunLog(
         service_id=service_id,
-        parameters_id=service_parameters.id,
+        parameter_set_id=parameter_set_id,
+        parameters=parameters,
         response_status_code=response.status_code,
-        response=response.json(),
+        response_json=body,
         timestamp=timestamp,
     )
     session.add(new_log)
@@ -153,7 +177,7 @@ def run_service(service_name: str, parameters_name: str, session: Session) -> No
 def list_service_runs(
     session: Session,
     service_name: Optional[str] = None,
-    service_parameters_name: Optional[str] = None,
+    parameter_set_name: Optional[str] = None,
 ) -> list[dict]:
     """
     Get the run history for a given service.
@@ -162,34 +186,36 @@ def list_service_runs(
         session: SQLAlchemy session.
         service_name: Optional service name. If None (default), return run history for
             all services.
-        service_parameters_name: Optional service parameters name. If None (default),
-            return run history for all parameters. Can only be provided if service_name
-            is also provided.
+        parameter_set_name: Optional service parameter set name. If None
+            (default), return run history for all sets. Can only be provided if
+            service_name is also provided.
 
     Returns:
         List of run history rows, as dictionaries.
     """
-    if service_name is None and service_parameters_name is not None:
-        raise ValueError(
-            "service_parameters_name cannot be provided without service_name."
-        )
+    if service_name is None and parameter_set_name is not None:
+        raise ValueError("parameter_set_name cannot be provided without service_name.")
 
     query = (
         sqla.select(
             ServiceRunLog.id,
             Service.name.label("service_name"),
-            ServiceParameters.name.label("parameters_name"),
+            ServiceParameterSet.name.label("parameter_set_name"),
+            ServiceRunLog.parameters,
             ServiceRunLog.response_status_code,
-            ServiceRunLog.response,
+            ServiceRunLog.response_json,
             ServiceRunLog.timestamp,
         )
         .join(Service, Service.id == ServiceRunLog.service_id)
-        .join(ServiceParameters, ServiceParameters.id == ServiceRunLog.parameters_id)
+        .outerjoin(
+            ServiceParameterSet,
+            ServiceParameterSet.id == ServiceRunLog.parameter_set_id,
+        )
     )
     if service_name is not None:
         query = query.where(Service.name == service_name)
-    if service_parameters_name is not None:
-        query = query.where(ServiceParameters.name == service_parameters_name)
+    if parameter_set_name is not None:
+        query = query.where(ServiceParameterSet.name == parameter_set_name)
     result = session.execute(query).mappings().all()
     result = utils.row_mappings_to_dicts(result)
     return result

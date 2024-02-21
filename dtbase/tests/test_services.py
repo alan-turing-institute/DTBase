@@ -9,7 +9,7 @@ import requests_mock
 from sqlalchemy.orm import Session
 
 from dtbase.core import service
-from dtbase.core.exc import RowExistsError
+from dtbase.core.exc import RowExistsError, RowMissingError
 
 SERVICE1_NAME = "Test Service"
 SERVICE1_URL = "http://test.service/is-not-a-real-thing"
@@ -33,7 +33,7 @@ SERVICE_PARAMETERS2 = {
 }
 
 
-def insert_service(session: Session) -> None:
+def insert_services(session: Session) -> None:
     """
     Insert a service into the database.
     """
@@ -49,33 +49,35 @@ def insert_service(session: Session) -> None:
         http_method=SERVICE2_METHOD,
         session=session,
     )
+    session.commit()
 
 
-def insert_service_parameters(session: Session) -> None:
+def insert_parameter_sets(session: Session) -> None:
     """
     Insert a service parameters set into the database.
     """
-    insert_service(session)
-    service.insert_service_parameters(
+    insert_services(session)
+    service.insert_parameter_set(
         SERVICE1_NAME, SERVICE_PARAMETERS1_NAME, SERVICE_PARAMETERS1, session=session
     )
-    service.insert_service_parameters(
+    service.insert_parameter_set(
         SERVICE1_NAME, SERVICE_PARAMETERS2_NAME, SERVICE_PARAMETERS2, session=session
     )
+    session.commit()
 
 
 def test_insert_service(session: Session) -> None:
     """
     Test the insert_service function.
     """
-    insert_service(session)
+    insert_services(session)
 
 
 def test_list_service(session: Session) -> None:
     """
     Test the insert_service function.
     """
-    insert_service(session)
+    insert_services(session)
     service_list = service.list_services(session)
     assert len(service_list) == 2
     assert service_list == [
@@ -96,23 +98,23 @@ def test_insert_service_duplicate(session: Session) -> None:
     """
     Test the insert_service function with a duplicate service name.
     """
-    insert_service(session)
+    insert_services(session)
     with pytest.raises(RowExistsError):
-        insert_service(session)
+        insert_services(session)
 
 
-def test_insert_service_parameters(session: Session) -> None:
+def test_insert_parameter_set(session: Session) -> None:
     """
-    Test the insert_service_parameters function.
+    Test the insert_parameter_set function.
     """
-    insert_service_parameters(session)
+    insert_parameter_sets(session)
 
 
-def test_list_service_parameters(session: Session) -> None:
+def test_list_parameter_sets(session: Session) -> None:
     """
-    Test the list_service_parameters function.
+    Test the list_parameter_sets function.
     """
-    insert_service_parameters(session)
+    insert_parameter_sets(session)
     expected_values = [
         {
             "name": SERVICE_PARAMETERS1_NAME,
@@ -126,70 +128,145 @@ def test_list_service_parameters(session: Session) -> None:
         },
     ]
     assert (
-        service.list_service_parameters(service_name=SERVICE1_NAME, session=session)
+        service.list_parameter_sets(service_name=SERVICE1_NAME, session=session)
         == expected_values
     )
-    assert service.list_service_parameters(session=session) == expected_values
+    assert service.list_parameter_sets(session=session) == expected_values
     assert (
-        service.list_service_parameters(service_name=SERVICE2_NAME, session=session)
-        == []
+        service.list_parameter_sets(service_name=SERVICE2_NAME, session=session) == []
     )
 
 
-def test_insert_service_parameters_duplicate(session: Session) -> None:
+def test_insert_parameter_set_duplicate(session: Session) -> None:
     """
-    Test the insert_service_parameters function with a duplicate parameter set name.
+    Test the insert_parameter_set function with a duplicate parameter set name.
     """
-    insert_service_parameters(session)
+    insert_parameter_sets(session)
     with pytest.raises(RowExistsError):
-        insert_service_parameters(session)
+        insert_parameter_sets(session)
 
 
-def test_run_service(session: Session) -> None:
+def test_run_service_with_parameter_set(session: Session) -> None:
     """
     Test the run_service function.
     """
-    insert_service_parameters(session)
+    insert_parameter_sets(session)
     with requests_mock.Mocker() as m:
         TEST_RETURN = {"message": "Well hello there"}
         m.post(SERVICE1_URL, json=TEST_RETURN)
-        service.run_service(SERVICE1_NAME, SERVICE_PARAMETERS1_NAME, session=session)
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS1_NAME,
+            session=session,
+        )
+
+
+def test_run_service_with_nonexistent_parameter_set(session: Session) -> None:
+    """
+    Test the run_service function.
+    """
+    with pytest.raises(RowMissingError):
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS1_NAME,
+            session=session,
+        )
+
+
+def test_run_service_with_parameters(session: Session) -> None:
+    """
+    Test the run_service function.
+    """
+    insert_parameter_sets(session)
+    with requests_mock.Mocker() as m:
+        TEST_RETURN = {"message": "Well hello there"}
+        m.post(SERVICE1_URL, json=TEST_RETURN)
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameters={"param1": "value1"},
+            session=session,
+        )
+
+
+def test_run_service_with_conflicting_parameters(session: Session) -> None:
+    """
+    Test the run_service function.
+    """
+    insert_services(session)
+    with pytest.raises(ValueError):
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS1_NAME,
+            parameters={"param1": "value1"},
+            session=session,
+        )
 
 
 def test_list_service_runs(session: Session) -> None:
     """
     Test the run_service function.
     """
-    insert_service_parameters(session)
+    insert_parameter_sets(session)
     now = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
     with requests_mock.Mocker() as m, mock.patch("dtbase.core.service.dt") as mock_dt:
         mock_dt.datetime.now.return_value = now
         test_return = {"message": "Well hello there"}
         m.post(SERVICE1_URL, json=test_return)
+        m.get(SERVICE2_URL, json=None, status_code=404)
 
-        service.run_service(SERVICE1_NAME, SERVICE_PARAMETERS1_NAME, session=session)
-        service.run_service(SERVICE1_NAME, SERVICE_PARAMETERS1_NAME, session=session)
-        service.run_service(SERVICE1_NAME, SERVICE_PARAMETERS2_NAME, session=session)
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS1_NAME,
+            session=session,
+        )
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS1_NAME,
+            session=session,
+        )
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS2_NAME,
+            session=session,
+        )
+        test_params = {"param1": "value1"}
+        service.run_service(
+            service_name=SERVICE2_NAME,
+            parameters=test_params,
+            session=session,
+        )
+        session.commit()
 
         runs = service.list_service_runs(service_name=SERVICE1_NAME, session=session)
         assert len(runs) == 3
         runs = service.list_service_runs(service_name=SERVICE2_NAME, session=session)
-        assert len(runs) == 0
+        assert len(runs) == 1
         runs = service.list_service_runs(
             service_name=SERVICE1_NAME,
-            service_parameters_name=SERVICE_PARAMETERS2_NAME,
+            parameter_set_name=SERVICE_PARAMETERS2_NAME,
             session=session,
         )
         assert len(runs) == 1
         runs = service.list_service_runs(session=session)
-        assert len(runs) == 3
+        assert len(runs) == 4
 
-        expected_run = {
+        expected_run1 = {
             "id": 1,
             "service_name": SERVICE1_NAME,
-            "parameters_name": SERVICE_PARAMETERS1_NAME,
+            "parameter_set_name": SERVICE_PARAMETERS1_NAME,
+            "parameters": SERVICE_PARAMETERS1,
             "timestamp": now,
-            "response": test_return,
+            "response_json": test_return,
             "response_status_code": 200,
         }
-        assert expected_run in runs
+        expected_run2 = {
+            "id": 4,
+            "service_name": SERVICE2_NAME,
+            "parameter_set_name": None,
+            "parameters": test_params,
+            "timestamp": now,
+            "response_json": None,
+            "response_status_code": 404,
+        }
+        assert expected_run1 in runs
+        assert expected_run2 in runs
