@@ -9,6 +9,7 @@ import requests_mock
 from dateutil.parser import parse
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from httpx import Response
 from starlette.routing import Route
 
 from dtbase.tests.conftest import check_for_docker
@@ -44,18 +45,76 @@ NAMED_PARAMETERS2 = {
     "name": "Lavender",
     "parameters": {"honey_type": "lavender"},
 }
+SERVICE1_RESPONSE = {"message": "Here's your milk"}
+SERVICE2_RESPONSE = {"message": "Here's your honey"}
+
+
+def insert_services(auth_client: TestClient) -> list[Response]:
+    responses = []
+    responses.append(auth_client.post("/service/insert-service", json=SERVICE1))
+    responses.append(auth_client.post("/service/insert-service", json=SERVICE2))
+    return responses
+
+
+def insert_parameter_sets(auth_client: TestClient) -> list[Response]:
+    responses = []
+    responses.append(
+        auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
+    )
+    responses.append(
+        auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS2)
+    )
+    return responses
+
+
+def insert_runs(auth_client: TestClient) -> list[Response]:
+    with requests_mock.Mocker() as m:
+        m.get(SERVICE1["url"], json=SERVICE1_RESPONSE)
+        m.post(SERVICE2["url"], json=SERVICE2_RESPONSE, status_code=201)
+        responses = []
+        responses.append(
+            auth_client.post(
+                "/service/run-service",
+                json={
+                    "service_name": NAMED_PARAMETERS1["service_name"],
+                    "parameter_set_name": NAMED_PARAMETERS1["name"],
+                },
+            )
+        )
+        responses.append(
+            auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS1)
+        )
+        responses.append(
+            auth_client.post(
+                "/service/run-service",
+                json={
+                    "service_name": NAMED_PARAMETERS2["service_name"],
+                    "parameter_set_name": NAMED_PARAMETERS2["name"],
+                },
+            )
+        )
+        responses.append(
+            auth_client.post(
+                "/service/run-service",
+                json={
+                    "service_name": NAMED_PARAMETERS1["service_name"],
+                    "parameter_set_name": NAMED_PARAMETERS1["name"],
+                },
+            )
+        )
+    return responses
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_service(auth_client: TestClient) -> None:
-    response = auth_client.post("/service/insert-service", json=SERVICE1)
-    assert response.status_code == 201
+    responses = insert_services(auth_client)
+    for response in responses:
+        assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_services(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-service", json=SERVICE2)
+    insert_services(auth_client)
     response = auth_client.get("/service/list-services")
     assert response.status_code == 200
     assert response.json() == [SERVICE1, SERVICE2]
@@ -63,8 +122,7 @@ def test_list_services(auth_client: TestClient) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_service(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-service", json=SERVICE2)
+    insert_services(auth_client)
     auth_client.post("/service/delete-service", json={"name": SERVICE1["name"]})
     response = auth_client.get("/service/list-services")
     assert response.status_code == 200
@@ -73,17 +131,16 @@ def test_delete_service(auth_client: TestClient) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_insert_parameter_set(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    response = auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
-    assert response.status_code == 201
+    insert_services(auth_client)
+    responses = insert_parameter_sets(auth_client)
+    for response in responses:
+        assert response.status_code == 201
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_list_parameter_sets(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-service", json=SERVICE2)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS2)
+    insert_services(auth_client)
+    insert_parameter_sets(auth_client)
     response = auth_client.post("/service/list-parameter-sets")
     assert response.status_code == 200
     assert response.json() == [NAMED_PARAMETERS1, NAMED_PARAMETERS2]
@@ -96,10 +153,8 @@ def test_list_parameter_sets(auth_client: TestClient) -> None:
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_edit_parameter_set(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-service", json=SERVICE2)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS2)
+    insert_services(auth_client)
+    insert_parameter_sets(auth_client)
     edited_parameters = NAMED_PARAMETERS1.copy()
     edited_parameters["parameters"]["quantity"] = 1.5
     response = auth_client.post("/service/edit-parameter-set", json=edited_parameters)
@@ -111,8 +166,8 @@ def test_edit_parameter_set(auth_client: TestClient) -> None:
 
 
 def test_run_service_named_parameters(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
+    insert_services(auth_client)
+    insert_parameter_sets(auth_client)
     with requests_mock.Mocker() as m:
         m.get(SERVICE1["url"], json={"message": "Here's your milk"})
         response = auth_client.post(
@@ -126,52 +181,29 @@ def test_run_service_named_parameters(auth_client: TestClient) -> None:
 
 
 def test_run_service_unnamed_parameters(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
+    insert_services(auth_client)
     with requests_mock.Mocker() as m:
         m.get(SERVICE1["url"], json={"message": "Here's your milk"})
         response = auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS1)
     assert response.status_code == 200
 
 
+def test_insert_runs(auth_client: TestClient) -> None:
+    insert_services(auth_client)
+    insert_parameter_sets(auth_client)
+    responses = insert_runs(auth_client)
+    for response in responses:
+        assert response.status_code == 200
+
+
 def test_list_runs(auth_client: TestClient) -> None:
-    auth_client.post("/service/insert-service", json=SERVICE1)
-    auth_client.post("/service/insert-service", json=SERVICE2)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS1)
-    auth_client.post("/service/insert-parameter-set", json=NAMED_PARAMETERS2)
+    insert_services(auth_client)
+    insert_parameter_sets(auth_client)
 
     now = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
-    with requests_mock.Mocker() as m, mock.patch("dtbase.core.service.dt") as mock_dt:
+    with mock.patch("dtbase.core.service.dt") as mock_dt:
         mock_dt.datetime.now.return_value = now
-        m.get(SERVICE1["url"], json={"message": "Here's your milk"})
-        m.post(SERVICE2["url"], json={"message": "Here's your honey"}, status_code=201)
-        auth_client.post(
-            "/service/run-service",
-            json={
-                "service_name": NAMED_PARAMETERS1["service_name"],
-                "parameter_set_name": NAMED_PARAMETERS1["name"],
-            },
-        )
-        auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS1)
-        auth_client.post(
-            "/service/run-service",
-            json={
-                "service_name": NAMED_PARAMETERS2["service_name"],
-                "parameter_set_name": NAMED_PARAMETERS2["name"],
-            },
-        )
-        auth_client.post(
-            "/service/run-service",
-            json={
-                "service_name": NAMED_PARAMETERS1["service_name"],
-                "parameter_set_name": NAMED_PARAMETERS1["name"],
-            },
-        )
-
-    response = auth_client.post("/service/list-runs", json={})
-    assert response.status_code == 200
-    response_json = response.json()
-    for run in response_json:
-        run["timestamp"] = parse(run["timestamp"])
+        insert_runs(auth_client)
 
     expected_runs = [
         {
@@ -207,7 +239,40 @@ def test_list_runs(auth_client: TestClient) -> None:
             "timestamp": now,
         },
     ]
+
+    # Get all runs
+    response = auth_client.post("/service/list-runs")
+    assert response.status_code == 200
+    response_json = response.json()
+    for run in response_json:
+        run["timestamp"] = parse(run["timestamp"])
     for expected_run in expected_runs:
+        assert expected_run in response_json
+
+    # Get runs for service 1
+    response = auth_client.post(
+        "/service/list-runs", json={"service_name": SERVICE1["name"]}
+    )
+    assert response.status_code == 200
+    response_json = response.json()
+    for run in response_json:
+        run["timestamp"] = parse(run["timestamp"])
+    for expected_run in expected_runs[:2] + [expected_runs[3]]:
+        assert expected_run in response_json
+
+    # Get runs for service 1 with a specific parameter set
+    response = auth_client.post(
+        "/service/list-runs",
+        json={
+            "service_name": SERVICE1["name"],
+            "parameter_set_name": NAMED_PARAMETERS1["name"],
+        },
+    )
+    assert response.status_code == 200
+    response_json = response.json()
+    for run in response_json:
+        run["timestamp"] = parse(run["timestamp"])
+    for expected_run in [expected_runs[0]] + [expected_runs[3]]:
         assert expected_run in response_json
 
 

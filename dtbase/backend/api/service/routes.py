@@ -118,7 +118,7 @@ class DeleteParameterSetRequest(BaseModel):
 def delete_parameter_set(
     payload: DeleteParameterSetRequest, session: Session = Depends(db_session)
 ) -> MessageResponse:
-    """Insert a named parameter set for a service."""
+    """Delete a named parameter set."""
     try:
         service.delete_parameter_set(session=session, **payload.model_dump())
         session.commit()
@@ -145,7 +145,7 @@ def list_parameter_sets(
     payload: Optional[ListParameterSetsRequest] = None,
     session: Session = Depends(db_session),
 ) -> list[ParameterSet]:
-    """List all parameter sets for a service.
+    """List all parameter sets.
 
     Optionally filter by service name.
     """
@@ -235,8 +235,15 @@ class ServiceRun(BaseModel):
 
 @router.post("/list-runs", status_code=status.HTTP_200_OK)
 def list_runs(
-    payload: ListServiceRunsRequest, session: Session = Depends(db_session)
+    payload: Optional[ListServiceRunsRequest] = None,
+    session: Session = Depends(db_session),
 ) -> list[ServiceRun]:
-    """List all runs of a service."""
+    """List all runs of a service.
+
+    Filtering by service name and/or parameter set name is optional. Filtering by
+    parameter set can only be done if a service name is provided.
+    """
+    if payload is None:
+        payload = ListServiceRunsRequest(service_name=None, parameter_set_name=None)
     runs = service.list_runs(session=session, **payload.model_dump())
     return [ServiceRun(**r) for r in runs]
