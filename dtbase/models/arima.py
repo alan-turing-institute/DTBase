@@ -58,6 +58,7 @@ class ArimaModel(BaseModel):
     def __init__(self, config: Optional[dict] = None) -> None:
         super().__init__()
         self.config = config
+        self.set_config_defaults()
 
     @staticmethod
     def _report_errors_for_data(data: pd.Series) -> None:
