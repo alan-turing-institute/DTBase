@@ -16,7 +16,7 @@ class BaseService:
     """
     Base class for all services. This class should provide all generic methods for any
     services such as ingress and models. BaseModel and BaseIngress inherit from this
-    method.
+    class.
     """
 
     def __init__(self) -> None:
