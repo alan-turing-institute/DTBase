@@ -227,7 +227,7 @@ class ListServiceRunsRequest(BaseModel):
 class ServiceRun(BaseModel):
     service_name: str
     parameter_set_name: Optional[str]
-    parameters: dict
+    parameters: Optional[dict]
     response_json: Optional[dict]
     response_status_code: int
     timestamp: dt.datetime

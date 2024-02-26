@@ -34,6 +34,12 @@ UNNAMED_PARAMETERS1 = {
     "parameters": {"milk_type": "whole", "quantity": 1},
 }
 
+UNNAMED_PARAMETERS2 = {
+    "service_name": "Collect honey",
+    "name": "Lavender",
+    "parameters": None,
+}
+
 NAMED_PARAMETERS1 = {
     "service_name": "Get me some milk",
     "name": "Half a pint of skimmed",
@@ -92,6 +98,9 @@ def insert_runs(auth_client: TestClient) -> list[Response]:
                     "parameter_set_name": NAMED_PARAMETERS2["name"],
                 },
             )
+        )
+        responses.append(
+            auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS2)
         )
         responses.append(
             auth_client.post(
@@ -169,7 +178,7 @@ def test_run_service_named_parameters(auth_client: TestClient) -> None:
     insert_services(auth_client)
     insert_parameter_sets(auth_client)
     with requests_mock.Mocker() as m:
-        m.get(SERVICE1["url"], json={"message": "Here's your milk"})
+        m.get(SERVICE1["url"], json=SERVICE1_RESPONSE)
         response = auth_client.post(
             "/service/run-service",
             json={
@@ -183,9 +192,12 @@ def test_run_service_named_parameters(auth_client: TestClient) -> None:
 def test_run_service_unnamed_parameters(auth_client: TestClient) -> None:
     insert_services(auth_client)
     with requests_mock.Mocker() as m:
-        m.get(SERVICE1["url"], json={"message": "Here's your milk"})
+        m.get(SERVICE1["url"], json=SERVICE1_RESPONSE)
+        m.post(SERVICE2["url"], json=SERVICE2_RESPONSE)
         response = auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS1)
-    assert response.status_code == 200
+        assert response.status_code == 200
+        response = auth_client.post("/service/run-service", json=UNNAMED_PARAMETERS2)
+        assert response.status_code == 200
 
 
 def test_insert_runs(auth_client: TestClient) -> None:
@@ -210,7 +222,7 @@ def test_list_runs(auth_client: TestClient) -> None:
             "service_name": NAMED_PARAMETERS1["service_name"],
             "parameter_set_name": NAMED_PARAMETERS1["name"],
             "parameters": NAMED_PARAMETERS1["parameters"],
-            "response_json": {"message": "Here's your milk"},
+            "response_json": SERVICE1_RESPONSE,
             "response_status_code": 200,
             "timestamp": now,
         },
@@ -218,7 +230,7 @@ def test_list_runs(auth_client: TestClient) -> None:
             "service_name": UNNAMED_PARAMETERS1["service_name"],
             "parameter_set_name": None,
             "parameters": UNNAMED_PARAMETERS1["parameters"],
-            "response_json": {"message": "Here's your milk"},
+            "response_json": SERVICE1_RESPONSE,
             "response_status_code": 200,
             "timestamp": now,
         },
@@ -226,7 +238,15 @@ def test_list_runs(auth_client: TestClient) -> None:
             "service_name": NAMED_PARAMETERS2["service_name"],
             "parameter_set_name": NAMED_PARAMETERS2["name"],
             "parameters": NAMED_PARAMETERS2["parameters"],
-            "response_json": {"message": "Here's your honey"},
+            "response_json": SERVICE2_RESPONSE,
+            "response_status_code": 201,
+            "timestamp": now,
+        },
+        {
+            "service_name": UNNAMED_PARAMETERS2["service_name"],
+            "parameter_set_name": None,
+            "parameters": UNNAMED_PARAMETERS2["parameters"],
+            "response_json": SERVICE2_RESPONSE,
             "response_status_code": 201,
             "timestamp": now,
         },
@@ -234,7 +254,7 @@ def test_list_runs(auth_client: TestClient) -> None:
             "service_name": NAMED_PARAMETERS1["service_name"],
             "parameter_set_name": NAMED_PARAMETERS1["name"],
             "parameters": NAMED_PARAMETERS1["parameters"],
-            "response_json": {"message": "Here's your milk"},
+            "response_json": SERVICE1_RESPONSE,
             "response_status_code": 200,
             "timestamp": now,
         },
@@ -257,7 +277,7 @@ def test_list_runs(auth_client: TestClient) -> None:
     response_json = response.json()
     for run in response_json:
         run["timestamp"] = parse(run["timestamp"])
-    for expected_run in expected_runs[:2] + [expected_runs[3]]:
+    for expected_run in expected_runs[:2] + [expected_runs[4]]:
         assert expected_run in response_json
 
     # Get runs for service 1 with a specific parameter set
@@ -272,7 +292,7 @@ def test_list_runs(auth_client: TestClient) -> None:
     response_json = response.json()
     for run in response_json:
         run["timestamp"] = parse(run["timestamp"])
-    for expected_run in [expected_runs[0]] + [expected_runs[3]]:
+    for expected_run in [expected_runs[0]] + [expected_runs[4]]:
         assert expected_run in response_json
 
 
