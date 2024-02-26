@@ -284,8 +284,10 @@ def test_run_service_with_conflicting_parameters(session: Session) -> None:
     """
     Test the run_service function.
     """
-    insert_services(session)
-    with pytest.raises(ValueError):
+    insert_parameter_sets(session)
+    with requests_mock.Mocker() as m:
+        TEST_RETURN = {"message": "Well hello there"}
+        m.post(SERVICE1_URL, json=TEST_RETURN)
         service.run_service(
             service_name=SERVICE1_NAME,
             parameter_set_name=SERVICE_PARAMETERS1_NAME,
@@ -327,10 +329,17 @@ def test_list_runs(session: Session) -> None:
             parameters=test_params,
             session=session,
         )
+        test_params = {"param1": "value1"}
+        service.run_service(
+            service_name=SERVICE1_NAME,
+            parameter_set_name=SERVICE_PARAMETERS2_NAME,
+            parameters=test_params,
+            session=session,
+        )
         session.commit()
 
         runs = service.list_runs(service_name=SERVICE1_NAME, session=session)
-        assert len(runs) == 3
+        assert len(runs) == 4
         runs = service.list_runs(service_name=SERVICE2_NAME, session=session)
         assert len(runs) == 1
         runs = service.list_runs(
@@ -338,9 +347,9 @@ def test_list_runs(session: Session) -> None:
             parameter_set_name=SERVICE_PARAMETERS2_NAME,
             session=session,
         )
-        assert len(runs) == 1
+        assert len(runs) == 2
         runs = service.list_runs(session=session)
-        assert len(runs) == 4
+        assert len(runs) == 5
 
         expected_run1 = {
             "service_name": SERVICE1_NAME,
@@ -358,5 +367,23 @@ def test_list_runs(session: Session) -> None:
             "response_json": None,
             "response_status_code": 404,
         }
+        expected_run3 = {
+            "service_name": SERVICE1_NAME,
+            "parameter_set_name": SERVICE_PARAMETERS2_NAME,
+            "parameters": SERVICE_PARAMETERS2,
+            "timestamp": now,
+            "response_json": test_return,
+            "response_status_code": 200,
+        }
+        expected_run4 = {
+            "service_name": SERVICE1_NAME,
+            "parameter_set_name": SERVICE_PARAMETERS2_NAME,
+            "parameters": test_params,
+            "timestamp": now,
+            "response_json": test_return,
+            "response_status_code": 200,
+        }
         assert expected_run1 in runs
         assert expected_run2 in runs
+        assert expected_run3 in runs
+        assert expected_run4 in runs

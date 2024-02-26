@@ -111,6 +111,16 @@ def insert_runs(auth_client: TestClient) -> list[Response]:
                 },
             )
         )
+        responses.append(
+            auth_client.post(
+                "/service/run-service",
+                json={
+                    "service_name": NAMED_PARAMETERS1["service_name"],
+                    "parameter_set_name": NAMED_PARAMETERS1["name"],
+                    "parameters": UNNAMED_PARAMETERS1["parameters"],
+                },
+            )
+        )
     return responses
 
 
@@ -272,6 +282,14 @@ def test_list_runs(auth_client: TestClient) -> None:
             "response_status_code": 200,
             "timestamp": now,
         },
+        {
+            "service_name": NAMED_PARAMETERS1["service_name"],
+            "parameter_set_name": NAMED_PARAMETERS1["name"],
+            "parameters": UNNAMED_PARAMETERS1["parameters"],
+            "response_json": SERVICE1_RESPONSE,
+            "response_status_code": 200,
+            "timestamp": now,
+        },
     ]
 
     # Get all runs
@@ -291,8 +309,9 @@ def test_list_runs(auth_client: TestClient) -> None:
     response_json = response.json()
     for run in response_json:
         run["timestamp"] = parse(run["timestamp"])
-    for expected_run in expected_runs[:2] + [expected_runs[4]]:
-        assert expected_run in response_json
+    for expected_run in expected_runs:
+        if expected_run["service_name"] == SERVICE1["name"]:
+            assert expected_run in response_json
 
     # Get runs for service 1 with a specific parameter set
     response = auth_client.post(
@@ -306,8 +325,12 @@ def test_list_runs(auth_client: TestClient) -> None:
     response_json = response.json()
     for run in response_json:
         run["timestamp"] = parse(run["timestamp"])
-    for expected_run in [expected_runs[0]] + [expected_runs[4]]:
-        assert expected_run in response_json
+    for expected_run in expected_runs:
+        if (
+            expected_run["service_name"] == SERVICE1["name"]
+            and expected_run["parameter_set_name"] == NAMED_PARAMETERS1["name"]
+        ):
+            assert expected_run in response_json
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

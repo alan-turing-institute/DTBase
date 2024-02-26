@@ -148,7 +148,8 @@ def run_service(
     """
     Runs a service with the given parameters.
 
-    One, but not both, of parameters and parameter_set_name can be provided.
+    If parameter_set_name is provided but parameters is not, the stored parameters for
+    the parameter set will be used.
     """
     service_query_result = (
         session.query(Service).filter(Service.name == service_name).scalar()
@@ -159,8 +160,6 @@ def run_service(
     service_id = service_query_result.id
     method = service_query_result.http_method
 
-    if parameters is not None and parameter_set_name is not None:
-        raise ValueError("parameters and parameter_set_name cannot both be provided.")
     if parameter_set_name is not None:
         parameter_query_result = (
             session.query(ServiceParameterSet)
@@ -174,7 +173,8 @@ def run_service(
                 f"No parameter set called {parameter_set_name} "
                 f"for service {service_name}."
             )
-        parameters = parameter_query_result.parameters
+        if parameters is None:
+            parameters = parameter_query_result.parameters
         parameter_set_id = parameter_query_result.id
     else:
         parameter_set_id = None
