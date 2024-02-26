@@ -132,10 +132,24 @@ def test_list_services(auth_client: TestClient) -> None:
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
 def test_delete_service(auth_client: TestClient) -> None:
     insert_services(auth_client)
-    auth_client.post("/service/delete-service", json={"name": SERVICE1["name"]})
+    response = auth_client.post(
+        "/service/delete-service", json={"name": SERVICE1["name"]}
+    )
+    assert response.status_code == 200
+    response = auth_client.get("/service/list-services")
+    assert response.json() == [SERVICE2]
+
+
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
+def test_delete_service_non_existent(auth_client: TestClient) -> None:
+    insert_services(auth_client)
+    response = auth_client.post(
+        "/service/delete-service", json={"name": "This ain't no service"}
+    )
+    assert response.status_code == 400
     response = auth_client.get("/service/list-services")
     assert response.status_code == 200
-    assert response.json() == [SERVICE2]
+    assert response.json() == [SERVICE1, SERVICE2]
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")

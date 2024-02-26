@@ -185,6 +185,59 @@ def test_edit_parameter_set_nonexistent(session: Session) -> None:
         )
 
 
+def test_delete_service(session: Session) -> None:
+    """
+    Test the delete_service function.
+    """
+    insert_services(session)
+    service.delete_service(service_name=SERVICE1_NAME, session=session)
+    assert service.list_services(session) == [
+        {
+            "name": SERVICE2_NAME,
+            "url": SERVICE2_URL,
+            "http_method": SERVICE2_METHOD,
+        },
+    ]
+
+
+def test_delete_service_non_existent(session: Session) -> None:
+    """
+    Test the delete_service function with a service that doesn't exist.
+    """
+    insert_services(session)
+    with pytest.raises(RowMissingError):
+        service.delete_service(service_name="No such service", session=session)
+
+
+def test_delete_parameter_set(session: Session) -> None:
+    """
+    Test the delete_parameter_set function.
+    """
+    insert_parameter_sets(session)
+    service.delete_parameter_set(
+        service_name=SERVICE1_NAME, name=SERVICE_PARAMETERS1_NAME, session=session
+    )
+    expected_values = [
+        {
+            "name": SERVICE_PARAMETERS2_NAME,
+            "parameters": SERVICE_PARAMETERS2,
+            "service_name": SERVICE1_NAME,
+        },
+    ]
+    assert service.list_parameter_sets(session=session) == expected_values
+
+
+def test_delete_parameter_set_non_existent(session: Session) -> None:
+    """
+    Test the delete_parameter_set function with a set that doesn't exist.
+    """
+    insert_parameter_sets(session)
+    with pytest.raises(RowMissingError):
+        service.delete_parameter_set(
+            service_name=SERVICE1_NAME, name="No such set", session=session
+        )
+
+
 def test_run_service_with_parameter_set(session: Session) -> None:
     """
     Test the run_service function.
@@ -290,7 +343,6 @@ def test_list_runs(session: Session) -> None:
         assert len(runs) == 4
 
         expected_run1 = {
-            "id": 1,
             "service_name": SERVICE1_NAME,
             "parameter_set_name": SERVICE_PARAMETERS1_NAME,
             "parameters": SERVICE_PARAMETERS1,
@@ -299,7 +351,6 @@ def test_list_runs(session: Session) -> None:
             "response_status_code": 200,
         }
         expected_run2 = {
-            "id": 4,
             "service_name": SERVICE2_NAME,
             "parameter_set_name": None,
             "parameters": test_params,
