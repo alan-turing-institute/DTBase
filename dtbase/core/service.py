@@ -96,10 +96,8 @@ def delete_service(service_name: str, session: Session) -> None:
     """
     Deletes a service from the database.
     """
-    try:
-        session.query(Service).filter(Service.name == service_name).delete()
-    except IntegrityError:
-        session.rollback()
+    result = session.execute(sqla.delete(Service).where(Service.name == service_name))
+    if result.rowcount == 0:
         raise RowMissingError(f"No service with name {service_name} exists.")
     session.flush()
 
@@ -109,9 +107,17 @@ def delete_parameter_set(service_name: str, name: str, session: Session) -> None
     Deletes service parameter set from the database.
     """
     service_id = get_service_id(service_name, session)
-    session.query(ServiceParameterSet).filter(
-        ServiceParameterSet.service_id == service_id
-    ).delete()
+    result = session.execute(
+        sqla.delete(ServiceParameterSet).where(
+            (ServiceParameterSet.service_id == service_id)
+            & (ServiceParameterSet.name == name)
+        )
+    )
+    if result.rowcount == 0:
+        raise RowMissingError(
+            f"No parameter set for service {service_name} with name "
+            f"{service_name} exists."
+        )
     session.flush()
 
 
