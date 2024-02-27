@@ -147,7 +147,9 @@ def add_string_column(
             values.append(basename + str(random.randint(1, 9)))
 
 
-def generate_trh_readings(sensor_ids: List[int] = list(range(1, 9))) -> pd.DataFrame:
+def generate_trh_readings(
+    sensor_ids: List[int] = list(range(1, 9)), add_noise: bool = True
+) -> pd.DataFrame:
     """
     Generate a pandas dataframe for each sensor id, then
     concatenate them at the end.
@@ -167,12 +169,14 @@ def generate_trh_readings(sensor_ids: List[int] = list(range(1, 9))) -> pd.DataF
         # yearly oscillation
         df = add_sinusoid(df, "temperature", 4.0, 60 * 60 * 24 * 365)
         # random noise
-        df = add_gaussian_noise(df, "temperature", 0.0, 0.5)
+        if add_noise:
+            df = add_gaussian_noise(df, "temperature", 0.0, 0.5)
         ### Humidity
         df = add_const_offset(df, "humidity", 50.0)
         df = add_sinusoid(df, "humidity", 10.0, 60 * 60 * 24)
         df = add_sinusoid(df, "humidity", 10.0, 60 * 60 * 24 * 365)
-        df = add_gaussian_noise(df, "humidity", 0.0, 3.0)
+        if add_noise:
+            df = add_gaussian_noise(df, "humidity", 0.0, 3.0)
         df = convert_timestamp_column(df)
         df["sensor_id"] = sensor_id
         dfs.append(df)
