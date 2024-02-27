@@ -148,7 +148,7 @@
             <td>{{ run.parameter_set_name }}</td>
             <td>{{ run.parameters }}</td>
             <td><span style="color: {{run.status_colour}}">{{ run.response_status_code }} - {{ run.status_description }}</span></td>
-            <td>{{ run.response_json }}</td>
+            <td>{{ run.response_json | tojson }}</td>
           </tr>
         {% endfor %}
         <tr>
