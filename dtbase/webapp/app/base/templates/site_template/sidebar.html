@@ -71,6 +71,15 @@
 
 
     <li class="nav-item">
+      <a href="/services/index"
+        class="nav-link text-dark {{ 'active text-white' if request.path == '/services/index' else '' }}">
+        <i class="fa fa-exchange me-2 fa-fw"></i>
+        Services
+      </a>
+    </li>
+
+
+    <li class="nav-item">
       <a href="/users/index"
         class="nav-link text-dark {{ 'active text-white' if request.path == '/users/index' else '' }}">
         <i class="fa fa-users me-2 fa-fw"></i>
