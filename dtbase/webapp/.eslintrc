@@ -1,28 +1,34 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "env": {
-    "browser": true,
-    "jquery": true
-  },
-  "rules": {
-    "require-jsdoc": 0,
-    "no-unused-vars": 0,
-    "no-undef": 0,
-    "camelcase": 0
-  },
-  "extends": [
-    "eslint:recommended",
-    "google",
-    "prettier",
-    "plugin:@typescript-eslint/recommended"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "root": true
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "jquery": true
+    },
+    "rules": {
+        "prettier/prettier": "error",
+        "consistent-return": 2,
+        "indent": [1, 4],
+        "no-else-return": 1,
+        "semi": 0,
+        "space-unary-ops": 0,
+        "require-jsdoc": 0,
+        "no-unused-vars": 1,
+        "no-undef": 0,
+        "camelcase": 0
+    },
+    "extends": [
+        "eslint:recommended",
+        "google",
+        "prettier",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "prettier"],
+    "root": true
 }
