@@ -49,7 +49,7 @@ def test_refresh_token_expired(client: TestClient, test_user: None) -> None:
     """Test refreshing an authentication token when the refresh token has expired."""
     with mock.patch(
         "dtbase.backend.auth.JWT_REFRESH_TOKEN_EXPIRES",
-        dt.timedelta(seconds=1),
+        dt.timedelta(milliseconds=1),
     ):
         response1 = get_token(client)
         body1 = response1.json()
