@@ -17,7 +17,7 @@ from requests.models import Response as RequestsResponse
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from dtbase.backend.api import create_app as create_backend_app
+from dtbase.backend.create_app import create_app as create_backend_app
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,

@@ -1,19 +1,20 @@
+"""Main application file for the FastAPI backend."""
 from logging import DEBUG, StreamHandler, basicConfig, getLogger
 
 from fastapi import FastAPI
 from sqlalchemy.exc import SQLAlchemyError
 
-from dtbase.backend.api.auth.routes import router as auth_router
-from dtbase.backend.api.location.routes import router as location_router
-from dtbase.backend.api.model.routes import router as model_router
-from dtbase.backend.api.sensor.routes import router as sensor_router
-from dtbase.backend.api.service.routes import router as service_router
-from dtbase.backend.api.user.routes import router as user_router
 from dtbase.backend.db import (
     create_global_database_connection,
     global_engine,
     global_session_maker,
 )
+from dtbase.backend.routers.auth import router as auth_router
+from dtbase.backend.routers.location import router as location_router
+from dtbase.backend.routers.model import router as model_router
+from dtbase.backend.routers.sensor import router as sensor_router
+from dtbase.backend.routers.service import router as service_router
+from dtbase.backend.routers.user import router as user_router
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
