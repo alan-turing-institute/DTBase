@@ -42,11 +42,13 @@ from dtbase.core.db_docker import (
     stop_docker_postgres,
 )
 from dtbase.core.users import insert_user
-from dtbase.tests.utils import TEST_USER_EMAIL, TEST_USER_PASSWORD, get_token
 from dtbase.webapp.app import create_app as create_frontend_app
 from dtbase.webapp.config import config_dict as frontend_config
 
+from .utils import TEST_USER_EMAIL, TEST_USER_PASSWORD, get_token
+
 np.random.seed(42)
+
 # if we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID: Optional[str] = None
 

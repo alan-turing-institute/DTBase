@@ -6,7 +6,8 @@ import datetime as dt
 from sqlalchemy.orm import Session
 
 from dtbase.core import sensor_locations
-from dtbase.tests import test_locations, test_sensors
+
+from . import test_locations, test_sensors
 
 COORDINATES1 = {
     "latitude": test_locations.LATITUDE1,

@@ -10,7 +10,8 @@ from dtbase.ingress.ingress_weather import (
     SENSOR_OPENWEATHERMAPHISTORICAL,
     OpenWeatherDataIngress,
 )
-from dtbase.tests.resources.data_for_tests import (
+
+from .resources.data_for_tests import (
     EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE,
     EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE,
     MOCKED_CONST_OPENWEATHERMAP_FORECAST_URL_RESPONSE,

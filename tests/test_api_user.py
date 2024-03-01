@@ -10,8 +10,9 @@ from httpx import Response
 from starlette.routing import Route
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL
-from dtbase.tests.conftest import check_for_docker
-from dtbase.tests.utils import TEST_USER_EMAIL, assert_unauthorized, can_login
+
+from .conftest import check_for_docker
+from .utils import TEST_USER_EMAIL, assert_unauthorized, can_login
 
 DOCKER_RUNNING = check_for_docker()
 

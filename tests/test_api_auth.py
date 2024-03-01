@@ -8,8 +8,8 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-from dtbase.tests.conftest import check_for_docker
-from dtbase.tests.utils import can_login, get_token
+from .conftest import check_for_docker
+from .utils import can_login, get_token
 
 DOCKER_RUNNING = check_for_docker()
 

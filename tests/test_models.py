@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from dtbase.core import models
 from dtbase.core.exc import RowMissingError
-from dtbase.tests.test_sensors import SENSOR_ID1, insert_sensors
+
+from .test_sensors import SENSOR_ID1, insert_sensors
 
 # We use this in many places, and I don't want to type out the whole thing every time.
 NOW = dt.datetime.now(dt.timezone.utc)

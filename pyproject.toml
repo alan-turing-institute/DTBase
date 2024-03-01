@@ -89,7 +89,6 @@ license-files = ["LICENSE"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dtbase*"]
-exclude = ["dtbase.tests*"]
 namespaces = false
 
 [tool.ruff]

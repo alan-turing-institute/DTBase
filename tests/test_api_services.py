@@ -12,8 +12,8 @@ from fastapi.testclient import TestClient
 from httpx import Response
 from starlette.routing import Route
 
-from dtbase.tests.conftest import check_for_docker
-from dtbase.tests.utils import assert_unauthorized
+from .conftest import check_for_docker
+from .utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
 

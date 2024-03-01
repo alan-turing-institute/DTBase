@@ -10,10 +10,10 @@ from fastapi.testclient import TestClient
 from httpx import Response
 from starlette.routing import Route
 
-from dtbase.tests.conftest import check_for_docker
-from dtbase.tests.test_api_sensors import UNIQ_ID1 as SENSOR_ID1
-from dtbase.tests.test_api_sensors import insert_weather_sensor, insert_weather_type
-from dtbase.tests.utils import assert_unauthorized
+from .conftest import check_for_docker
+from .test_api_sensors import UNIQ_ID1 as SENSOR_ID1
+from .test_api_sensors import insert_weather_sensor, insert_weather_type
+from .utils import assert_unauthorized
 
 DOCKER_RUNNING = check_for_docker()
 

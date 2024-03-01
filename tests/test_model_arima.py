@@ -10,11 +10,12 @@ from dtbase.models.utils.dataprocessor.config import (
     ConfigOthers,
     ConfigSensors,
 )
-from dtbase.tests.conftest import check_for_docker
-from dtbase.tests.resources.data_for_tests import (
+
+from .conftest import check_for_docker
+from .resources.data_for_tests import (
     EXPECTED_ARIMA_GET_SERVICE_DATA_RESPONSE,
 )
-from dtbase.tests.upload_synthetic_data import insert_trh_readings
+from .upload_synthetic_data import insert_trh_readings
 
 DOCKER_RUNNING = check_for_docker()
 

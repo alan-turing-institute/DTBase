@@ -6,7 +6,8 @@ from dtbase.core.sensors import (
     insert_sensor_readings,
     insert_sensor_type,
 )
-from dtbase.tests.generate_synthetic_data import generate_trh_readings
+
+from .generate_synthetic_data import generate_trh_readings
 
 
 def insert_trh_sensor(sensor_unique_id: str, session: Session) -> None:
