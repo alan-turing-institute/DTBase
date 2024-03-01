@@ -24,6 +24,7 @@ JWT_ALGORITHM = "HS256"
 
 
 def _create_access_token(data: dict, expires_delta: dt.timedelta) -> str:
+""" Create access token with an expiry limit """
     to_encode = data.copy()
     expire = dt.datetime.now(dt.timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
