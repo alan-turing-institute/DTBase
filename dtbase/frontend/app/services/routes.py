@@ -9,8 +9,8 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pydantic import BaseModel
 
-from dtbase.webapp.app.base.forms import NewServiceForm
-from dtbase.webapp.app.services import blueprint
+from dtbase.frontend.app.base.forms import NewServiceForm
+from dtbase.frontend.app.services import blueprint
 
 
 @blueprint.route("/index", methods=["GET", "POST"])

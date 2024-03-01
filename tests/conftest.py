@@ -42,8 +42,8 @@ from dtbase.core.db_docker import (
     stop_docker_postgres,
 )
 from dtbase.core.users import insert_user
-from dtbase.webapp.app import create_app as create_frontend_app
-from dtbase.webapp.config import config_dict as frontend_config
+from dtbase.frontend.app import create_app as create_frontend_app
+from dtbase.frontend.config import config_dict as frontend_config
 
 from .utils import TEST_USER_EMAIL, TEST_USER_PASSWORD, get_token
 

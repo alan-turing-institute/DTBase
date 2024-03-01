@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from flask import render_template, request
 from flask_login import current_user, login_required
 
-from dtbase.webapp.app.models import blueprint
+from dtbase.frontend.app.models import blueprint
 
 
 def fetch_all_models() -> List[dict[str, Any]]:

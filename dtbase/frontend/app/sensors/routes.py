@@ -13,8 +13,8 @@ from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
 from dtbase.core.constants import CONST_MAX_RECORDS
-from dtbase.webapp import utils
-from dtbase.webapp.app.sensors import blueprint
+from dtbase.frontend import utils
+from dtbase.frontend.app.sensors import blueprint
 
 
 def fetch_all_sensor_types() -> List[dict]:

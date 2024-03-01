@@ -3,7 +3,7 @@ from typing import Optional
 from flask_login import UserMixin
 from requests.models import Response
 
-import dtbase.webapp.exc as exc
+import dtbase.frontend.exc as exc
 from dtbase.core.utils import backend_call
 
 ALL_USERS = {}

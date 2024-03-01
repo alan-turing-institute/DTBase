@@ -11,11 +11,11 @@ from flask import (
 from flask_login import login_required, login_user, logout_user
 from werkzeug.wrappers import Response
 
-from dtbase.webapp.app.base import blueprint
-from dtbase.webapp.app.base.forms import LoginForm
-from dtbase.webapp.exc import AuthorizationError
-from dtbase.webapp.user import User
-from dtbase.webapp.utils import url_has_allowed_host_and_scheme
+from dtbase.frontend.app.base import blueprint
+from dtbase.frontend.app.base.forms import LoginForm
+from dtbase.frontend.exc import AuthorizationError
+from dtbase.frontend.user import User
+from dtbase.frontend.utils import url_has_allowed_host_and_scheme
 
 
 @blueprint.route("/")

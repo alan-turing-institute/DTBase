@@ -1,8 +1,8 @@
 import os
 from sys import exit
 
-from dtbase.webapp.app import create_app
-from dtbase.webapp.config import config_dict
+from dtbase.frontend.app import create_app
+from dtbase.frontend.config import config_dict
 
 get_config_mode = os.environ.get("DT_CONFIG_MODE", "Production")
 

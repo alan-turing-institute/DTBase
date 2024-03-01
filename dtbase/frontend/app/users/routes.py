@@ -2,8 +2,8 @@
 from flask import flash, render_template, request
 from flask_login import current_user, login_required
 
-from dtbase.webapp.app.base.forms import NewUserForm
-from dtbase.webapp.app.users import blueprint
+from dtbase.frontend.app.base.forms import NewUserForm
+from dtbase.frontend.app.users import blueprint
 
 
 @blueprint.route("/index", methods=["GET", "POST"])

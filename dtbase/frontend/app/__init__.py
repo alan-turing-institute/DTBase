@@ -18,9 +18,9 @@ from requests.exceptions import ConnectionError
 from werkzeug.wrappers import Response
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
-from dtbase.webapp.config import AutoLoginConfig, Config
-from dtbase.webapp.exc import AuthorizationError
-from dtbase.webapp.user import User
+from dtbase.frontend.config import AutoLoginConfig, Config
+from dtbase.frontend.exc import AuthorizationError
+from dtbase.frontend.user import User
 
 login_manager = LoginManager()
 
@@ -46,7 +46,7 @@ def register_blueprints(app: Flask) -> None:
     )
 
     for module_name in module_list:
-        module = import_module("dtbase.webapp.app.{}.routes".format(module_name))
+        module = import_module("dtbase.frontend.app.{}.routes".format(module_name))
         print(f"Registering blueprint for {module_name}")
         app.register_blueprint(module.blueprint)
 

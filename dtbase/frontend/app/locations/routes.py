@@ -2,8 +2,8 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from dtbase.webapp import utils
-from dtbase.webapp.app.locations import blueprint
+from dtbase.frontend import utils
+from dtbase.frontend.app.locations import blueprint
 
 
 @login_required

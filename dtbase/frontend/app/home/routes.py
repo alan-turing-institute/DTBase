@@ -5,7 +5,7 @@ A module for the main dashboard actions
 from flask import render_template
 from flask_login import login_required
 
-from dtbase.webapp.app.home import blueprint
+from dtbase.frontend.app.home import blueprint
 
 
 @blueprint.route("/index")
