@@ -298,16 +298,16 @@ def test_run_service_with_conflicting_parameters(session: Session) -> None:
 
 def test_list_runs(session: Session) -> None:
     """
-    Test the run_service function. 
-    
+    Test the run_service function.
+
     The steps in this test are:
-    
+
      1. Insert parameter sets
      2. Mock Service 1 and Service 2
-     3. Run Service 1 four times, and Service 2 once with different parameters 
+     3. Run Service 1 four times, and Service 2 once with different parameters
      4. Assert lenth of returned run list for each Service
      5. Assert length of run list for Service 1 with a certain parameter combination
-     6. Assert length of run list for all runs 
+     6. Assert length of run list for all runs
      7. Assert the contents of each run in run list
     """
     insert_parameter_sets(session)
