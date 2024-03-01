@@ -24,7 +24,7 @@ JWT_ALGORITHM = "HS256"
 
 
 def _create_access_token(data: dict, expires_delta: dt.timedelta) -> str:
-""" Create access token with an expiry limit """
+    """Create access token with an expiry limit."""
     to_encode = data.copy()
     expire = dt.datetime.now(dt.timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
@@ -35,7 +35,13 @@ def _create_access_token(data: dict, expires_delta: dt.timedelta) -> str:
 
 
 def create_token_pair(email: str) -> TokenPair:
-    """Create a new authentication token pair for a user."""
+    """Create a new authentication token pair for a user.
+
+    The access token is what the user needs to authenticate themselves to the API. The
+    refresh token has an expiry time that is a bit longer, and it can be used to get a
+    new access token. So if you access token expires and your relative prompt, you can
+    still keep your login alive without resending the username and password.
+    """
     access_token = _create_access_token(
         {"sub": email, "token_type": "access"}, expires_delta=JWT_ACCESS_TOKEN_EXPIRES
     )
