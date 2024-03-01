@@ -70,7 +70,7 @@ def test_new_location_get_mock(mock_auth_frontend_client: FlaskClient) -> None:
 def test_new_location_post_mock(mock_auth_frontend_client: FlaskClient) -> None:
     with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
-            m.get(
+            m.post(
                 "http://localhost:5000/location/get-schema-details",
                 json={
                     "location_schema": "xy",
@@ -109,7 +109,7 @@ def test_locations_table_mock(mock_auth_frontend_client: FlaskClient) -> None:
                 "http://localhost:5000/location/list-location-schemas",
                 json=[{"name": "xyz"}],
             )
-            m.get(
+            m.post(
                 "http://localhost:5000/location/list-locations",
                 json=[
                     {

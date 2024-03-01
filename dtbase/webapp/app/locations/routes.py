@@ -28,20 +28,17 @@ def submit_location_schema() -> Response:
     identifier_names = request.form.getlist("identifier_name[]")
     identifier_units = request.form.getlist("identifier_units[]")
     identifier_datatypes = request.form.getlist("identifier_datatype[]")
-    identifier_existing = request.form.getlist("identifier_existing[]")
 
     identifiers = [
         {
             "name": name,
-            "units": unit,
+            "units": units,
             "datatype": datatype,
-            "is_existing": is_existing == "1",
         }
-        for name, unit, datatype, is_existing in zip(
+        for name, units, datatype in zip(
             identifier_names,
             identifier_units,
             identifier_datatypes,
-            identifier_existing,
         )
     ]
 
@@ -91,7 +88,9 @@ def submit_location() -> Response:
     redirected_destination = redirect(url_for(".new_location", schema_name=schema_name))
     # Retrieve the identifiers and values based on the schema
     payload = {"schema_name": schema_name}
-    response = current_user.backend_call("get", "/location/get-schema-details", payload)
+    response = current_user.backend_call(
+        "post", "/location/get-schema-details", payload
+    )
     schema = response.json()
     try:
         # Convert form values to their respective datatypes as defined in the schema
@@ -102,8 +101,7 @@ def submit_location() -> Response:
 
     try:
         # Send a POST request to the backend
-        payload = form_data
-        payload["schema_name"] = schema_name
+        payload = {"schema_name": schema_name, "coordinates": form_data}
         response = current_user.backend_call(
             "post", "/location/insert-location-for-schema", payload
         )
@@ -135,7 +133,7 @@ def locations_table() -> Response:
     for schema in schemas:
         payload = {"schema_name": schema["name"]}
         locations_response = current_user.backend_call(
-            "get", "/location/list-locations", payload
+            "post", "/location/list-locations", payload
         )
         locations_for_each_schema[schema["name"]] = locations_response.json()
 

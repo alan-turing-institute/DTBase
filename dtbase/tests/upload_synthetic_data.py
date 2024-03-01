@@ -77,14 +77,14 @@ def insert_trh_readings(
     humids = list(readings.humidity)
     insert_sensor_readings(
         measure_name="Temperature",
-        sensor_uniq_id=sensor_unique_id,
+        unique_identifier=sensor_unique_id,
         readings=temps,
         timestamps=timestamps,
         session=session,
     )
     insert_sensor_readings(
         measure_name="Humidity",
-        sensor_uniq_id=sensor_unique_id,
+        unique_identifier=sensor_unique_id,
         readings=humids,
         timestamps=timestamps,
         session=session,

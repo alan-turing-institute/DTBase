@@ -2,417 +2,297 @@
 Module (routes.py) to handle API endpoints related to sensors
 """
 from datetime import datetime
-from typing import Tuple
+from typing import Optional
 
-from flask import Response, jsonify, request
-from flask_jwt_extended import jwt_required
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field, RootModel
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from dtbase.backend.api.sensor import blueprint
-from dtbase.backend.utils import check_keys
+from dtbase.backend.auth import authenticate_access
+from dtbase.backend.db import db_session
+from dtbase.backend.models import MessageResponse, SensorMeasure, SensorType, ValueType
 from dtbase.core import sensor_locations, sensors
 from dtbase.core.exc import RowMissingError
-from dtbase.core.structure import db
+
+router = APIRouter(
+    prefix="/sensor",
+    tags=["sensor"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
+)
 
 
-@blueprint.route("/insert-sensor-type", methods=["POST"])
-@jwt_required()
-def insert_sensor_type() -> Tuple[Response, int]:
+@router.post(
+    "/insert-sensor-type",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
+def insert_sensor_type(
+    payload: SensorType, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Add a sensor type to the database.
-    POST request should have json data (mimetype "application/json")
-    containing
-    {
-      "name": <type_name:str>,
-      "description": <type_description:str>
-      "measures": [
-                 {"name":<name:str>, "units":<units:str>,"datatype":<datatype:str>},
-                 ...
-                    ]
-    }
     """
-
-    payload = request.get_json()
-    required_keys = ["name", "description", "measures"]
-    error_response = check_keys(payload, required_keys, "/insert_sensor_type")
-    if error_response:
-        return error_response
-
-    db.session.begin()
-    for measure in payload["measures"]:
+    for measure in payload.measures:
         # TODO This loop might run into trouble if one of the measures exists already
-        # but others don't, since the db.session.rollback() rolls them all back.
+        # but others don't, since the session.rollback() rolls them all back.
         # Note that we probably do want all of this to be rolled back if the sensor type
         # exists.
         try:
             sensors.insert_sensor_measure(
-                name=measure["name"],
-                units=measure["units"],
-                datatype=measure["datatype"],
-                session=db.session,
+                name=measure.name,
+                units=measure.units,
+                datatype=measure.datatype,
+                session=session,
             )
         except IntegrityError:
             # Sensor measure already exists.
-            db.session.rollback()
+            session.rollback()
     try:
         sensors.insert_sensor_type(
-            name=payload["name"],
-            description=payload["description"],
-            measures=payload["measures"],
-            session=db.session,
+            name=payload.name,
+            description=payload.description,
+            measures=[m.model_dump() for m in payload.measures],
+            session=session,
         )
+        session.commit()
     except IntegrityError:
-        db.session.rollback()
-        return jsonify({"message": "Sensor type exists already"}), 409
-
-    db.session.commit()
-    return jsonify({"message": "Sensor type inserted"}), 201
+        session.rollback()
+        raise HTTPException(status_code=409, detail="Sensor type exists already")
+    return MessageResponse(detail="Sensor type inserted")
 
 
-@blueprint.route("/insert-sensor", methods=["POST"])
-@jwt_required()
-def insert_sensor() -> Tuple[Response, int]:
+class InsertSensorRequest(BaseModel):
+    type_name: str
+    unique_identifier: str
+    name: Optional[str] = Field(default=None)
+    notes: Optional[str] = Field(default=None)
+
+
+@router.post(
+    "/insert-sensor",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
+def insert_sensor(
+    payload: InsertSensorRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Add a sensor to the database.
-
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "type_name": <sensor_type_name:str>,
-      "unique_identifier": <unique identifier:str>,
-    }
-    by which the sensor will be distinguished from all others, and optionally
-    {
-      "name": <human readable name:str>,
-      "notes": <human readable notes:str>
-    }
     """
-
-    payload = request.get_json()
-    required_keys = {"unique_identifier", "type_name"}
-    error_response = check_keys(payload, required_keys, "/insert_sensor")
-    if error_response:
-        return error_response
     try:
-        sensors.insert_sensor(**payload, session=db.session)
+        sensors.insert_sensor(**payload.model_dump(), session=session)
     except IntegrityError:
-        db.session.rollback()
-    db.session.commit()
-    return jsonify(payload), 201
+        session.rollback()
+        raise HTTPException(status_code=409, detail="Sensor exists already")
+    session.commit()
+    return MessageResponse(detail="Sensor inserted")
 
 
-@blueprint.route("/insert-sensor-location", methods=["POST"])
-@jwt_required()
-def insert_sensor_location() -> Tuple[Response, int]:
+class InsertSensorLocationRequest(BaseModel):
+    unique_identifier: str
+    schema_name: str
+    coordinates: dict[str, ValueType]
+    installation_datetime: datetime = Field(default_factory=datetime.now)
+
+
+@router.post("/insert-sensor-location", status_code=status.HTTP_201_CREATED)
+def insert_sensor_location(
+    payload: InsertSensorLocationRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Add a sensor location installation to the database.
 
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "unique_identifier": <unique identifier of the sensor:str>,
-      "location_schema": <name of the location schema to use:str>,
-      "coordinates": <coordinates to the location:dict>
-    }
-    where the coordinates dict is keyed by location identifiers.
-    and optionally also
-    {
-      "installation_datetime": <date from which the sensor has been at this
-        location:str>
-    }
-    If no installation date is given, it's assumed to be now.
+    The `unique_identifier` field is the unique identifier of the sensor.
     """
-    payload = request.get_json()
-    required_keys = {"unique_identifier", "schema_name", "coordinates"}
-    error_response = check_keys(payload, required_keys, "/insert-sensor-location")
-    if error_response:
-        return error_response
-    if "installation_datetime" not in payload:
-        payload["installation_datetime"] = datetime.now()
     sensor_locations.insert_sensor_location(
-        sensor_uniq_id=payload["unique_identifier"],
-        schema_name=payload["schema_name"],
-        coordinates=payload["coordinates"],
-        installation_datetime=payload["installation_datetime"],
-        session=db.session,
+        sensor_uniq_id=payload.unique_identifier,
+        schema_name=payload.schema_name,
+        coordinates=payload.coordinates,
+        installation_datetime=payload.installation_datetime,
+        session=session,
     )
-    db.session.commit()
-    return jsonify(payload), 201
+    session.commit()
+    return MessageResponse(detail="Sensor location inserted")
 
 
-@blueprint.route("/list-sensor-locations", methods=["GET"])
-@jwt_required()
-def list_sensor_locations() -> Tuple[Response, int]:
+class ListSensorLocationsRequest(BaseModel):
+    unique_identifier: str
+
+
+LocationHistoryResponse = RootModel[dict[str, ValueType | datetime]]
+
+
+@router.post("/list-sensor-locations", status_code=status.HTTP_200_OK)
+def list_sensor_locations(
+    payload: ListSensorLocationsRequest, session: Session = Depends(db_session)
+) -> list[LocationHistoryResponse]:
     """
     Get the location history of a sensor.
 
-    GET request should have json data (mimetype "application/json") containing
-    {
-      "unique_identifier": <unique identifier of the sensor:str>,
-    }
+    The elements in the return value will have the keys `installation_datetime`, and
+    whatever location identifiers the relevant location schema has.
     """
-
-    payload = request.get_json()
-    required_keys = {"unique_identifier"}
-    error_response = check_keys(payload, required_keys, "/list-sensor-locations")
-    if error_response:
-        return error_response
     result = sensor_locations.get_location_history(
-        sensor_uniq_id=payload["unique_identifier"]
+        sensor_uniq_id=payload.unique_identifier, session=session
     )
-    return jsonify(result), 200
+    return [LocationHistoryResponse(**entry) for entry in result]
 
 
-@blueprint.route("/insert-sensor-readings", methods=["POST"])
-@jwt_required()
-def insert_sensor_readings() -> Tuple[Response, int]:
+class InsertSensorReadingsRequest(BaseModel):
+    measure_name: str
+    unique_identifier: str
+    readings: list[ValueType]
+    timestamps: list[datetime]
+
+
+@router.post("/insert-sensor-readings", status_code=status.HTTP_201_CREATED)
+def insert_sensor_readings(
+    payload: InsertSensorReadingsRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Add sensor readings to the database.
 
-    POST request should have JSON data (mimetype "application/json") containing
-    {
-      "measure_name": <measure_name:str>,
-      "unique_identifier": <sensor_unique_identifier:str>,
-      "readings": <list of readings>,
-      "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
-    }
+    The `unique_identifier` field is the unique identifier of the sensor. There should
+    as mayn readings as there are timestamps.
     """
-
-    payload = request.get_json()
-    required_keys = ["measure_name", "unique_identifier", "readings", "timestamps"]
-    error_response = check_keys(payload, required_keys, "/insert-sensor-readings")
-    if error_response:
-        return error_response
-
-    measure_name = payload["measure_name"]
-    sensor_uniq_id = payload["unique_identifier"]
-    readings = payload["readings"]
-    timestamps = payload["timestamps"]
-
-    # Convert timestamps from strings to datetime objects
-    try:
-        timestamps = [datetime.fromisoformat(ts) for ts in timestamps]
-    except ValueError:
-        return (
-            jsonify({"error": "Invalid datetime format. Use '%Y-%m-%dT%H:%M:%S'"}),
-            400,
-        )
-
-    db.session.begin()
-    try:
-        sensors.insert_sensor_readings(
-            measure_name=measure_name,
-            sensor_uniq_id=sensor_uniq_id,
-            readings=readings,
-            timestamps=timestamps,
-            session=db.session,
-        )
-    except Exception:
-        db.session.rollback()
-        raise
-    db.session.commit()
-
-    return jsonify(payload), 201
+    sensors.insert_sensor_readings(
+        measure_name=payload.measure_name,
+        unique_identifier=payload.unique_identifier,
+        readings=payload.readings,
+        timestamps=payload.timestamps,
+        session=session,
+    )
+    session.commit()
+    return MessageResponse(detail="Sensor readings inserted")
 
 
-@blueprint.route("/list-sensors", methods=["GET"])
-@jwt_required()
-def list_sensors() -> Tuple[Response, int]:
+class ListSensorsRequest(BaseModel):
+    type_name: Optional[str] = Field(default=None)
+
+
+class ListSensorsResponse(BaseModel):
+    unique_identifier: str
+    name: Optional[str] = Field(default=None)
+    notes: Optional[str] = Field(default=None)
+
+
+@router.post("/list-sensors", status_code=status.HTTP_200_OK)
+def list_sensors(
+    payload: ListSensorsRequest, session: Session = Depends(db_session)
+) -> list[ListSensorsResponse]:
     """
     List sensors of a particular type in the database.
-    Optionally takes a payload of the form
-    {"type_name": <sensor_type_name:str>}
-
-        Will return results in the form:
-    [
-        {
-        "id": <id:int>,
-        "name": <name:str>,
-        "notes": <notes:str>,
-        "sensor_type_id": <sensor_type_id:int>,
-        "type_name": <sensor_type_name:str>,
-        "unique_identifier": <unique_identifier:str>
-        },
-        ...
-    ]
     """
-    payload = request.get_json()
-    if "type_name" in payload.keys():
-        result = sensors.list_sensors(type_name=payload.get("type_name"))
-    else:
-        result = sensors.list_sensors()
-    return jsonify(result), 200
+    result = sensors.list_sensors(type_name=payload.type_name, session=session)
+    return [ListSensorsResponse(**sensor) for sensor in result]
 
 
-@blueprint.route("/list-sensor-types", methods=["GET"])
-@jwt_required()
-def list_sensor_types() -> Tuple[Response, int]:
+@router.get("/list-sensor-types", status_code=status.HTTP_200_OK)
+def list_sensor_types(session: Session = Depends(db_session)) -> list[SensorType]:
     """
     List sensor types in the database.
-    Returns results in the form:
-    [
-        {
-        "description": <description:str>,
-        "id": <id:int>,
-        "measures": [
-            {"datatype": <datatype:str>, "name": <name:str>, "units": <units:str>},
-            ...
-            ],
-        "name": "sensor_name"
-        },
-        ...
-    ]
     """
-    result = sensors.list_sensor_types()
-    return jsonify(result), 200
+    result = sensors.list_sensor_types(session=session)
+    return [SensorType(**sensor_type) for sensor_type in result]
 
 
-@blueprint.route("/list-measures", methods=["GET"])
-@jwt_required()
-def list_sensor_measures() -> Tuple[Response, int]:
+@router.get("/list-measures", status_code=status.HTTP_200_OK)
+def list_sensor_measures(session: Session = Depends(db_session)) -> list[SensorMeasure]:
     """
     List sensor measures in the database.
-    Returns results in the form:
-    [
-        {
-            "datatype": <datatype:str>,
-            "id": <id:int>,
-            "name": <name:str>,
-            "units": <units:str>
-        },
-    ...
-    ]
     """
-    result = sensors.list_sensor_measures()
-    return jsonify(result), 200
+    result = sensors.list_sensor_measures(session=session)
+    return [SensorMeasure(**measure) for measure in result]
 
 
-@blueprint.route("/sensor-readings", methods=["GET"])
-@jwt_required()
-def get_sensor_readings() -> Tuple[Response, int]:
+class SensorReadingsRequest(BaseModel):
+    measure_name: str
+    unique_identifier: str
+    dt_from: datetime
+    dt_to: datetime
+
+
+class SensorReadingsResponse(BaseModel):
+    value: ValueType
+    timestamp: datetime
+
+
+@router.post("/sensor-readings", status_code=status.HTTP_200_OK)
+def get_sensor_readings(
+    payload: SensorReadingsRequest, session: Session = Depends(db_session)
+) -> list[SensorReadingsResponse]:
     """
     Get sensor readings for a specific measure and sensor between two dates.
-
-    GET request should have JSON data (mimetype "application/json") with payload
-    {
-        measure_name: Name of the sensor measure to get readings for.
-        unique_identifier: Unique identifier for the sensor to get readings for.
-        dt_from: Datetime string for earliest readings to get. Inclusive. In ISO 8601
-            format: '%Y-%m-%dT%H:%M:%S'.
-        dt_to: Datetime string for last readings to get. Inclusive. In ISO 8601 format:
-            '%Y-%m-%dT%H:%M:%S'.
-    }
-    Returns readings in the format
-    [
-        {
-            "value": <value:str|float|bool|int>
-            "timestamp": <timestamp:datetime>
-         }
-        ...
-    ]
     """
-
-    payload = request.get_json()
-
-    required_keys = ["measure_name", "unique_identifier", "dt_from", "dt_to"]
-    error_response = check_keys(payload, required_keys, "/get-sensor-readings")
-    if error_response:
-        return error_response
-
-    measure_name = payload.get("measure_name")
-    sensor_uniq_id = payload.get("unique_identifier")
-    dt_from = payload.get("dt_from")
-    dt_to = payload.get("dt_to")
-
-    # Convert dt_from and dt_to to datetime objects
-    try:
-        dt_from = datetime.fromisoformat(dt_from)
-        dt_to = datetime.fromisoformat(dt_to)
-    except ValueError:
-        return (
-            jsonify(
-                {
-                    "error": "Invalid datetime format. Use ISO format: "
-                    "'%Y-%m-%dT%H:%M:%S'"
-                }
-            ),
-            400,
-        )
-
-    readings = sensors.get_sensor_readings(measure_name, sensor_uniq_id, dt_from, dt_to)
-
-    # Convert readings to JSON-friendly format
-    readings_json = [
-        {"value": reading[0], "timestamp": reading[1].isoformat()}
+    readings = sensors.get_sensor_readings(**payload.model_dump(), session=session)
+    return [
+        SensorReadingsResponse(value=reading[0], timestamp=reading[1])
         for reading in readings
     ]
 
-    return jsonify(readings_json), 200
+
+class DeleteSensorRequest(BaseModel):
+    unique_identifier: str
 
 
-@blueprint.route("/delete-sensor", methods=["DELETE"])
-@jwt_required()
-def delete_sensor() -> Tuple[Response, int]:
+@router.post("/delete-sensor", status_code=status.HTTP_200_OK)
+def delete_sensor(
+    payload: DeleteSensorRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Delete a sensor from the database.
-
-    Expects a payload of the form
-    {"unique_identifier": <sensor_unique_id:str>}
     """
-    payload = request.get_json()
-    required_keys = ["unique_identifier"]
-    error_response = check_keys(payload, required_keys, "/delete-sensor")
-    unique_identifier = payload.get("unique_identifier")
-    if error_response:
-        return error_response
-    sensors.delete_sensor(unique_identifier=unique_identifier, session=db.session)
-    db.session.commit()
-    return jsonify({"message": "Sensor deleted"}), 200
+    sensors.delete_sensor(unique_identifier=payload.unique_identifier, session=session)
+    session.commit()
+    return MessageResponse(detail="Sensor deleted")
 
 
-@blueprint.route("/delete-sensor-type", methods=["DELETE"])
-@jwt_required()
-def delete_sensor_type() -> Tuple[Response, int]:
+class DeleteSensorTypeRequest(BaseModel):
+    type_name: str
+
+
+@router.post("/delete-sensor-type", status_code=status.HTTP_200_OK)
+def delete_sensor_type(
+    payload: DeleteSensorTypeRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Delete a sensor type from the database.
-
-    Expects a payload of the form
-    {"type_name": <sensor_type_name:str>}
     """
-    payload = request.get_json()
-    required_keys = ["type_name"]
-    error_response = check_keys(payload, required_keys, "/delete-sensor-type")
-    type_name = payload.get("type_name")
-    if error_response:
-        return error_response
-    sensors.delete_sensor_type(type_name=type_name, session=db.session)
-    db.session.commit()
-    return jsonify({"message": "Sensor type deleted"}), 200
+    sensors.delete_sensor_type(type_name=payload.type_name, session=session)
+    session.commit()
+    return MessageResponse(detail="Sensor type deleted")
 
 
-@blueprint.route("/edit-sensor", methods=["POST"])
-@jwt_required()
-def edit_sensor() -> Tuple[Response, int]:
+class EditSensorRequest(BaseModel):
+    unique_identifier: str
+    name: str
+    notes: str
+
+
+@router.post(
+    "/edit-sensor",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def edit_sensor(
+    payload: EditSensorRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Edit a sensor in the database.
 
-    Expects a payload of the form
-    {"unique_identifier": <sensor_unique_id:str>}
+    The `unique_identifier` field identifies the sensor, the `name` and `notes` fields
+    are the new values.
     """
-    payload = request.get_json()
-
-    required_keys = ["unique_identifier", "name", "notes"]
-    error_response = check_keys(payload, required_keys, "/edit-sensor")
-    if error_response:
-        return error_response
-
     try:
         sensors.edit_sensor(
-            unique_identifier=payload["unique_identifier"],
-            new_name=payload["name"],
-            new_notes=payload["notes"],
-            session=db.session,
+            unique_identifier=payload.unique_identifier,
+            new_name=payload.name,
+            new_notes=payload.notes,
+            session=session,
         )
-        db.session.commit()
+        session.commit()
     except RowMissingError:
-        return jsonify({"message": "Sensor does not exist"}), 400
-
-    return jsonify({"message": "Sensor edited"}), 200
+        raise HTTPException(status_code=400, detail="Sensor does not exist")
+    return MessageResponse(detail="Sensor edited")

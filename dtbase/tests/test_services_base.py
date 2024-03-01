@@ -1,8 +1,8 @@
 import pytest
+from fastapi.testclient import TestClient
 
 from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
 from dtbase.services.base import BaseIngress
-from dtbase.tests.conftest import AuthenticatedClient
 
 TEST_SENSOR_TYPE = {
     "name": "random type",
@@ -60,12 +60,12 @@ def test_ingress_get_service_data() -> None:
     ]
 
 
-def test_ingress_backend_login(conn_backend: AuthenticatedClient) -> None:
+def test_ingress_backend_login(conn_backend: TestClient) -> None:
     exampleingress._backend_login(DEFAULT_USER_EMAIL, DEFAULT_USER_PASS)
     assert exampleingress.access_token is not None
 
 
-def test_ingress_post_service_data(conn_backend: AuthenticatedClient) -> None:
+def test_ingress_post_service_data(conn_backend: TestClient) -> None:
     responses = exampleingress.post_service_data(
         [
             ("/sensor/insert-sensor-type", TEST_SENSOR_TYPE),
@@ -78,7 +78,7 @@ def test_ingress_post_service_data(conn_backend: AuthenticatedClient) -> None:
     assert len(responses) == 3
 
 
-def test_ingress_call__(conn_backend: AuthenticatedClient) -> None:
+def test_ingress_call__(conn_backend: TestClient) -> None:
     responses = exampleingress()
     for response in responses:
         assert response.status_code < 300

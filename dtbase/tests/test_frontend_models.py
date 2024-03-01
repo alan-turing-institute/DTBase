@@ -73,7 +73,7 @@ def test_models_index_no_runs_mock(mock_auth_frontend_client: FlaskClient) -> No
                     {"description": "Scenario 2", "model_name": "model2"},
                 ],
             )
-            m.get("http://localhost:5000/model/list-model-runs", json=[])
+            m.post("http://localhost:5000/model/list-model-runs", json=[])
             response = client.get("/models/index")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -101,18 +101,20 @@ def test_models_index_with_data_mock(mock_auth_frontend_client: FlaskClient) -> 
                     {"description": "Scenario 2", "model_name": "model2"},
                 ],
             )
-            m.get(
+            m.post(
                 "http://localhost:5000/model/list-model-runs",
                 json=[{"id": 1}, {"id": 2}],
             )
-            m.get(
+            m.post(
                 "http://localhost:5000/model/get-model-run", json=MOCK_PREDICTION_DATA
             )
-            m.get(
+            m.post(
                 "http://localhost:5000/model/get-model-run-sensor-measure",
                 json=MOCK_RUN_SENSOR_MEASURE_DATA,
             )
-            m.get("http://localhost:5000/sensor/sensor-readings", json=MOCK_SENSOR_DATA)
+            m.post(
+                "http://localhost:5000/sensor/sensor-readings", json=MOCK_SENSOR_DATA
+            )
             response = client.get("/models/index")
             # select model1 and run_id 2
             response = client.post(

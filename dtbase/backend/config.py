@@ -2,8 +2,6 @@ from os import environ
 
 
 class Config:
-    SECRET_KEY = environ.get("DT_JWT_SECRET_KEY", None)
-
     # PostgreSQL database
     SQLALCHEMY_DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(
         environ.get("DT_SQL_USER"),
@@ -17,22 +15,14 @@ class Config:
 
 
 class ProductionConfig(Config):
-    DEBUG = False
-    DISABLE_REGISTER = True
-
-    # Security
-    SESSION_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_DURATION = 3600
-
     # PostgreSQL database
-    SQLALCHEMY_DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(
+    SQL_CONNECTION_STRING = "postgresql://{}:{}@{}:{}".format(
         environ.get("DT_SQL_USER"),
         environ.get("DT_SQL_PASS"),
         environ.get("DT_SQL_HOST"),
         environ.get("DT_SQL_PORT"),
-        environ.get("DT_SQL_DBNAME"),
     )
+    SQL_DBNAME = environ.get("DT_SQL_DBNAME")
 
 
 class TestConfig(Config):
@@ -48,13 +38,13 @@ class TestConfig(Config):
     TESTING = True
 
     # PostgreSQL database
-    SQLALCHEMY_DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(
+    SQL_CONNECTION_STRING = "postgresql://{}:{}@{}:{}".format(
         environ.get("DT_SQL_TESTUSER"),
         environ.get("DT_SQL_TESTPASS"),
         environ.get("DT_SQL_TESTHOST"),
         environ.get("DT_SQL_TESTPORT"),
-        environ.get("DT_SQL_TESTDBNAME"),
     )
+    SQL_DBNAME = environ.get("DT_SQL_TESTDBNAME")
 
 
 class DebugConfig(Config):

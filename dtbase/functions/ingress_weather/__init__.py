@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from azure.functions import HttpRequest, HttpResponse
+from dateutil.parser import parse
 
 from dtbase.ingress.ingress_weather import OpenWeatherDataIngress
 
@@ -19,7 +20,7 @@ def parse_datetime_argument(dt_str: str) -> str | dt.datetime:
 
     now = dt.datetime.now()
     tolerance = dt.timedelta(seconds=10)
-    datetime = dt.datetime.fromisoformat(dt_str)
+    datetime = parse(dt_str)
     if now - tolerance <= datetime <= now + tolerance:
         return "present"
     return datetime

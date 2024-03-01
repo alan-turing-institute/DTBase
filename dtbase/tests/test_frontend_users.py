@@ -82,7 +82,7 @@ def test_users_index_post_mock_delete_user(
     with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/user/list-users", json=["user1@example.com"])
-            m.delete("http://localhost:5000/user/delete-user", status_code=200)
+            m.post("http://localhost:5000/user/delete-user", status_code=200)
             response = client.post(
                 "/users/index",
                 data={
@@ -101,7 +101,7 @@ def test_users_index_post_mock_delete_user_fail(
     with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/user/list-users", json=["user1@example.com"])
-            m.delete("http://localhost:5000/user/delete-user", status_code=500)
+            m.post("http://localhost:5000/user/delete-user", status_code=500)
             response = client.post(
                 "/users/index",
                 data={
