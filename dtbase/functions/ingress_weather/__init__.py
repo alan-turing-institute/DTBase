@@ -32,8 +32,8 @@ def main(req: HttpRequest) -> HttpResponse:
     req_body = req.get_json()
     params: dict[str, Any] = {}
     for parameter_name in {
-        "from_dt",
-        "to_dt",
+        "dt_from",
+        "dt_to",
         "api_key",
         "latitude",
         "longitude",
@@ -46,11 +46,11 @@ def main(req: HttpRequest) -> HttpResponse:
         params[parameter_name] = parameter
 
     try:
-        params["from_dt"] = parse_datetime_argument(params["from_dt"])
-        params["to_dt"] = parse_datetime_argument(params["to_dt"])
+        params["dt_from"] = parse_datetime_argument(params["dt_from"])
+        params["dt_to"] = parse_datetime_argument(params["dt_to"])
     except ValueError:
         return HttpResponse(
-            "from_dt and to_dt must be ISO 8601 datetime strings or 'present'.",
+            "dt_from and dt_to must be ISO 8601 datetime strings or 'present'.",
             status_code=400,
         )
 

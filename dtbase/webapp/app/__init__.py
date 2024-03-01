@@ -146,6 +146,8 @@ def create_app(config: Config) -> Flask:
         raise RuntimeError("Environment variable DT_FRONT_SECRET_KEY must be set.")
     app = Flask(__name__, static_folder="base/static")
     app.config.from_object(config)
+    app.config["WEBSITE_NAME"] = "DTBase"
+
     register_extensions(app)
     register_blueprints(app)
     register_template_filters(app)

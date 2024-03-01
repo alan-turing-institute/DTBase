@@ -51,7 +51,10 @@ def insert_trh_sensor(sensor_unique_id: str, session: Session) -> None:
 
 
 def insert_trh_readings(
-    session: Session, sensor_unique_id: str = "TRH1", insert_sensor: bool = True
+    session: Session,
+    sensor_unique_id: str = "TRH1",
+    insert_sensor: bool = True,
+    add_noise: bool = True,
 ) -> None:
     """
     Insert a set of temperature and humidity readings for a sensor with
@@ -64,7 +67,7 @@ def insert_trh_readings(
             print("Sensor already inserted")
             session.rollback()
     # generate the Temperature and Humidity readings
-    readings = generate_trh_readings(sensor_ids=[1])
+    readings = generate_trh_readings(sensor_ids=[1], add_noise=add_noise)
     # readings will be a pandas dataframe.
     # we want to extract some columns as lists, and convert timestamps to datetime
     timestamps = list(readings.timestamp)
