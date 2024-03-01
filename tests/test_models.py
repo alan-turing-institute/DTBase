@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from dtbase.core import models
+from dtbase.backend.database import models
 from dtbase.core.exc import RowMissingError
 
 from .test_sensors import SENSOR_ID1, insert_sensors

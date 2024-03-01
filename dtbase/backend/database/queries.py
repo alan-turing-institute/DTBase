@@ -9,9 +9,8 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.selectable import Select
 
-from dtbase.core import utils
-from dtbase.core.db import Session
-from dtbase.core.structure import (
+from dtbase.backend.database import utils
+from dtbase.backend.database.structure import (
     Location,
     LocationIdentifier,
     LocationSchema,
@@ -20,6 +19,7 @@ from dtbase.core.structure import (
     SensorType,
     SensorTypeMeasureRelation,
 )
+from dtbase.backend.database.utils import Session
 
 
 def location_identifiers_by_schema() -> Select:

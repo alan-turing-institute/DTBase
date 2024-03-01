@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from dtbase.core.sensors import (
+from dtbase.backend.database.sensors import (
     insert_sensor,
     insert_sensor_measure,
     insert_sensor_readings,

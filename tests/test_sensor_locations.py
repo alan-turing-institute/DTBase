@@ -5,7 +5,7 @@ import datetime as dt
 
 from sqlalchemy.orm import Session
 
-from dtbase.core import sensor_locations
+from dtbase.backend.database import sensor_locations
 
 from . import test_locations, test_sensors
 

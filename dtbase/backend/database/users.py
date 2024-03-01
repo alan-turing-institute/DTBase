@@ -3,8 +3,8 @@ from typing import List
 
 import sqlalchemy as sqla
 
-from dtbase.core.db import Session
-from dtbase.core.structure import User
+from dtbase.backend.database.structure import User
+from dtbase.backend.database.utils import Session
 
 
 def user_exists(email: str, session: Session) -> bool:

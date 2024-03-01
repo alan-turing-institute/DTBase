@@ -10,7 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_access
-from dtbase.backend.db import db_session
+from dtbase.backend.database import models
+from dtbase.backend.database.utils import db_session
 from dtbase.backend.models import (
     MessageResponse,
     Model,
@@ -19,7 +20,6 @@ from dtbase.backend.models import (
     SensorMeasureIdentifier,
     ValueType,
 )
-from dtbase.core import models
 from dtbase.core.exc import RowMissingError
 
 router = APIRouter(

@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from dtbase.core import locations
+from dtbase.backend.database import locations
 from dtbase.core.exc import RowExistsError, RowMissingError
 
 # Some constants we will use in the tests repeatedly.

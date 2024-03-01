@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from dtbase.core import users
+from dtbase.backend.database import users
 
 # Some example values used for testing.
 EMAIL = "hubby@hobbob.bubbly"

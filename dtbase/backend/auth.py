@@ -9,9 +9,9 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from dtbase.backend.db import db_session
+from dtbase.backend.database import users
+from dtbase.backend.database.utils import db_session
 from dtbase.backend.models import ParsedToken, TokenPair
-from dtbase.core import users
 from dtbase.core.constants import (
     JWT_ACCESS_TOKEN_EXPIRES,
     JWT_REFRESH_TOKEN_EXPIRES,

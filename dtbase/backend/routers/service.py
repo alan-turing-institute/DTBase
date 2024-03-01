@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_access
-from dtbase.backend.db import db_session
+from dtbase.backend.database import service
+from dtbase.backend.database.utils import db_session
 from dtbase.backend.models import MessageResponse
-from dtbase.core import service
 from dtbase.core.exc import RowExistsError, RowMissingError
 
 router = APIRouter(

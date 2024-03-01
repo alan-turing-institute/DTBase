@@ -10,7 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.backend.auth import authenticate_access
-from dtbase.backend.db import db_session
+from dtbase.backend.database import locations
+from dtbase.backend.database.utils import db_session
 from dtbase.backend.models import (
     Coordinates,
     LocationIdentifier,
@@ -18,7 +19,6 @@ from dtbase.backend.models import (
     MessageResponse,
     ValueType,
 )
-from dtbase.core import locations
 from dtbase.core.exc import RowExistsError, RowMissingError
 
 logger = logging.getLogger(__name__)

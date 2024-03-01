@@ -6,7 +6,7 @@ from dateutil.parser import parse
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm import Session
 
-from dtbase.core import sensors
+from dtbase.backend.database import sensors
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Functions for inserting some data into the database. These will called at the

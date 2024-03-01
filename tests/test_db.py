@@ -5,7 +5,7 @@ the SQLAlchemy ORM.
 
 from sqlalchemy.orm import Session
 
-from dtbase.core.structure import (
+from dtbase.backend.database.structure import (
     Location,
     LocationBooleanValue,
     LocationFloatValue,

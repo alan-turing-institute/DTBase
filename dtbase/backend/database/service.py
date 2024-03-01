@@ -6,10 +6,14 @@ import requests
 import sqlalchemy as sqla
 from sqlalchemy.exc import IntegrityError
 
-from dtbase.core import utils
-from dtbase.core.db import Session
+from dtbase.backend.database import utils
+from dtbase.backend.database.structure import (
+    Service,
+    ServiceParameterSet,
+    ServiceRunLog,
+)
+from dtbase.backend.database.utils import Session
 from dtbase.core.exc import RowExistsError, RowMissingError
-from dtbase.core.structure import Service, ServiceParameterSet, ServiceRunLog
 
 HTTPMethods = Literal["GET", "POST", "PUT", "DELETE"]
 

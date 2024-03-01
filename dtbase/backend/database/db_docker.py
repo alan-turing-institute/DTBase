@@ -5,8 +5,8 @@ import re
 import subprocess
 import time
 
+from dtbase.backend.database.utils import connect_db, create_database, create_tables
 from dtbase.core.constants import SQL_CONNECTION_STRING, SQL_DBNAME
-from dtbase.core.db import connect_db, create_database, create_tables
 
 
 def check_for_docker() -> str | bool:

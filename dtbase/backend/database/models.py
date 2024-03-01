@@ -4,10 +4,8 @@ from typing import Any, List, Optional, Tuple
 
 import sqlalchemy as sqla
 
-from dtbase.core import sensors, utils
-from dtbase.core.db import Session
-from dtbase.core.exc import RowMissingError, TooManyRowsError
-from dtbase.core.structure import (
+from dtbase.backend.database import sensors, utils
+from dtbase.backend.database.structure import (
     Model,
     ModelMeasure,
     ModelProduct,
@@ -16,6 +14,8 @@ from dtbase.core.structure import (
     Sensor,
     SensorMeasure,
 )
+from dtbase.backend.database.utils import Session
+from dtbase.core.exc import RowMissingError, TooManyRowsError
 
 
 def _collect_sensor_measure_results(row: dict) -> None:

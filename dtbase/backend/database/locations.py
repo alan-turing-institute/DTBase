@@ -3,15 +3,15 @@ from typing import Any, Dict, List, Optional, cast
 
 import sqlalchemy as sqla
 
-from dtbase.core import queries, utils
-from dtbase.core.db import Session
-from dtbase.core.exc import RowExistsError, RowMissingError, TooManyRowsError
-from dtbase.core.structure import (
+from dtbase.backend.database import queries, utils
+from dtbase.backend.database.structure import (
     Location,
     LocationIdentifier,
     LocationSchema,
     LocationSchemaIdentifierRelation,
 )
+from dtbase.backend.database.utils import Session
+from dtbase.core.exc import RowExistsError, RowMissingError, TooManyRowsError
 
 
 def insert_location_value(

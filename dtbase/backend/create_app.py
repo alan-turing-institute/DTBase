@@ -4,7 +4,9 @@ from logging import DEBUG, StreamHandler, basicConfig, getLogger
 from fastapi import FastAPI
 from sqlalchemy.exc import SQLAlchemyError
 
-from dtbase.backend.db import (
+from dtbase.backend.database.structure import Base
+from dtbase.backend.database.users import change_password, delete_user, insert_user
+from dtbase.backend.database.utils import (
     create_global_database_connection,
     global_engine,
     global_session_maker,
@@ -21,8 +23,6 @@ from dtbase.core.constants import (
     SQL_CONNECTION_STRING,
     SQL_DBNAME,
 )
-from dtbase.core.structure import Base
-from dtbase.core.users import change_password, delete_user, insert_user
 
 
 def add_routers(app: FastAPI) -> None:

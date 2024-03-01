@@ -4,15 +4,15 @@ from typing import Any, List, Optional, Sequence
 
 import sqlalchemy as sqla
 
-from dtbase.core import queries, utils
-from dtbase.core.db import Session
-from dtbase.core.exc import RowMissingError
-from dtbase.core.structure import (
+from dtbase.backend.database import queries, utils
+from dtbase.backend.database.structure import (
     Sensor,
     SensorMeasure,
     SensorType,
     SensorTypeMeasureRelation,
 )
+from dtbase.backend.database.utils import Session
+from dtbase.core.exc import RowMissingError
 
 
 def measure_id_from_name_and_units(

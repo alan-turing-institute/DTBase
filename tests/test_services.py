@@ -8,7 +8,7 @@ import pytest
 import requests_mock
 from sqlalchemy.orm import Session
 
-from dtbase.core import service
+from dtbase.backend.database import service
 from dtbase.core.exc import RowExistsError, RowMissingError
 
 SERVICE1_NAME = "Test Service"
@@ -302,7 +302,9 @@ def test_list_runs(session: Session) -> None:
     """
     insert_parameter_sets(session)
     now = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
-    with requests_mock.Mocker() as m, mock.patch("dtbase.core.service.dt") as mock_dt:
+    with requests_mock.Mocker() as m, mock.patch(
+        "dtbase.backend.database.service.dt"
+    ) as mock_dt:
         mock_dt.datetime.now.return_value = now
         test_return = {"message": "Well hello there"}
         m.post(SERVICE1_URL, json=test_return)

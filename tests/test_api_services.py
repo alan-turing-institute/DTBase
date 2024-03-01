@@ -237,7 +237,7 @@ def test_list_runs(auth_client: TestClient) -> None:
     insert_parameter_sets(auth_client)
 
     now = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
-    with mock.patch("dtbase.core.service.dt") as mock_dt:
+    with mock.patch("dtbase.backend.database.service.dt") as mock_dt:
         mock_dt.datetime.now.return_value = now
         insert_runs(auth_client)
 

@@ -4,9 +4,14 @@ from typing import Any
 
 import sqlalchemy as sqla
 
-from dtbase.core import queries, sensors, utils
-from dtbase.core.db import Session
-from dtbase.core.structure import Location, LocationSchema, Sensor, SensorLocation
+from dtbase.backend.database import queries, sensors, utils
+from dtbase.backend.database.structure import (
+    Location,
+    LocationSchema,
+    Sensor,
+    SensorLocation,
+)
+from dtbase.backend.database.utils import Session
 
 
 def insert_sensor_location(

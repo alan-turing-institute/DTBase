@@ -18,30 +18,29 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from dtbase.backend.create_app import create_app as create_backend_app
+
+# The below import is for exporting, other modules will import it from there
+from dtbase.backend.database.db_docker import (
+    check_for_docker,  # noqa: F401
+    start_docker_postgres,
+    stop_docker_postgres,
+)
+from dtbase.backend.database.users import insert_user
+
+# The below import is for exporting, other modules will import it from there
+from dtbase.backend.database.utils import (
+    connect_db,
+    create_database,
+    create_tables,
+    drop_db,
+    drop_tables,
+)
 from dtbase.core.constants import (
     DEFAULT_USER_EMAIL,
     DEFAULT_USER_PASS,
     SQL_TEST_CONNECTION_STRING,
     SQL_TEST_DBNAME,
 )
-
-# The below import is for exporting, other modules will import it from there
-from dtbase.core.db import (
-    connect_db,
-    create_database,
-    create_tables,
-    drop_db,
-    drop_tables,
-    session_close,  # noqa: F401
-)
-
-# The below import is for exporting, other modules will import it from there
-from dtbase.core.db_docker import (
-    check_for_docker,  # noqa: F401
-    start_docker_postgres,
-    stop_docker_postgres,
-)
-from dtbase.core.users import insert_user
 from dtbase.frontend.app import create_app as create_frontend_app
 from dtbase.frontend.config import config_dict as frontend_config
 
@@ -93,14 +92,16 @@ def engine() -> Generator[Engine, None, None]:
     all tests.
     """
     engine = connect_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
-    with mock.patch("dtbase.backend.db.DB_ENGINE", wraps=engine):
+    with mock.patch("dtbase.backend.database.utils.DB_ENGINE", wraps=engine):
         yield engine
 
 
 @pytest.fixture(scope="session")
 def session_maker(engine: Engine) -> Generator[sessionmaker, None, None]:
     session_maker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    with mock.patch("dtbase.backend.db.DB_SESSION_MAKER", wraps=session_maker):
+    with mock.patch(
+        "dtbase.backend.database.utils.DB_SESSION_MAKER", wraps=session_maker
+    ):
         yield session_maker
 
 
