@@ -1,0 +1,174 @@
+{% extends "base_site.html" %}
+
+{% block title %} Services {% endblock title %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2>Service: <span style="color: #555555;">{{service.name}}</span></h2>
+    <p>URL: <span style="color: #555555;">{{service.url}}</span></p>
+  </div>
+</div>
+
+<!-- This whole page is essentially one big form. Any form submission will include all
+  fields, and which button is pressed will determine which of those fields are used and
+  how.
+--!>
+<form method="post">
+<div class="row">
+  {% if parameter_set %}
+  <input type="hidden" name="current_parameter_set_name" value="{{ parameter_set.name }}">
+  {% endif %}
+  <div class="col-sm-12 col-md-8 col-lg-8">
+    <h3>Parameters{% if parameter_set %}: <span style="color: #555555;">{{ parameter_set.name }}</span>{% endif %}</h3>
+    <p>The parameters to be passed to the service, as JSON.</p>
+
+    <div class="mb-2">
+        <textarea
+          class="form-control"
+          style="width: 100%; min-height: 300px;"
+          id="parameters-textarea"
+          name="parameters"
+          required
+          >{{parameters | tojson}}</textarea>
+      <div class="invalid-feedback">Parameters must be valid JSON.</div>
+    </div>
+
+      <button
+        type="submit"
+        id="runCurrentButton"
+        name="submitRunCurrent"
+        class="btn btn-primary"
+        >
+        Run
+      </button>
+
+      <button
+        type="submit"
+        {% if not parameter_set %}
+        style="visibility: hidden;"
+        {% endif %}
+        id="saveCurrentButton"
+        name="submitSaveCurrent"
+        class="btn btn-primary"
+        >
+        Save
+      </button>
+  </div>
+
+  <div class="col-sm-12 col-md-4 col-lg-4">
+    <h3>Saved parameter sets</h3>
+
+    <table id="datatable" class="table table-striped nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th scope='col'>Name</th>
+          <th scope='col'>Run now</th>
+          <th scope='col'>Edit</th>
+          <th scope='col'>Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for ps in parameter_sets %}
+        <tr>
+          <td>
+          {% if parameter_set and parameter_set.name == ps.name %}
+          <strong>{{ps.name}}</strong>
+          {% else %}
+          {{ps.name}}
+          {% endif %}</td>
+          <td>
+            <button
+              type="submit"
+              class="btn btn-default submit"
+              name="submitRunNamed"
+              value="{{ ps.name }}"
+              >
+              <i class="fa fa-play"></i>
+            </button>
+          </td>
+          <td>
+            <button
+              type="submit"
+              class="btn btn-default submit"
+              name="submitEditNamed"
+              value="{{ ps.name }}"
+              >
+              <i class="fa fa-pencil"></i>
+            </button>
+          </td>
+          <td>
+            <button
+              type="submit"
+              class="btn btn-default submit"
+              name="submitDeleteNamed"
+              value="{{ ps.name }}"
+              >
+              <i class="fa fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+
+        <tr>
+          <td><input type="text" name="new_parameter_set_name" placeholder="Parameter set name"></td>
+          <td>
+          </td>
+          <td>
+            <button type="submit" class="btn btn-primary submit" name="submitAddNewSet">
+              Create
+            </button>
+          </td>
+          <td>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+<div class="col-sm-12 col-md-12 col-lg-12 mt-3">
+  <h3>Run log</h3>
+    <table id="datatable" class="table table-striped nowrap" style="width:100%">
+      <thead>
+        <tr>
+          <th scope='col'>Timestamp</th>
+          <th scope='col'>Parameter set name</th>
+          <th scope='col'>Parameters</th>
+          <th scope='col'>Response status</th>
+          <th scope='col'>Response body</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for run in run_history %}
+          <tr>
+            <td>{{ run.timestamp }}</td>
+            <td>{{ run.parameter_set_name }}</td>
+            <td>{{ run.parameters }}</td>
+            <td><span style="color: {{run.status_colour}}">{{ run.response_status_code }} - {{ run.status_description }}</span></td>
+            <td>{{ run.response_json | tojson }}</td>
+          </tr>
+        {% endfor %}
+        <tr>
+      </tbody>
+    </table>
+</div>
+</div>
+</form>
+{% endblock content %}
+
+{% block javascripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='javascript/service_details.js') }}"></script>
+<script>
+  const saveCurrentButton = document.getElementById("saveCurrentButton");
+  const runCurrentButton = document.getElementById("runCurrentButton");
+
+  document.getElementById("parameters-textarea").addEventListener(
+    "input",
+    (event) => { window.validateJSON(event, [saveCurrentButton, runCurrentButton]); }
+  );
+</script>
+{% endblock javascripts %}

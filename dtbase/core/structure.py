@@ -10,6 +10,7 @@ from typing import Any
 
 from bcrypt import checkpw, gensalt, hashpw
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
@@ -31,6 +32,7 @@ class Base(DeclarativeBase):
 
 
 datatype_name = Enum("string", "float", "integer", "boolean", name="value_datatype")
+http_method = Enum("GET", "POST", "PUT", "DELETE", name="http_method")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -650,6 +652,75 @@ class ModelBooleanValue(Base):
 
     # arguments
     __table_args__ = (UniqueConstraint("product_id", "timestamp"),)
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Services
+
+
+class Service(Base):
+    """
+    Services that can be called.
+    """
+
+    __tablename__ = "service"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False, unique=True)
+    url = Column(Text, nullable=False)
+    http_method = Column(http_method, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class ServiceParameterSet(Base):
+    """
+    Services that can be called.
+    """
+
+    __tablename__ = "service_parameter_set"
+
+    # columns
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+    service_id = Column(
+        Integer,
+        ForeignKey("service.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    parameters = Column(JSON, nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # arguments
+    __table_args__ = (UniqueConstraint("service_id", "name"),)
+
+
+class ServiceRunLog(Base):
+    """
+    Log of service runs
+    """
+
+    __tablename__ = "service_run_log"
+
+    id = Column(Integer, primary_key=True)
+    service_id = Column(
+        Integer,
+        ForeignKey("service.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+    )
+    parameters = Column(JSON, nullable=False)
+    parameter_set_id = Column(
+        Integer,
+        ForeignKey("service_parameter_set.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=True,
+    )
+    response_status_code = Column(Integer, nullable=False)
+    response_json = Column(JSON, nullable=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
