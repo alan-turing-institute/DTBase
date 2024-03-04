@@ -87,27 +87,51 @@ def delete_user() -> Tuple[Response, int]:
 @jwt_required()
 def change_password() -> Tuple[Response, int]:
     """
-    Change a users password
+    Change a user's password.
 
-    POST request should have json data (mimetype "application/json") containing
+    POST request should have JSON data (mimetype "application/json") containing
     {
       "email": <type_email:str>,
-      "password": <type_password:str>,
+      "current_password": <type_current_password:str>,
+      "new_password": <type_new_password:str>,
+      "confirm_new_password": <type_confirm_new_password:str>,
     }
-    where `password` is the new password.
+    where `new_password` is the new password and `confirm_new_password`
+      must match `new_password`.
 
-    Returns 400 if user doesn't exist, otherwise 200.
+    Returns 400 if user doesn't exist, if current password is incorrect,
+      or if passwords do not match. Otherwise, returns 200.
     """
     payload = request.get_json()
-    required_keys = ["email", "password"]
+    required_keys = [
+        "email",
+        "current_password",
+        "new_password",
+        "confirm_new_password",
+    ]
     error_response = check_keys(payload, required_keys, "/change-password")
     if error_response:
         return error_response
+
     email = payload.get("email")
-    password = payload.get("password")
+    current_password = payload.get("current_password")
+    new_password = payload.get("new_password")
+    confirm_new_password = payload.get("confirm_new_password")
+
+    if new_password != confirm_new_password:
+        return (
+            jsonify({"message": "New password and confirm new password do not match"}),
+            400,
+        )
+
     try:
-        users.change_password(email, password, session=db.session)
+        # Assuming `verify_password` checks the current password is correct
+        if not users.verify_password(email, current_password, session=db.session):
+            return jsonify({"message": "Current password is incorrect"}), 400
+
+        users.change_password(email, new_password, session=db.session)
     except NoResultFound:
         return jsonify({"message": "User doesn't exist"}), 400
+
     db.session.commit()
-    return jsonify({"message": "Password changed"}), 200
+    return jsonify({"message": "Password changed successfully"}), 200
