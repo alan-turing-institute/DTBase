@@ -25,13 +25,13 @@ The first `<script>` tag includes a file transpiled from `sensor_list_table.ts`.
 `sensor_list_table.ts` looks like this:
 
 ```typescript
-import { initialiseDataTable } from "./datatables";
+import { initialiseDataTable } from "./datatables"
 
 export function updateTable(sensors_for_each_type) {
-  // blahblah, bunch of things happen here
+    // blahblah, bunch of things happen here
 }
 
-window.updateTable = updateTable;
+window.updateTable = updateTable
 ```
 
 It imports from another module we've written using the ES6 import syntax and defines `updateTable`. It then effectively "exports" this function to be visible in the global scope, and thus usable in the above snippet in the Jinja template, by assigning it to `window.updateTable`. (It also exports it in the ES6 exports sense, so that other Typescript modules can use it.)

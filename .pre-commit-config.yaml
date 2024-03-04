@@ -32,4 +32,3 @@ repos:
     exclude: ^dtbase/webapp/node_modules
     files: \.tsx?$
     types: [file]
-    args: [--fix]

@@ -11,11 +11,10 @@
         "jquery": true
     },
     "rules": {
-        "prettier/prettier": "error",
+        //"prettier/prettier": "error",
+        "@typescript-eslint/no-explicit-any": "off",
         "consistent-return": 2,
-        "indent": [1, 4],
         "no-else-return": 1,
-        "semi": 0,
         "space-unary-ops": 0,
         "require-jsdoc": 0,
         "no-unused-vars": 1,

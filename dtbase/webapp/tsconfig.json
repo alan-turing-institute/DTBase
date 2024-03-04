@@ -1,12 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "es6",
-    "noEmitOnError": false,
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "strict": true
-  },
-  "include": ["app/base/static/typescript/**/*.ts"],
-  "exclude": ["node_modules"]
+    "compilerOptions": {
+        "target": "es6",
+        "module": "es6",
+        "noEmitOnError": false,
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "strict": true
+    },
+    "include": ["app/base/static/typescript/**/*.ts"],
+    "exclude": ["node_modules"]
 }
