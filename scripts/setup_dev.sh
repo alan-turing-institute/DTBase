@@ -1,3 +1,12 @@
+# Check if Conda is installed and create a Conda environment
+if conda --version &>/dev/null; then
+    echo "Conda is installed, creating a Conda environment."
+    conda create --name dt_env python=3.10 -y
+    conda activate dt_env
+else
+    echo "Conda is not installed, proceeding without creating a Conda environment."
+fi
+
 # Install dtbase package with dev dependencies
 pip install '.[dev]'
 
