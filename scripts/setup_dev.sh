@@ -4,7 +4,7 @@ ENV_NAME="dt_env"
 check_activate_conda() {
     if conda env list | grep "${ENV_NAME}" > /dev/null 2>&1; then
         echo "Activating Conda environment: ${ENV_NAME}"
-        source activate "${ENV_NAME}"
+        conda activate "${ENV_NAME}"
         return 0
     else
         return 1
@@ -41,8 +41,8 @@ if ! { conda --version &>/dev/null && check_activate_conda; } &&
     echo "No suitable Python environment management system is installed or the ${ENV_NAME} environment does not exist."
 fi
 
-# The following commands run regardless of the DT_ENV variable's value, assuming that
-# necessary services and dependencies are already set up when DT_ENV="development"
+# Make sure everything is installed
+pip install '.[dev]'
 
 # Run tests
 python -m pytest
