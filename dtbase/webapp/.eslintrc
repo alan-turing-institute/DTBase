@@ -23,7 +23,6 @@
     },
     "extends": [
         "eslint:recommended",
-        "google",
         "prettier",
         "plugin:@typescript-eslint/recommended"
     ],
