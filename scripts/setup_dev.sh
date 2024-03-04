@@ -1,32 +1,44 @@
-# Check if the DT_ENV environment variable is set to "development"
-if [[ "$DT_ENV" != "development" ]]; then
-    # Check if Conda is installed and create a Conda environment
-    if conda --version &>/dev/null; then
-        echo "Conda is installed, creating a Conda environment."
-        conda create --name dt_env python=3.10 -y
-        conda activate dt_env
+ENV_NAME="dt_env"
+
+# Function to check and activate Conda environment
+check_activate_conda() {
+    if conda env list | grep "${ENV_NAME}" > /dev/null 2>&1; then
+        echo "Activating Conda environment: ${ENV_NAME}"
+        source activate "${ENV_NAME}"
+        return 0
     else
-        echo "Conda is not installed, proceeding without creating a Conda environment."
+        return 1
     fi
+}
 
-    # Install dtbase package with dev dependencies
-    pip install '.[dev]'
+# Function to check for Poetry environment
+check_activate_poetry() {
+    if poetry env list | grep "${ENV_NAME}" > /dev/null 2>&1; then
+        echo "Activating Poetry environment: ${ENV_NAME}"
+        poetry shell
+        return 0
+    else
+        return 1
+    fi
+}
 
-    # Prepare local database environment
-    cp .secrets/dtenv_template.sh .secrets/dtenv_localdb.sh
-    sed -i '' 's/<REPLACE_ME>/your_secret_value_here/g' .secrets/dtenv_localdb.sh # Replace 'your_secret_value_here' with actual secret values
-    source .secrets/dtenv_localdb.sh
+# Function to check and activate PyEnv environment
+check_activate_pyenv() {
+    if pyenv versions | grep "${ENV_NAME}" > /dev/null 2>&1; then
+        echo "Activating PyEnv environment: ${ENV_NAME}"
+        pyenv activate "${ENV_NAME}"
+        return 0
+    else
+        return 1
+    fi
+}
 
-    # Start Postgresql server in Docker container
-    docker run --name dt_dev -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
-
-    # Wait for the container to initialize completely
-    sleep 10
-
-    # Create the database
-    createdb --host localhost --username postgres dt_dev
-
-    echo "Environment setup complete. Proceeding with running tests and starting services."
+# Check for environment management systems in the order of preference
+if ! { conda --version &>/dev/null && check_activate_conda; } &&
+   ! { type poetry &>/dev/null && check_activate_poetry; } &&
+   ! { type pyenv &>/dev/null && check_activate_pyenv; } &&
+   [[ -z "$VIRTUAL_ENV" ]]; then
+    echo "No suitable Python environment management system is installed or the ${ENV_NAME} environment does not exist."
 fi
 
 # The following commands run regardless of the DT_ENV variable's value, assuming that
