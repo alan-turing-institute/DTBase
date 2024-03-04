@@ -12,7 +12,7 @@
     },
     "rules": {
         //"prettier/prettier": "error",
-        "@typescript-eslint/no-explicit-any": "off",
+        //"@typescript-eslint/no-explicit-any": "off",
         "consistent-return": 2,
         "no-else-return": 1,
         "space-unary-ops": 0,
@@ -23,7 +23,7 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
+        //"plugin:@typescript-eslint/recommended",
         "prettier"
     ],
     "parser": "@typescript-eslint/parser",
