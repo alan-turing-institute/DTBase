@@ -35,7 +35,15 @@ def register_extensions(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    module_list = ("base", "home", "sensors", "locations", "models", "users")
+    module_list = (
+        "base",
+        "home",
+        "sensors",
+        "locations",
+        "models",
+        "services",
+        "users",
+    )
 
     for module_name in module_list:
         module = import_module("dtbase.webapp.app.{}.routes".format(module_name))

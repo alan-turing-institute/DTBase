@@ -53,12 +53,18 @@ def insert_locations(session: Session) -> None:
     """Insert some locations into the database."""
     insert_schemas(session)
     locations.insert_location(
-        "latlong", latitude=LATITUDE1, longitude=LONGITUDE1, session=session
+        "latlong",
+        coordinates={"latitude": LATITUDE1, "longitude": LONGITUDE1},
+        session=session,
     )
     locations.insert_location(
-        "latlong", latitude=LATITUDE2, longitude=LONGITUDE2, session=session
+        "latlong",
+        coordinates={"latitude": LATITUDE2, "longitude": LONGITUDE2},
+        session=session,
     )
-    locations.insert_location("lat only", latitude=LATITUDE3, session=session)
+    locations.insert_location(
+        "lat only", coordinates={"latitude": LATITUDE3}, session=session
+    )
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -145,8 +151,7 @@ def test_insert_location_duplicate(session: Session) -> None:
     with pytest.raises(RowExistsError, match=error_msg):
         locations.insert_location(
             "latlong",
-            latitude=LATITUDE1,
-            longitude=LONGITUDE1,
+            coordinates={"latitude": LATITUDE1, "longitude": LONGITUDE1},
             session=session,
         )
 
@@ -156,7 +161,9 @@ def test_insert_location_no_schema(session: Session) -> None:
     insert_schemas(session)
     with pytest.raises(RowMissingError, match="No location schema 'heightitude'"):
         locations.insert_location(
-            "heightitude", latitude=12.0, longitude=0.0, session=session
+            "heightitude",
+            coordinates={"latitude": 12.0, "longitude": 0.0},
+            session=session,
         )
 
 
@@ -171,7 +178,7 @@ def test_insert_location_wrong_identifier(session: Session) -> None:
     )
     with pytest.raises(ValueError, match=error_msg):
         locations.insert_location(
-            "latlong", height=12.0, longitude=0.0, session=session
+            "latlong", coordinates={"height": 12.0, "longitude": 0.0}, session=session
         )
 
 
@@ -185,8 +192,7 @@ def test_insert_location_wrong_data_type(session: Session) -> None:
     with pytest.raises(ValueError, match=error_msg):
         locations.insert_location(
             "latlong",
-            latitude="this is a string",
-            longitude=0.0,
+            coordinates={"latitude": "this is a string", "longitude": 0.0},
             session=session,
         )
 
@@ -201,12 +207,14 @@ def test_list_locations(session: Session) -> None:
     assert all_locations[1]["latitude"] == LATITUDE2
     assert all_locations[1]["longitude"] == LONGITUDE2
     some_locations = locations.list_locations(
-        "latlong", session=session, latitude=LATITUDE1
+        "latlong", session=session, coordinates={"latitude": LATITUDE1}
     )
     assert len(some_locations) == 1
     assert some_locations[0]["latitude"] == LATITUDE1
     assert some_locations[0]["longitude"] == LONGITUDE1
-    no_locations = locations.list_locations("latlong", session=session, latitude=-3.0)
+    no_locations = locations.list_locations(
+        "latlong", session=session, coordinates={"latitude": -3.0}
+    )
     assert len(no_locations) == 0
 
 
@@ -263,7 +271,9 @@ def test_delete_location(session: Session) -> None:
     """Delete a location, and check that it is deleted and can't be redeleted."""
     insert_locations(session)
     locations.delete_location_by_coordinates(
-        "latlong", latitude=LATITUDE2, longitude=LONGITUDE2, session=session
+        "latlong",
+        coordinates={"latitude": LATITUDE2, "longitude": LONGITUDE2},
+        session=session,
     )
     all_locations = locations.list_locations("latlong", session=session)
     assert len(all_locations) == 1
@@ -276,13 +286,14 @@ def test_delete_location(session: Session) -> None:
     with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_by_coordinates(
             "latlong",
-            latitude=LATITUDE2,
-            longitude=LONGITUDE2,
+            coordinates={"latitude": LATITUDE2, "longitude": LONGITUDE2},
             session=session,
         )
 
     locations.delete_location_by_coordinates(
-        "latlong", latitude=LATITUDE1, longitude=LONGITUDE1, session=session
+        "latlong",
+        coordinates={"latitude": LATITUDE1, "longitude": LONGITUDE1},
+        session=session,
     )
     all_locations = locations.list_locations("latlong", session=session)
     assert len(all_locations) == 0
@@ -294,5 +305,5 @@ def test_delete_location_nonexistent(session: Session) -> None:
     error_msg = "Location not found: latlong, {'latitude': 0.0, 'longitude': 0.0}"
     with pytest.raises(RowMissingError, match=error_msg):
         locations.delete_location_by_coordinates(
-            "latlong", latitude=0.0, longitude=0.0, session=session
+            "latlong", coordinates={"latitude": 0.0, "longitude": 0.0}, session=session
         )

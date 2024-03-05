@@ -9,8 +9,8 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.selectable import Select
 
-from dtbase.backend.utils import Session
 from dtbase.core import utils
+from dtbase.core.db import Session
 from dtbase.core.structure import (
     Location,
     LocationIdentifier,

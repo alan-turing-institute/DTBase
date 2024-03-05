@@ -13,7 +13,7 @@ We try to design the code base so as many of DTBase's features as possible can b
 ### Packages and technologies
 
 * The core of DTBase is the database, for which we use PostgresSQL.
-* The backend is written in Python, using the Flask and SQLAlchemy packages.
+* The backend is written in Python, using the FastAPI and SQLAlchemy packages.
 * The frontend is a Flask app written in Python.
 * Continuous Integration and Continuous Deployment are done via Github Actions, which in turn build Docker images and push them to Dockerhub.
 * Data ingress, Modelling and other services are implemented via Azure Functions.

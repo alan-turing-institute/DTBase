@@ -1,11 +1,11 @@
 """Functions for accessing the sensor tables. """
 import datetime as dt
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Sequence
 
 import sqlalchemy as sqla
 
-from dtbase.backend.utils import Session, set_session_if_unset
 from dtbase.core import queries, utils
+from dtbase.core.db import Session
 from dtbase.core.exc import RowMissingError
 from dtbase.core.structure import (
     Sensor,
@@ -16,7 +16,7 @@ from dtbase.core.structure import (
 
 
 def measure_id_from_name_and_units(
-    measure_name: str, measure_units: str, session: Optional[Session] = None
+    measure_name: str, measure_units: Optional[str], session: Session
 ) -> Any:
     """
     Find the id of a sensor measure of the given name and units.
@@ -24,13 +24,12 @@ def measure_id_from_name_and_units(
 
     Args:
         measure_name: Name of the sensor measure
-        measure_units: Name of the sensor measure
+        measure_units: Name of the sensor measure. Can be None.
         session: SQLAlchemy session. Optional.
 
     Returns:
         Database id of the sensor measure.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(SensorMeasure.id).where(
         (SensorMeasure.name == measure_name) & (SensorMeasure.units == measure_units)
     )
@@ -47,7 +46,7 @@ def measure_id_from_name_and_units(
     return result[0][0]
 
 
-def type_id_from_name(type_name: str, session: Optional[Session] = None) -> Any:
+def type_id_from_name(type_name: str, session: Session) -> Any:
     """Find the id of a sensor type of the given name.
 
     Args:
@@ -57,7 +56,6 @@ def type_id_from_name(type_name: str, session: Optional[Session] = None) -> Any:
     Returns:
         Database id of the sensor type.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(SensorType.id).where(SensorType.name == type_name)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -67,9 +65,7 @@ def type_id_from_name(type_name: str, session: Optional[Session] = None) -> Any:
     return result[0][0]
 
 
-def sensor_id_from_unique_identifier(
-    unique_identifier: str, session: Optional[Session] = None
-) -> Any:
+def sensor_id_from_unique_identifier(unique_identifier: str, session: Session) -> Any:
     """Find the id of a sensor of the given unique identifier.
 
     Args:
@@ -79,7 +75,6 @@ def sensor_id_from_unique_identifier(
     Returns:
         Database id of the sensor.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(Sensor.id).where(Sensor.unique_identifier == unique_identifier)
     result = session.execute(query).fetchall()
     if len(result) == 0:
@@ -91,9 +86,9 @@ def sensor_id_from_unique_identifier(
 
 def insert_sensor_measure(
     name: str,
-    units: str,
+    units: Optional[str],
     datatype: str | int | int | float,
-    session: Optional[Session] = None,
+    session: Session,
 ) -> None:
     """Insert a new sensor measure into the database.
 
@@ -102,7 +97,7 @@ def insert_sensor_measure(
 
     Args:
         name: Name of this measure, e.g. "temperature".
-        units: Units in which this measure is specified.
+        units: Units in which this measure is specified. Can be None.
         datatype: Value type of this sensor measure. Has to be one of "string",
             "integer", "float", or "boolean".
         session: SQLAlchemy session. Optional.
@@ -110,7 +105,6 @@ def insert_sensor_measure(
     Returns:
         measure_id: int, PK of the newly created measure.
     """
-    session = set_session_if_unset(session)
     if datatype not in ("string", "integer", "float", "boolean"):
         raise ValueError(f"Unrecognised data type: {datatype}")
     session.add(SensorMeasure(name=name, units=units, datatype=datatype))
@@ -118,7 +112,10 @@ def insert_sensor_measure(
 
 
 def insert_sensor_type(
-    name: str, description: str, measures: str, session: Optional[Session] = None
+    name: str,
+    description: Optional[str],
+    measures: list[dict[str, Optional[str]]],
+    session: Session,
 ) -> None:
     """Insert a new sensor type into the database.
 
@@ -128,7 +125,7 @@ def insert_sensor_type(
 
     Args:
         name: Name of this sensor type
-        description: Free form text description, for human consumption.
+        description: Free form text description, for human consumption. Can be None.
         measures: List of sensor measures that this sensor type can report.
             This should be a list of dicts with keys 'name' and 'units', that
             correspond to existing measures in the database.
@@ -137,7 +134,6 @@ def insert_sensor_type(
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     new_type = SensorType(name=name, description=description)
     session.add(new_type)
     session.flush()
@@ -154,9 +150,9 @@ def insert_sensor_type(
 def insert_sensor(
     type_name: str,
     unique_identifier: str,
-    name: str = None,
-    notes: str = None,
-    session: Optional[Session] = None,
+    session: Session,
+    name: Optional[str] = None,
+    notes: Optional[str] = None,
 ) -> None:
     """Insert a new sensor into the database.
 
@@ -170,7 +166,6 @@ def insert_sensor(
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     type_id = type_id_from_name(type_name, session=session)
     new_sensor = Sensor(
         type_id=type_id, unique_identifier=unique_identifier, name=name, notes=notes
@@ -181,16 +176,16 @@ def insert_sensor(
 
 def insert_sensor_readings(
     measure_name: str,
-    sensor_uniq_id: str,
-    readings: str,
-    timestamps: dt.datetime,
-    session: Optional[Session] = None,
+    unique_identifier: str,
+    readings: list,
+    timestamps: list[dt.datetime],
+    session: Session,
 ) -> None:
     """Insert sensor readings to the database.
 
     Args:
         measure_name: Name of the sensor measure that these are readings for.
-        sensor_uniq_id: Unique identifier for the sensor that reports these readings.
+        unique_identifier: Unique identifier for the sensor that reports these readings.
         readings: Readings to insert. An iterable.
         timestamps: Timestamps associated with the readings. An iterable of the same
             length as readings.
@@ -202,7 +197,6 @@ def insert_sensor_readings(
     Note that there can be two sensor measures with the same name (but
     different units), so we look at the sensor_type to disambiguate.
     """
-    session = set_session_if_unset(session)
     if len(readings) != len(timestamps):
         raise ValueError(
             "There should be as many readings as there are timestamps,"
@@ -227,14 +221,14 @@ def insert_sensor_readings(
         )
         .where(measures_sq.c.measure_name == measure_name)
         .join(Sensor, Sensor.type_id == measures_sq.c.type_id)
-        .where(Sensor.unique_identifier == sensor_uniq_id)
+        .where(Sensor.unique_identifier == unique_identifier)
     )
     measures_result = session.execute(measures_q).fetchall()
     valid_measure = len(measures_result) > 0
     if not valid_measure:
         raise ValueError(
             f"Measure '{measure_name}' is not a valid measure for sensor "
-            f"'{sensor_uniq_id}'."
+            f"'{unique_identifier}'."
         )
     expected_datatype = measures_result[0][0]
 
@@ -250,7 +244,7 @@ def insert_sensor_readings(
     # We use SQLAlchemy Core rather than ORM for performance reasons:
     # https://docs.sqlalchemy.org/en/14/faq/performance.html#i-m-inserting-400-000-rows-with-the-orm-and-it-s-really-slow
     measures_for_sensor = get_measures_for_sensor_identifier(
-        sensor_uniq_id, session=session
+        unique_identifier, session=session
     )
     measure_units = next(
         m["units"] for m in measures_for_sensor if m["name"] == measure_name
@@ -258,7 +252,7 @@ def insert_sensor_readings(
     measure_id = measure_id_from_name_and_units(
         measure_name, measure_units, session=session
     )
-    sensor_id = sensor_id_from_unique_identifier(sensor_uniq_id, session=session)
+    sensor_id = sensor_id_from_unique_identifier(unique_identifier, session=session)
     rows = [
         {
             "value": value,
@@ -277,23 +271,20 @@ def insert_sensor_readings(
     session.flush()
 
 
-def get_measures_for_sensor_identifier(
-    sensor_unique_id: str, session: Optional[Session] = None
-) -> Any:
+def get_measures_for_sensor_identifier(unique_identifier: str, session: Session) -> Any:
     """
     Get list of sensor measures for a sensor
 
     Args:
-        sensor_unique_id:str, id of the sensor
+        unique_identifier:str, id of the sensor
         session: SQLAlchemy session. Optional.
     Returns:
         measure_list:list of dicts, each with keys "id","name","units","datatype"
     """
-    session = set_session_if_unset(session)
     all_types = list_sensor_types(session=session)
     query = sqla.select(
         Sensor.type_id,
-    ).where(Sensor.unique_identifier == sensor_unique_id)
+    ).where(Sensor.unique_identifier == unique_identifier)
     result = session.execute(query).fetchall()
     sensor_type = next(st for st in all_types if st["id"] == result[0][0])
     if sensor_type:
@@ -302,9 +293,7 @@ def get_measures_for_sensor_identifier(
         return []
 
 
-def get_datatype_by_measure_name(
-    measure_name: str, session: Optional[Session] = None
-) -> Any:
+def get_datatype_by_measure_name(measure_name: str, session: Session) -> Any:
     """Get the datatype of the sensor measure named.
 
     Args:
@@ -314,7 +303,6 @@ def get_datatype_by_measure_name(
     Return:
         Name of the datatype, as a string.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(SensorMeasure.datatype).where(
         SensorMeasure.name == measure_name
     )
@@ -327,16 +315,16 @@ def get_datatype_by_measure_name(
 
 def get_sensor_readings(
     measure_name: str,
-    sensor_uniq_id: str,
+    unique_identifier: str,
     dt_from: dt.datetime,
     dt_to: dt.datetime,
-    session: Optional[Session] = None,
-) -> Any:
+    session: Session,
+) -> Sequence:
     """Get sensor readings from the database.
 
     Args:
         measure_name: Name of the sensor measure to get readings for.
-        sensor_uniq_id: Unique identifier for the sensor to get readings for.
+        unique_identifier: Unique identifier for the sensor to get readings for.
         dt_from: Datetime object for earliest readings to get. Inclusive.
         dt_to: Datetime object for last readings to get. Inclusive.
         session: SQLAlchemy session. Optional.
@@ -344,7 +332,6 @@ def get_sensor_readings(
     Returns:
         Readings from the database. A list of tuples [(value, timestamp), ...]
     """
-    session = set_session_if_unset(session)
     datatype_name = get_datatype_by_measure_name(measure_name, session=session)
     value_class = utils.sensor_reading_class_dict[datatype_name]
     query = (
@@ -352,7 +339,7 @@ def get_sensor_readings(
         .join(Sensor, Sensor.id == value_class.sensor_id)
         .join(SensorMeasure, SensorMeasure.id == value_class.measure_id)
         .where(
-            (Sensor.unique_identifier == sensor_uniq_id)
+            (Sensor.unique_identifier == unique_identifier)
             & (SensorMeasure.name == measure_name)
             & (value_class.timestamp >= dt_from)
             & (value_class.timestamp <= dt_to)
@@ -362,7 +349,7 @@ def get_sensor_readings(
     return result
 
 
-def delete_sensor(unique_identifier: str, session: Optional[Session] = None) -> None:
+def delete_sensor(unique_identifier: str, session: Session) -> None:
     """Delete a sensor from the database.
 
     Also deletes any readings for this sensor.
@@ -374,7 +361,6 @@ def delete_sensor(unique_identifier: str, session: Optional[Session] = None) -> 
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     result = session.execute(
         sqla.delete(Sensor).where(Sensor.unique_identifier == unique_identifier)
     )
@@ -382,7 +368,7 @@ def delete_sensor(unique_identifier: str, session: Optional[Session] = None) -> 
         raise ValueError(f"No sensor '{unique_identifier}'")
 
 
-def delete_sensor_measure(measure_name: str, session: Optional[Session] = None) -> None:
+def delete_sensor_measure(measure_name: str, session: Session) -> None:
     """Delete a sensor measure from the database.
 
     Refuses to proceed if there are sensor readings or sensor types attached to this
@@ -395,7 +381,6 @@ def delete_sensor_measure(measure_name: str, session: Optional[Session] = None) 
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     result = session.execute(
         sqla.delete(SensorMeasure).where(SensorMeasure.name == measure_name)
     )
@@ -403,7 +388,7 @@ def delete_sensor_measure(measure_name: str, session: Optional[Session] = None) 
         raise ValueError(f"No sensor measure named '{measure_name}'")
 
 
-def delete_sensor_type(type_name: str, session: Optional[Session] = None) -> None:
+def delete_sensor_type(type_name: str, session: Session) -> None:
     """Delete a sensor type from the database.
 
     Refuses to proceed if there are sensors of this type in the database.
@@ -415,7 +400,6 @@ def delete_sensor_type(type_name: str, session: Optional[Session] = None) -> Non
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     result = session.execute(
         sqla.delete(SensorType).where(SensorType.name == type_name)
     )
@@ -423,7 +407,7 @@ def delete_sensor_type(type_name: str, session: Optional[Session] = None) -> Non
         raise ValueError(f"No sensor type named '{type_name}'")
 
 
-def list_sensor_measures(session: Optional[Session] = None) -> List[dict]:
+def list_sensor_measures(session: Session) -> List[dict]:
     """List all sensor measures.
 
     Args:
@@ -432,7 +416,6 @@ def list_sensor_measures(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all sensor measures.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(
         SensorMeasure.id,
         SensorMeasure.name,
@@ -444,7 +427,7 @@ def list_sensor_measures(session: Optional[Session] = None) -> List[dict]:
     return result
 
 
-def list_sensor_types(session: Optional[Session] = None) -> List[dict]:
+def list_sensor_types(session: Session) -> List[dict]:
     """List all sensor types.
 
     Args:
@@ -453,7 +436,6 @@ def list_sensor_types(session: Optional[Session] = None) -> List[dict]:
     Returns:
         List of all sensor types, each of which contains a dict of measures
     """
-    session = set_session_if_unset(session)
     measures_query = queries.sensor_measures_by_type()
     all_measures = session.execute(measures_query).mappings().all()
     types_query = sqla.select(SensorType.id, SensorType.name, SensorType.description)
@@ -476,9 +458,7 @@ def list_sensor_types(session: Optional[Session] = None) -> List[dict]:
     return result
 
 
-def list_sensors(
-    type_name: Optional[str] = None, session: Optional[Session] = None
-) -> List[dict]:
+def list_sensors(session: Session, type_name: Optional[str] = None) -> List[dict]:
     """List all sensors, optionally filtering by sensor type.
 
     Args:
@@ -489,7 +469,6 @@ def list_sensors(
     Returns:
         List of all the sensors that match the provided criteria.
     """
-    session = set_session_if_unset(session)
     query = sqla.select(
         Sensor.id,
         Sensor.type_id.label("sensor_type_id"),
@@ -509,7 +488,7 @@ def edit_sensor(
     unique_identifier: str,
     new_name: str,
     new_notes: str,
-    session: Optional[Session] = None,
+    session: Session,
 ) -> None:
     """Edit an existing sensor in the database.
 
@@ -522,7 +501,6 @@ def edit_sensor(
     Returns:
         None
     """
-    session = set_session_if_unset(session)
     # Find the sensor by unique identifier
     sensor = (
         session.query(Sensor).filter_by(unique_identifier=unique_identifier).first()

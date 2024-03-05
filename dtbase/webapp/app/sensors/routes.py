@@ -7,6 +7,7 @@ import re
 from typing import Any, Dict, List
 
 import pandas as pd
+from dateutil.parser import parse
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
@@ -45,7 +46,7 @@ def fetch_all_sensors(sensor_type: str) -> List[dict[str, Any]]:
     if not sensor_type:
         return []
     payload = {"type_name": sensor_type}
-    response = current_user.backend_call("get", "/sensor/list-sensors", payload)
+    response = current_user.backend_call("post", "/sensor/list-sensors", payload)
     if response.status_code != 200:
         # TODO Write a more useful reaction to this.
         raise RuntimeError(f"A backend call failed: {response}")
@@ -85,7 +86,7 @@ def fetch_sensor_data(
                 "unique_identifier": sensor_id,
             }
             response = current_user.backend_call(
-                "get", "/sensor/sensor-readings", payload
+                "post", "/sensor/sensor-readings", payload
             )
             if response.status_code != 200:
                 # TODO Write a more useful reaction to this.
@@ -93,7 +94,7 @@ def fetch_sensor_data(
             readings = response.json()
             index = [x["timestamp"] for x in readings]
             values = [x["value"] for x in readings]
-            index = list(map(dt.datetime.fromisoformat, index))
+            index = list(map(parse, index))
             series = pd.Series(data=values, index=index, name=measure["name"])
             measure_readings_list.append(series)
         df = pd.concat(measure_readings_list, axis=1)
@@ -153,12 +154,8 @@ def time_series_plots() -> Response:
 
     # Convert datetime strings to objects and make dt_to run to the end of the day in
     # question.
-    dt_from = dt.datetime.fromisoformat(dt_from)
-    dt_to = (
-        dt.datetime.fromisoformat(dt_to)
-        + dt.timedelta(days=1)
-        + dt.timedelta(milliseconds=-1)
-    )
+    dt_from = parse(dt_from)
+    dt_to = parse(dt_to) + dt.timedelta(days=1) + dt.timedelta(milliseconds=-1)
 
     # Get all the sensor measures for this sensor type.
     measures = next(
@@ -357,7 +354,7 @@ def submit_sensor() -> Response:
     for sensor_type in sensor_type_response.json():
         payload_check = {"type_name": sensor_type["name"]}
         sensors_list = current_user.backend_call(
-            "get", "/sensor/list-sensors", payload_check
+            "post", "/sensor/list-sensors", payload_check
         )
         for sensor in sensors_list.json():
             if sensor["unique_identifier"] == payload["unique_identifier"]:
@@ -394,7 +391,7 @@ def sensor_list_table() -> Response:
     for sensor_type in sensor_types:
         payload = {"type_name": sensor_type["name"]}
         sensors_response = current_user.backend_call(
-            "get", "/sensor/list-sensors", payload
+            "post", "/sensor/list-sensors", payload
         )
 
         sensors_for_each_type[sensor_type["name"]] = sensors_response.json()
@@ -424,7 +421,7 @@ def sensor_edit_form() -> Response:
     if request.method == "DELETE":
         unique_identifier = request.args.get("unique_identifier")
         payload["unique_identifier"] = unique_identifier
-        response = current_user.backend_call("delete", "/sensor/delete-sensor", payload)
+        response = current_user.backend_call("post", "/sensor/delete-sensor", payload)
         if response.status_code == 200:
             flash("Sensor deleted successfully", "success")
         return "", 200

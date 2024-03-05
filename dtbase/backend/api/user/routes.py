@@ -1,113 +1,85 @@
 """
 Module (routes.py) to handle API endpoints related to user management
 """
-from typing import Tuple
-
-from flask import Response, jsonify, request
-from flask_jwt_extended import jwt_required
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.orm import Session
 
-from dtbase.backend.api.user import blueprint
-from dtbase.backend.utils import check_keys
+from dtbase.backend.auth import authenticate_access
+from dtbase.backend.db import db_session
+from dtbase.backend.models import LoginCredentials, MessageResponse, UserIdentifier
 from dtbase.core import users
-from dtbase.core.structure import db
+
+router = APIRouter(
+    prefix="/user",
+    tags=["user"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
+)
 
 
-@blueprint.route("/list-users", methods=["GET"])
-@jwt_required()
-def list_users() -> Tuple[Response, int]:
-    """
-    List all users.
-
-    A GET request with no payload needed.
-
-    Returns 200.
-    """
-    emails = users.list_users()
-    return jsonify(emails), 200
+@router.get("/list-users", status_code=status.HTTP_200_OK)
+def list_users(session: Session = Depends(db_session)) -> list[str]:
+    """List all users."""
+    emails = users.list_users(session=session)
+    return emails
 
 
-@blueprint.route("/create-user", methods=["POST"])
-@jwt_required()
-def create_user() -> Tuple[Response, int]:
+@router.post(
+    "/create-user",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
+def create_user(
+    credentials: LoginCredentials, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Create a new user.
-
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "email": <type_email:str>,
-      "password": <type_password:str>
-    }
-
-    Returns 409 if user already exists, otherwise 201.
     """
-    payload = request.get_json()
-    required_keys = ["email", "password"]
-    error_response = check_keys(payload, required_keys, "/create-user")
-    if error_response:
-        return error_response
-    email = payload.get("email")
-    password = payload.get("password")
+    email = credentials.email
+    password = credentials.password
     try:
-        users.insert_user(email, password, session=db.session)
+        users.insert_user(email, password, session=session)
+        session.commit()
     except IntegrityError:
-        return jsonify({"message": "User already exists"}), 409
-    db.session.commit()
-    return jsonify({"message": "User created"}), 201
+        raise HTTPException(status_code=409, detail="User already exists")
+    return MessageResponse(detail="User created")
 
 
-@blueprint.route("/delete-user", methods=["DELETE"])
-@jwt_required()
-def delete_user() -> Tuple[Response, int]:
-    """
-    Delete a user.
-
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "email": <type_email:str>,
-    }
-
-    Returns 200.
-    """
-    payload = request.get_json()
-    required_keys = ["email"]
-    error_response = check_keys(payload, required_keys, "/delete-user")
-    if error_response:
-        return error_response
-    email = payload.get("email")
+@router.post(
+    "/delete-user",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def delete_user(
+    user_id: UserIdentifier, session: Session = Depends(db_session)
+) -> MessageResponse:
+    """Delete a user."""
     try:
-        users.delete_user(email, session=db.session)
+        users.delete_user(user_id.email, session=session)
+        session.commit()
     except ValueError:
-        return jsonify({"message": "User doesn't exist"}), 400
-    db.session.commit()
-    return jsonify({"message": "User deleted"}), 200
+        raise HTTPException(status_code=400, detail="User doesn't exist")
+    return MessageResponse(detail="User deleted")
 
 
-@blueprint.route("/change-password", methods=["POST"])
-@jwt_required()
-def change_password() -> Tuple[Response, int]:
+@router.post(
+    "/change-password",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def change_password(
+    credentials: LoginCredentials, session: Session = Depends(db_session)
+) -> MessageResponse:
+    """Change a user's password.
+
+    The `password` field is the name password.
     """
-    Change a users password
-
-    POST request should have json data (mimetype "application/json") containing
-    {
-      "email": <type_email:str>,
-      "password": <type_password:str>,
-    }
-    where `password` is the new password.
-
-    Returns 400 if user doesn't exist, otherwise 200.
-    """
-    payload = request.get_json()
-    required_keys = ["email", "password"]
-    error_response = check_keys(payload, required_keys, "/change-password")
-    if error_response:
-        return error_response
-    email = payload.get("email")
-    password = payload.get("password")
+    email = credentials.email
+    password = credentials.password
     try:
-        users.change_password(email, password, session=db.session)
+        users.change_password(email, password, session=session)
+        session.commit()
     except NoResultFound:
-        return jsonify({"message": "User doesn't exist"}), 400
-    db.session.commit()
-    return jsonify({"message": "Password changed"}), 200
+        raise HTTPException(status_code=400, detail="User doesn't exist")
+    return MessageResponse(detail="Password changed")

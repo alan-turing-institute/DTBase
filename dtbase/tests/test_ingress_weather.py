@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 import requests_mock
+from fastapi.testclient import TestClient
 from freezegun import freeze_time
 
 from dtbase.ingress.ingress_weather import (
@@ -9,7 +10,6 @@ from dtbase.ingress.ingress_weather import (
     SENSOR_OPENWEATHERMAPHISTORICAL,
     OpenWeatherDataIngress,
 )
-from dtbase.tests.conftest import AuthenticatedClient
 from dtbase.tests.resources.data_for_tests import (
     EXPECTED_OPENWEATHERMAP_FORECAST_GET_DATA_RESPONSE,
     EXPECTED_OPENWEATHERMAP_HISTORICAL_GET_DATA_RESPONSE,
@@ -95,7 +95,7 @@ def test_get_api_base_url_and_sensor_raises(
 
 
 @freeze_time("2024-01-06")
-def test_get_data_historical_api(conn_backend: AuthenticatedClient) -> None:
+def test_get_data_historical_api(conn_backend: TestClient) -> None:
     """Test the get_data method for a scenario where the historical API would be used"""
     weather_ingress = OpenWeatherDataIngress()
     dt_to = datetime(2024, 1, 5, 16, 1, 1, 1)
@@ -123,7 +123,7 @@ def test_get_data_historical_api(conn_backend: AuthenticatedClient) -> None:
 
 
 @freeze_time("2024-01-04")
-def test_get_data_forecast_api(conn_backend: AuthenticatedClient) -> None:
+def test_get_data_forecast_api(conn_backend: TestClient) -> None:
     """Test the get_data method for a scenario where the forecast API would be used"""
     weather_ingress = OpenWeatherDataIngress()
     dt_from = datetime(2024, 1, 5, 16, 1, 1, 1)

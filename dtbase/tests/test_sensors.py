@@ -1,9 +1,8 @@
 """
 Test the functions for accessing the sensor tables.
 """
-import datetime as dt
-
 import pytest
+from dateutil.parser import parse
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm import Session
 
@@ -22,7 +21,7 @@ SENSOR_ID3 = "STRINGSTRINGSTRING"
 TEMPERATURES = [0.0, 1.0, 2.0]
 TIMESTAMPS = list(
     map(
-        dt.datetime.fromisoformat,
+        parse,
         [
             "2022-10-10T01:00:00+00:00",
             "2022-10-11T01:00:00+00:00",
@@ -294,7 +293,7 @@ def test_insert_sensor_readings_duplicate(session: Session) -> None:
     inserted.
     """
     insert_readings(session)
-    new_time = dt.datetime.fromisoformat("2022-10-13T01:00:00+00:00")
+    new_time = parse("2022-10-13T01:00:00+00:00")
     sensors.insert_sensor_readings(
         "temperature",
         SENSOR_ID1,
@@ -332,7 +331,7 @@ def test_list_sensors(session: Session) -> None:
     assert all_sensors[1]["sensor_type_name"] == "weather"
     assert all_sensors[2]["unique_identifier"] == SENSOR_ID3
     assert all_sensors[2]["sensor_type_name"] == "temperature"
-    weather_sensors = sensors.list_sensors("weather", session=session)
+    weather_sensors = sensors.list_sensors(type_name="weather", session=session)
     assert len(weather_sensors) == 2
     assert weather_sensors[0]["unique_identifier"] == SENSOR_ID1
     assert weather_sensors[0]["sensor_type_name"] == "weather"
@@ -441,6 +440,7 @@ def test_edit_sensor(session: Session) -> None:
     sensors.edit_sensor(
         SENSOR_ID1, new_name="new_name", new_notes="new_notes", session=session
     )
+    session.commit()
     all_sensors = sensors.list_sensors(session=session)
     assert len(all_sensors) == 3
 

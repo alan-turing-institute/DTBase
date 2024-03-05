@@ -1,110 +1,112 @@
 """
 Module (routes.py) to handle API endpoints related to Locations
 """
-
 import logging
-from typing import Tuple
+from typing import Optional
 
-from flask import Response, jsonify, request
-from flask_jwt_extended import jwt_required
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from dtbase.backend.api.location import blueprint
-from dtbase.backend.utils import check_keys
+from dtbase.backend.auth import authenticate_access
+from dtbase.backend.db import db_session
+from dtbase.backend.models import (
+    Coordinates,
+    LocationIdentifier,
+    LocationSchema,
+    MessageResponse,
+    ValueType,
+)
 from dtbase.core import locations
 from dtbase.core.exc import RowExistsError, RowMissingError
-from dtbase.core.structure import db
 
 logger = logging.getLogger(__name__)
 
+router = APIRouter(
+    prefix="/location",
+    tags=["location"],
+    dependencies=[Depends(authenticate_access)],
+    responses={status.HTTP_401_UNAUTHORIZED: {"model": MessageResponse}},
+)
 
-@blueprint.route("/insert-location-schema", methods=["POST"])
-@jwt_required()
-def insert_location_schema() -> Tuple[Response, int]:
+
+@router.post(
+    "/insert-location-schema",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
+def insert_location_schema(
+    location_schema: LocationSchema, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Add a location schema to the database.
-    POST request should have json data (mimetype "application/json")
-    containing
-    {
-      "name": <schema_name:str>,
-      "description": <schema_description:str>
-      "identifiers": [
-                 {"name":<name:str>, "units":<units:str>,"datatype":<datatype:str>},
-                 ...
-                    ]
-    }
+
+    A location is defined by its name description and a list of location identifiers
+    that are used to specify locations in this schema.
+
+    For instance, a location schema might be "latitude-longitude" with identifiers
+    "latitude" and "longitude", or "campus-room-numbering" with identifiers
+    "building name", "floor", and "room".
     """
-    try:
-        payload = request.get_json()
-        required_keys = ["name", "description", "identifiers"]
-        error_response = check_keys(payload, required_keys, "/insert-location-schema")
-        if error_response:
-            return error_response
-        idnames = []
-        for identifier in payload["identifiers"]:
-            if not identifier.get("is_existing", False):
-                locations.insert_location_identifier(
-                    name=identifier["name"],
-                    units=identifier["units"],
-                    datatype=identifier["datatype"],
-                    session=db.session,
-                )
-            idnames.append(identifier["name"])
-        # sort the idnames list, and use it to create/find a schema
-        idnames.sort()
-        locations.insert_location_schema(
-            name=payload["name"],
-            description=payload["description"],
-            identifiers=idnames,
-            session=db.session,
+    idnames = []
+    for identifier in location_schema.identifiers:
+        locations.insert_location_identifier(
+            name=identifier.name,
+            units=identifier.units,
+            datatype=identifier.datatype,
+            session=session,
         )
-        db.session.commit()
-        return jsonify(payload), 201
-
+        idnames.append(identifier.name)
+    # sort the idnames list, and use it to create/find a schema
+    idnames.sort()
+    try:
+        locations.insert_location_schema(
+            name=location_schema.name,
+            description=location_schema.description,
+            identifiers=idnames,
+            session=session,
+        )
+        session.commit()
     except IntegrityError:
-        return jsonify({"message": "Location schema or measure exists already"}), 409
-
-    except Exception as e:
-        # Log the error message and return a response with the error message
-        logger.error("Error occurred:", str(e))
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=409, detail="LocationSchema exists already")
+    return MessageResponse(detail="Location schema inserted")
 
 
-@blueprint.route("/insert-location", methods=["POST"])
-@jwt_required()
-def insert_location() -> Tuple[Response, int]:
+class InsertLocationRequest(BaseModel):
+    identifiers: list[LocationIdentifier]
+    values: list[ValueType]
+
+
+class InsertLocationResponse(BaseModel):
+    schema_name: str
+
+
+@router.post(
+    "/insert-location",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_409_CONFLICT: {"model": MessageResponse}},
+)
+def insert_location(
+    location_data: InsertLocationRequest, session: Session = Depends(db_session)
+) -> InsertLocationResponse:
     """
     Add a location to the database, defining the schema at the same time.
-    POST request should have json data (mimetype "application/json")
-    containing
-    {
-      "identifiers": [
-                 {"name":<name:str>, "units":<units:str>,"datatype":<datatype:str>},
-                 ...
-                    ],
-      "values": [<val1>, ...]
-    }
-    (where values should be in the same order as identifiers).
 
+    There should be as many values in the "values" list as there are identifiers in the
+    "identifiers" list. The order of the values should correspond to the order of the
+    identifiers, and the datatypes should match.
     """
-
-    payload = request.get_json()
-    required_keys = ["identifiers", "values"]
-    error_response = check_keys(payload, required_keys, "/insert-location")
-    if error_response:
-        return error_response
-
-    db.session.begin()
     try:
         idnames = []
-        for identifier in payload["identifiers"]:
+        for identifier in location_data.identifiers:
             locations.insert_location_identifier(
-                name=identifier["name"],
-                units=identifier["units"],
-                datatype=identifier["datatype"],
-                session=db.session,
+                name=identifier.name,
+                units=identifier.units,
+                datatype=identifier.datatype,
+                session=session,
             )
-            idnames.append(identifier["name"])
+            idnames.append(identifier.name)
         # sort the idnames list, and use it to create/find a schema
         idnames.sort()
         schema_name = "-".join(idnames)
@@ -112,193 +114,164 @@ def insert_location() -> Tuple[Response, int]:
             name=schema_name,
             description=schema_name,
             identifiers=idnames,
-            session=db.session,
+            session=session,
         )
-        value_dict = {}
-        for i, val in enumerate(payload["values"]):
-            value_dict[payload["identifiers"][i]["name"]] = val
-        value_dict["schema_name"] = schema_name
-        locations.insert_location(**value_dict, session=db.session)
-        db.session.commit()
-        return (
-            jsonify({"message": "Location inserted", "schema_name": schema_name}),
-            201,
-        )
+        coordinates = {}
+        for i, val in enumerate(location_data.values):
+            coordinates[location_data.identifiers[i].name] = val
+        locations.insert_location(schema_name, coordinates, session=session)
+        session.commit()
     except IntegrityError:
-        db.session.rollback()
-        return jsonify({"message": "Location or schema exists already"}), 409
-    except Exception:
-        db.session.rollback()
-        raise
+        raise HTTPException(status_code=409, detail="Location or schema exists already")
+    return InsertLocationResponse(schema_name=schema_name)
 
 
-@blueprint.route("/insert-location-for-schema", methods=["POST"])
-@jwt_required()
-def insert_location_existing_schema() -> Tuple[Response, int]:
+class InsertLocationForExistingSchemaRequest(BaseModel):
+    schema_name: str
+    coordinates: Coordinates
+
+
+@router.post(
+    "/insert-location-for-schema",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_409_CONFLICT: {"model": MessageResponse},
+        status.HTTP_400_BAD_REQUEST: {"model": MessageResponse},
+    },
+)
+def insert_location_existing_schema(
+    payload: InsertLocationForExistingSchemaRequest,
+    session: Session = Depends(db_session),
+) -> MessageResponse:
     """
     Add a location to the database, given an existing schema name.
-    POST request should have json data (mimetype "application/json")
-    containing
-    {
-      "schema_name": <schema_name:str>,
-      "identifier1_name": "value1",
-       ...
-    }
-    with an identifier name and value for every identifier in the schema
 
+    The keys of the coordinates should match the identifiers of the schema.
     """
-
-    payload = request.get_json()
-    required_keys = ["schema_name"]
-    error_response = check_keys(payload, required_keys, "/insert-location-for-schema")
-    if error_response:
-        return error_response
     try:
-        locations.insert_location(**payload, session=db.session)
-        db.session.commit()
+        locations.insert_location(
+            payload.schema_name, payload.coordinates.model_dump(), session=session
+        )
+        session.commit()
     except RowMissingError:
-        return jsonify({"message": "Location schema does not exist"}), 400
+        raise HTTPException(status_code=400, detail="Location schema does not exist")
     except RowExistsError:
-        return jsonify({"message": "Location already exists"}), 409
-    return jsonify({"message": "Location created"}), 201
+        raise HTTPException(status_code=409, detail="Location exists already")
+    return MessageResponse(detail="Location inserted")
 
 
-@blueprint.route("/list-locations", methods=["GET"])
-@jwt_required()
-def list_locations() -> Tuple[Response, int]:
+class ListLocationRequest(BaseModel):
+    schema_name: str
+    coordinates: Optional[Coordinates] = Field(default=None)
+
+
+@router.post(
+    "/list-locations",
+    status_code=status.HTTP_200_OK,
+)
+def list_locations(
+    payload: ListLocationRequest, session: Session = Depends(db_session)
+) -> list[Coordinates]:
     """
     List location in the database, filtered by schema name.
+
     Optionally also filter by coordinates, if given identifiers in the payload.
-    Payload should be of the form:
-    {
-      "schema_name": <schema_name:str>,
-      "identifier1_name": <value1:float|int|str|bool>,
-       ...
-    }
-
-    Returns results in the form:
-    [
-     { <identifier1:str>: <value1:str>, ...}, ...
-    ]
-
     """
-    payload = request.get_json()
-    required_keys = ["schema_name"]
-    error_response = check_keys(payload, required_keys, "/list-locations")
-    if error_response:
-        return error_response
-    result = locations.list_locations(**payload)
-    return jsonify(result), 200
+    result = locations.list_locations(**payload.model_dump(), session=session)
+    return [Coordinates(**r) for r in result]
 
 
-@blueprint.route("/list-location-schemas", methods=["GET"])
-@jwt_required()
-def list_location_schemas() -> Tuple[Response, int]:
+@router.get("/list-location-schemas", status_code=status.HTTP_200_OK)
+def list_location_schemas(
+    session: Session = Depends(db_session),
+) -> list[LocationSchema]:
     """
     List location schemas in the database.
-
-    Returns results in the form:
-    [
-      {
-       "name": <name:str>,
-       "description": <description:str>,
-       "identifiers": [
-          {
-            "name": <identifier_name:str>,
-            "units": <units:str>,
-            "datatype":<"float"|"integer"|"string"|"boolean">
-           }, ...
-       ]
-      }
-    ]
     """
+    result = locations.list_location_schemas(session=session)
+    return [LocationSchema(**r) for r in result]
 
-    result = locations.list_location_schemas()
-    return jsonify(result), 200
 
-
-@blueprint.route("/list-location-identifiers", methods=["GET"])
-@jwt_required()
-def list_location_identifiers() -> Tuple[Response, int]:
+@router.get("/list-location-identifiers", status_code=status.HTTP_200_OK)
+def list_location_identifiers(
+    session: Session = Depends(db_session),
+) -> list[LocationIdentifier]:
     """
     List location identifiers in the database.
     """
+    result = locations.list_location_identifiers(session=session)
+    return [LocationIdentifier(**r) for r in result]
 
-    result = locations.list_location_identifiers()
-    return jsonify(result), 200
+
+class GetSchemaDetailsRequest(BaseModel):
+    schema_name: str
 
 
-@blueprint.route("/get-schema-details", methods=["GET"])
-@jwt_required()
-def get_schema_details() -> Tuple[Response, int]:
+@router.post(
+    "/get-schema-details",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def get_schema_details(
+    payload: GetSchemaDetailsRequest, session: Session = Depends(db_session)
+) -> LocationSchema:
     """
     Get a location schema and its identifiers from the database.
-
-    Payload should have the form:
-    {'schema_name': <schema_name:str>}
-
-    Returns results in the form:
-    {
-        TODO Finish this docstring
-    }
     """
-    payload = request.get_json()
-    schema_name = payload["schema_name"]
     try:
-        result = locations.get_schema_details(schema_name)
+        result = locations.get_schema_details(payload.schema_name, session=session)
     except RowMissingError:
-        return jsonify({"message": "No such schema"}), 400
-    return jsonify(result), 200
+        raise HTTPException(status_code=400, detail="No such schema")
+    return LocationSchema(**result)
 
 
-@blueprint.route("/delete-location-schema", methods=["DELETE"])
-@jwt_required()
-def delete_location_schema() -> Tuple[Response, int]:
+class DeleteLocationSchemaRequest(BaseModel):
+    schema_name: str
+
+
+@router.post(
+    "/delete-location-schema",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def delete_location_schema(
+    payload: DeleteLocationSchemaRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Delete a location schema from the database.
-    Payload should have the form:
-    {'schema_name': <schema_name:str>}
-
     """
-
-    # Call delete_location_schema and check that it doesn't error.
-    payload = request.get_json()
-    schema_name = payload["schema_name"]
-    required_keys = ["schema_name"]
-    error_response = check_keys(payload, required_keys, "/delete-location-schema")
-    if error_response:
-        return error_response
+    schema_name = payload.schema_name
     try:
-        locations.delete_location_schema(schema_name=schema_name, session=db.session)
-        db.session.commit()
-        return (
-            jsonify({"message": f"Location schema '{schema_name}' has been deleted."}),
-            200,
-        )
+        locations.delete_location_schema(schema_name=schema_name, session=session)
+        session.commit()
     except RowMissingError:
-        return (
-            jsonify({"message": f"Location schema '{schema_name}' not found."}),
-            400,
+        raise HTTPException(
+            status_code=400, detail=f"Location schema '{schema_name}' not found."
         )
+    return MessageResponse(detail=f"Location schema '{schema_name}' has been deleted.")
 
 
-@blueprint.route("/delete-location", methods=["DELETE"])
-@jwt_required()
-def delete_location() -> Tuple[Response, int]:
+class DeleteLocationRequest(BaseModel):
+    schema_name: str
+    coordinates: Coordinates
+
+
+@router.post(
+    "/delete-location",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": MessageResponse}},
+)
+def delete_location(
+    payload: DeleteLocationRequest, session: Session = Depends(db_session)
+) -> MessageResponse:
     """
     Delete a location with the specified schema name and coordinates.
-
-    Payload should have the form:
-    {"schema_name": <schema_name:str>}
     """
-    payload = request.get_json()
-    required_keys = ["schema_name"]
-    error_response = check_keys(payload, required_keys, "/delete-location")
-    if error_response:
-        return error_response
     try:
-        locations.delete_location_by_coordinates(session=db.session, **payload)
-        db.session.commit()
-        return jsonify({"message": "Location deleted successfully."}), 200
+        locations.delete_location_by_coordinates(
+            payload.schema_name, payload.coordinates.model_dump(), session=session
+        )
+        session.commit()
+        return MessageResponse(detail="Location deleted")
     except RowMissingError:
-        return jsonify({"message": "Location not found"}), 400
+        raise HTTPException(status_code=400, detail="Location not found")

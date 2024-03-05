@@ -1,6 +1,7 @@
 """
 A module for keeping track of constants
 """
+import datetime as dt
 import logging
 import os
 from urllib import parse
@@ -76,7 +77,11 @@ CONST_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_USER_EMAIL = "default_user@localhost"
 DEFAULT_USER_PASS = os.environ.get("DT_DEFAULT_USER_PASS", None)
 
-JWT_ACCESS_TOKEN_EXPIRES = int(
-    os.environ.get("DT_JWT_ACCESS_TOKEN_EXPIRES_SECONDS", 3600)
+JWT_ACCESS_TOKEN_EXPIRES = dt.timedelta(
+    seconds=int(os.environ.get("DT_JWT_ACCESS_TOKEN_EXPIRES_SECONDS", 3600))
 )
-JWT_REFRESH_TOKEN_EXPIRES = JWT_ACCESS_TOKEN_EXPIRES + 3600
+JWT_REFRESH_TOKEN_EXPIRES = JWT_ACCESS_TOKEN_EXPIRES + dt.timedelta(
+    seconds=int(os.environ.get("DT_JWT_REFRESH_TOKEN_GRACE_SECONDS", 3600))
+)
+
+JWT_SECRET_KEY = os.environ.get("DT_JWT_SECRET_KEY", None)

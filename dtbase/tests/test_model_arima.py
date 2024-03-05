@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from fastapi.testclient import TestClient
 from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
@@ -9,7 +10,7 @@ from dtbase.models.utils.dataprocessor.config import (
     ConfigOthers,
     ConfigSensors,
 )
-from dtbase.tests.conftest import AuthenticatedClient, check_for_docker
+from dtbase.tests.conftest import check_for_docker
 from dtbase.tests.resources.data_for_tests import (
     EXPECTED_ARIMA_GET_SERVICE_DATA_RESPONSE,
 )
@@ -19,10 +20,7 @@ DOCKER_RUNNING = check_for_docker()
 
 
 @pytest.mark.skipif(not DOCKER_RUNNING, reason="requires docker")
-def test_arima_get_temperature(
-    conn_backend: AuthenticatedClient, session: Session
-) -> None:
-
+def test_arima_get_temperature(conn_backend: TestClient, session: Session) -> None:
     # Insert synthetic data into database
     insert_trh_readings(
         session,

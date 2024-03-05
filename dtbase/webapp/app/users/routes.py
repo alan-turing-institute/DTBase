@@ -15,7 +15,7 @@ def index() -> str:
         if "submitDelete" in request.form:
             payload = {"email": request.form["email"]}
             response = current_user.backend_call(
-                "delete", "/user/delete-user", payload=payload
+                "post", "/user/delete-user", payload=payload
             )
             if response.status_code == 200:
                 flash("User deleted successfully", "success")

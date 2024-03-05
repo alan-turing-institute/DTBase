@@ -64,7 +64,7 @@ def test_sensors_timeseries_dummy_sensor_types_mock(
                 json=[{"name": "dummyType1"}, {"name": "dummyType2"}],
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list-sensors", json=[])
+            m.post("http://localhost:5000/sensor/list-sensors", json=[])
             response = client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -82,7 +82,7 @@ def test_sensors_timeseries_no_sensor_data_mock(
                 json=[{"name": "sensorType1"}],
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
+            m.post("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
             response = client.get("/sensors/time-series-plots")
             assert response.status_code == 200
             html_content = response.data.decode("utf-8")
@@ -98,8 +98,8 @@ def test_sensors_timeseries_with_data_mock(
                 "http://localhost:5000/sensor/list-sensor-types", json=MOCK_SENSOR_TYPES
             )
             # also mock the responses to getting the sensors of each type
-            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
-            m.get(
+            m.post("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
+            m.post(
                 "http://localhost:5000/sensor/sensor-readings",
                 json=MOCK_SENSOR_READINGS,
             )
@@ -157,8 +157,8 @@ def test_sensors_readings_post_sensor_mock(
             m.get(
                 "http://localhost:5000/sensor/list-sensor-types", json=MOCK_SENSOR_TYPES
             )
-            m.get("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
-            m.get(
+            m.post("http://localhost:5000/sensor/list-sensors", json=MOCK_SENSORS)
+            m.post(
                 "http://localhost:5000/sensor/sensor-readings",
                 json=MOCK_SENSOR_READINGS,
             )
@@ -305,7 +305,7 @@ def test_add_sensor_ok_mock(mock_auth_frontend_client: FlaskClient) -> None:
                 "http://localhost:5000/sensor/list-sensor-types",
                 json=[{"name": "testtype"}],
             )
-            m.get("http://localhost:5000/sensor/list-sensors", json=[])
+            m.post("http://localhost:5000/sensor/list-sensors", json=[])
             m.post("http://localhost:5000/sensor/insert-sensor", status_code=201)
             client.post(
                 "/sensors/add-sensor",
@@ -345,7 +345,7 @@ def test_sensor_list_ok_mock(mock_auth_frontend_client: FlaskClient) -> None:
     with mock_auth_frontend_client as client:
         with requests_mock.Mocker() as m:
             m.get("http://localhost:5000/sensor/list-sensor-types", json=[])
-            m.get(
+            m.post(
                 "http://localhost:5000/sensor/list-sensors",
                 json=[
                     {
