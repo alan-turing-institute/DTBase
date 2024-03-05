@@ -1,7 +1,6 @@
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-from freezegun import freeze_time
 from sqlalchemy.orm import Session
 
 from dtbase.models.arima import ArimaModel, ConfigArima
@@ -161,7 +160,6 @@ def test_arima_pipeline(conn_backend: None, session: Session) -> None:
     assert "RMSE" in metrics.keys()
 
 
-@freeze_time("2024-02-13")
 def test_arima_get_service_data(conn_backend: None, session: Session) -> None:
     insert_trh_readings(session)
     config = {
