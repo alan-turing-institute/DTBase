@@ -13,12 +13,12 @@ This contains:
 
 ## backend
 
-This is a Flask application, providing API endpoints for interacting with the database (via the core functions).
+This is a FastAPI application, providing API endpoints for interacting with the database (via the core functions).
 The endpoints are grouped into `location`, `model`, and `sensor`, and within each there is a file `routes.py` defining the methods and URLs.
 
-## webapp
+## frontend
 
-This is another Flask application, providing a basic web interface.   This will send and receive HTTP requests to and from the backend, allowing users to insert sensors, locations etc. to the database, and to view time-series plots or data tables.
+This is a Flask application, providing a basic web interface.   This will send and receive HTTP requests to and from the backend, allowing users to insert sensors, locations etc. to the database, and to view time-series plots or data tables.
 The frontend pages are grouped into `locations`, `models`, and `sensors` and within each there is a `routes.py` file and at least one `templates/xyz.html` file defining the URLs and the content to be displayed.  There is also Javascript code in `base/static/javascript` that contains code for making plots and tables.
 
 ## functions
