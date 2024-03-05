@@ -13,7 +13,7 @@ from dtbase.backend.database.structure import (
     ServiceRunLog,
 )
 from dtbase.backend.database.utils import Session
-from dtbase.core.exc import RowExistsError, RowMissingError
+from dtbase.backend.exc import RowExistsError, RowMissingError
 
 HTTPMethods = Literal["GET", "POST", "PUT", "DELETE"]
 

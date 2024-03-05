@@ -15,7 +15,7 @@ from dtbase.backend.database.structure import (
     SensorMeasure,
 )
 from dtbase.backend.database.utils import Session
-from dtbase.core.exc import RowMissingError, TooManyRowsError
+from dtbase.backend.exc import RowMissingError, TooManyRowsError
 
 
 def _collect_sensor_measure_results(row: dict) -> None:

@@ -12,7 +12,7 @@ from dtbase.backend.database.structure import (
     SensorTypeMeasureRelation,
 )
 from dtbase.backend.database.utils import Session
-from dtbase.core.exc import RowMissingError
+from dtbase.backend.exc import RowMissingError
 
 
 def measure_id_from_name_and_units(

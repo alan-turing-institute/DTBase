@@ -31,10 +31,10 @@ from dtbase.backend.database.structure import (
     SensorIntegerReading,
     SensorStringReading,
 )
+from dtbase.backend.exc import DatabaseConnectionError
 from dtbase.core.constants import (
     SQL_DEFAULT_DBNAME,
 )
-from dtbase.core.exc import DatabaseConnectionError
 
 # We may have to deal with various objects that represent a database connection session,
 # so make a union type of all of them. This is used for type annotations around the

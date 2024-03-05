@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 from dtbase.backend.auth import authenticate_access
 from dtbase.backend.database import service
 from dtbase.backend.database.utils import db_session
+from dtbase.backend.exc import RowExistsError, RowMissingError
 from dtbase.backend.models import MessageResponse
-from dtbase.core.exc import RowExistsError, RowMissingError
 
 router = APIRouter(
     prefix="/service",

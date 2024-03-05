@@ -7,10 +7,7 @@ from typing import Optional
 import requests
 
 from dtbase.core.constants import CONST_BACKEND_URL as BACKEND_URL
-from dtbase.core.constants import (
-    DEFAULT_USER_EMAIL,
-    DEFAULT_USER_PASS,
-)
+from dtbase.core.constants import DEFAULT_USER_EMAIL, DEFAULT_USER_PASS
 from dtbase.core.exc import BackendCallError
 
 

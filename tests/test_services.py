@@ -9,7 +9,7 @@ import requests_mock
 from sqlalchemy.orm import Session
 
 from dtbase.backend.database import service
-from dtbase.core.exc import RowExistsError, RowMissingError
+from dtbase.backend.exc import RowExistsError, RowMissingError
 
 SERVICE1_NAME = "Test Service"
 SERVICE1_URL = "http://test.service/is-not-a-real-thing"

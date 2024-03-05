@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from dtbase.backend.database import locations
-from dtbase.core.exc import RowExistsError, RowMissingError
+from dtbase.backend.exc import RowExistsError, RowMissingError
 
 # Some constants we will use in the tests repeatedly.
 LATITUDE1 = -2.0

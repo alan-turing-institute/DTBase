@@ -11,7 +11,7 @@ from dtbase.backend.database.structure import (
     LocationSchemaIdentifierRelation,
 )
 from dtbase.backend.database.utils import Session
-from dtbase.core.exc import RowExistsError, RowMissingError, TooManyRowsError
+from dtbase.backend.exc import RowExistsError, RowMissingError, TooManyRowsError
 
 
 def insert_location_value(

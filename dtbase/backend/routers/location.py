@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from dtbase.backend.auth import authenticate_access
 from dtbase.backend.database import locations
 from dtbase.backend.database.utils import db_session
+from dtbase.backend.exc import RowExistsError, RowMissingError
 from dtbase.backend.models import (
     Coordinates,
     LocationIdentifier,
@@ -19,7 +20,6 @@ from dtbase.backend.models import (
     MessageResponse,
     ValueType,
 )
-from dtbase.core.exc import RowExistsError, RowMissingError
 
 logger = logging.getLogger(__name__)
 
