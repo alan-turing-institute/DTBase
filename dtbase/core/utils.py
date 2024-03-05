@@ -1,10 +1,8 @@
 """
 Utilities (miscellaneous routines) module
 """
-import datetime as dt
 import logging
-from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Optional
 
 import requests
 
@@ -14,60 +12,6 @@ from dtbase.core.constants import (
     DEFAULT_USER_PASS,
 )
 from dtbase.core.exc import BackendCallError
-
-
-def get_default_datetime_range() -> Tuple[dt.datetime, dt.datetime]:
-    """
-    Returns a default datetime range (7 days): dt_from, dt_to
-    """
-
-    time_delta = -7
-
-    dt_to = (
-        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        + timedelta(days=1)
-        + timedelta(milliseconds=-1)
-    )
-
-    dt_from = (dt_to + timedelta(time_delta)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-
-    return dt_from, dt_to
-
-
-def parse_date_range_argument(request_args: str) -> Tuple[dt.datetime, dt.datetime]:
-    """
-    Parses date range arguments from the request_arguments string.
-
-    Arguments:
-        request_args - request arguments as a string
-        arg - argument to be extracted from the request arguments
-
-    Returns:
-        tuple of two datetime objects
-    """
-
-    if request_args is None:
-        return get_default_datetime_range()
-
-    try:
-        dt_to = (
-            datetime.strptime(request_args.split("-")[1], "%Y%m%d").replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            + timedelta(days=1)
-            + timedelta(milliseconds=-1)
-        )
-
-        dt_from = datetime.strptime(request_args.split("-")[0], "%Y%m%d").replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-
-        return dt_from, dt_to
-
-    except ValueError:
-        return get_default_datetime_range()
 
 
 def backend_call(
