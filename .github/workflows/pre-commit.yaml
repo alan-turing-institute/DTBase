@@ -16,5 +16,5 @@ jobs:
         python -m ensurepip
         python -m pip install --upgrade pip
         python -m pip install .[dev]
-        npm install --prefix DTBase/dtbase/webapp/ --dev
+        npm install --prefix dtbase/webapp/ --include=dev
     - uses: pre-commit/action@v3.0.0
