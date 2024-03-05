@@ -29,7 +29,7 @@ Chart.register(
     Title,
     SubTitle,
     Tooltip,
-    Filler
+    Filler,
 )
 
 export function plot(
@@ -43,7 +43,7 @@ export function plot(
     },
     canvas_name: string,
     y_label: string,
-    show_legend: boolean
+    show_legend: boolean,
 ): Chart {
     const datasets = []
     if (top_json !== null) {
@@ -158,11 +158,11 @@ export function plot(
 
 export function updateScenarioSelector(
     scenarios: ModelScenario[],
-    selectedScenarioDescription: string | null
+    selectedScenarioDescription: string | null,
 ): void {
     const modelName = (document.getElementById("model_name") as HTMLSelectElement).value
     const scenarioSelector = document.getElementById(
-        "model_scenario"
+        "model_scenario",
     ) as HTMLSelectElement
 
     // Clear existing options
@@ -202,11 +202,11 @@ declare global {
             },
             canvas_name: string,
             y_label: string,
-            show_legend: boolean
+            show_legend: boolean,
         ) => void
         updateScenarioSelector: (
             scenarios: ModelScenario[],
-            selectedScenarioDescription: string | null
+            selectedScenarioDescription: string | null,
         ) => void
     }
 }

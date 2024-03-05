@@ -11,13 +11,12 @@
         "jquery": true
     },
     "rules": {
-        //"prettier/prettier": "error",
-        //"@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-explicit-any": "off",
         "consistent-return": 2,
         "no-else-return": 1,
         "space-unary-ops": 0,
         "require-jsdoc": 0,
-        "no-unused-vars": 1,
+        "no-unused-vars": 0,
         "no-undef": 0,
         "camelcase": 0
     },

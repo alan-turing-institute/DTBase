@@ -2,13 +2,13 @@ import { LocationIdentifier } from "./interfaces"
 
 export function onPageLoad(existing_identifiers: LocationIdentifier[]): void {
     const addButton = document.getElementById(
-        "addIdentifierButton"
+        "addIdentifierButton",
     ) as HTMLButtonElement
     const identifierGroup = document.getElementById(
-        "identifiersFormGroup"
+        "identifiersFormGroup",
     ) as HTMLDivElement
     const existingIdentifierSelect = document.getElementById(
-        "existingIdentifierSelect"
+        "existingIdentifierSelect",
     ) as HTMLSelectElement
 
     addButton.addEventListener("click", function () {
@@ -21,7 +21,7 @@ export function onPageLoad(existing_identifiers: LocationIdentifier[]): void {
 
         if (selectedId) {
             const identifier = existing_identifiers.find(
-                (identifier) => identifier.id === parseInt(selectedId)
+                (identifier) => identifier.id === parseInt(selectedId),
             )
             createIdentifierRow(identifierGroup, identifier)
             target.value = ""
@@ -30,7 +30,7 @@ export function onPageLoad(existing_identifiers: LocationIdentifier[]): void {
 }
 function createIdentifierRow(
     identifierGroup: HTMLDivElement,
-    identifier: null | LocationIdentifier = null
+    identifier: null | LocationIdentifier = null,
 ): void {
     const newRow = document.createElement("div")
     newRow.className = "identifier-row"
@@ -56,7 +56,7 @@ function createIdentifierRow(
             (option) =>
                 `<option value="${option}" ${
                     identifier?.datatype === option ? "selected" : ""
-                }>${option}</option>`
+                }>${option}</option>`,
         )
         .join("")}
         </select>

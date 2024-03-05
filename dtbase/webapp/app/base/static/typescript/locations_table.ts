@@ -5,7 +5,7 @@ export function updateLocationsTable(locations_for_each_schema: {
     [key: string]: Location[]
 }): void {
     const locationTableWrapper = document.getElementById(
-        "locationTableWrapper"
+        "locationTableWrapper",
     ) as HTMLDivElement
     try {
         const selectedSchema = (document.getElementById("schema") as HTMLSelectElement)

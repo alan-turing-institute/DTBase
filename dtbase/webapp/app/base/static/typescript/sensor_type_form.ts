@@ -4,7 +4,7 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
     const addButton = document.getElementById("addMeasureButton") as HTMLButtonElement
     const measureGroup = document.getElementById("formGroupMeasures") as HTMLDivElement
     const existingMeasureSelect = document.getElementById(
-        "existingMeasureSelect"
+        "existingMeasureSelect",
     ) as HTMLSelectElement
 
     function createMeasureRow(measure: SensorMeasure | null = null) {
@@ -32,7 +32,7 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
                     (option) =>
                         `<option value="${option}" ${
                             measure?.datatype === option ? "selected" : ""
-                        }>${option}</option>`
+                        }>${option}</option>`,
                 )
                 .join("")}
             </select>
@@ -62,7 +62,7 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
 
         if (selectedId) {
             const measure = existing_measures.find(
-                (measure) => measure.id === parseInt(selectedId)
+                (measure) => measure.id === parseInt(selectedId),
             )
             createMeasureRow(measure)
             target.value = ""

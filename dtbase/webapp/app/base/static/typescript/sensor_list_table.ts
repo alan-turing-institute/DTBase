@@ -11,7 +11,7 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
             document.getElementById("sensor_type") as HTMLSelectElement
         ).value
         const sensorTableWrapper = document.getElementById(
-            "sensorTableWrapper"
+            "sensorTableWrapper",
         ) as HTMLDivElement
         if (!selectedSensorType) {
             sensorTableWrapper.innerHTML = ""
@@ -50,7 +50,7 @@ export function updateSensorTable(sensors_for_each_type: ArgType): void {
         class="btn btn-warning btn-margin edit-button"
         data-sensor-id="${sensors[i]["id"]}"
         onclick="window.openEditModal('${encodeURIComponent(
-            JSON.stringify(sensors[i])
+            JSON.stringify(sensors[i]),
         )}')"
       >
       Edit
@@ -78,14 +78,14 @@ export function openEditModal(sensor: string): void {
     // Construct the URL parameters from the sensor object
     const urlParameters = Object.entries(sensorObject)
         .map(
-            ([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+            ([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
         )
         .join("&")
     // Open the popup window after displaying keys
     const editWindow = window.open(
         "/sensors/sensor-edit-form?" + urlParameters,
         "_blank",
-        "width=550,height=600"
+        "width=550,height=600",
     )
     if (editWindow !== null) {
         editWindow.addEventListener("beforeunload", function () {

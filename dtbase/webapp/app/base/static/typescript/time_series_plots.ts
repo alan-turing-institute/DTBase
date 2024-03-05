@@ -28,12 +28,12 @@ Chart.register(
     Title,
     SubTitle,
     Tooltip,
-    Filler
+    Filler,
 )
 
 function getCheckedSensorIds(): string[] {
     const sensorCheckboxesDiv = document.getElementById(
-        "sensorCheckboxesDiv"
+        "sensorCheckboxesDiv",
     ) as HTMLDivElement
     const sensorIds: string[] = []
     for (const childElement of sensorCheckboxesDiv.children) {
@@ -47,7 +47,7 @@ function getCheckedSensorIds(): string[] {
 
 function getSelectedSensorTypeStr(): string {
     const sensorTypeSelector = document.getElementById(
-        "sensorTypeSelector"
+        "sensorTypeSelector",
     ) as HTMLSelectElement
     const sensorType = sensorTypeSelector.value
     const sensorTypeStr = encodeURIComponent(sensorType)
@@ -64,7 +64,7 @@ export function changeSensorType(): void {
 export function requestTimeSeries(url: string, download: boolean): void {
     const sensorIds = getCheckedSensorIds()
     const startDatePicker = document.getElementById(
-        "startDatePicker"
+        "startDatePicker",
     ) as HTMLInputElement
     const endDatePicker = document.getElementById("endDatePicker") as HTMLInputElement
     const startDate = startDatePicker.value
@@ -154,7 +154,7 @@ export function makePlot(
     data: { [key: string]: DataPoint[] },
     yDataName: string,
     yLabel: string,
-    canvasName: string
+    canvasName: string,
 ): void {
     const datasets = []
     const sensorIds = Object.keys(data)
@@ -195,7 +195,7 @@ declare global {
             data: { [key: string]: DataPoint[] },
             yDataName: string,
             yLabel: string,
-            canvasName: string
+            canvasName: string,
         ) => void
         requestTimeSeries: (url: string, download: boolean) => void
         changeSensorType: () => void

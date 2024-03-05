@@ -1,12 +1,12 @@
 export function updateSensorSelector(
     sensorIdsByType: { [key: string]: string[] },
-    selectedSensor: string | null
+    selectedSensor: string | null,
 ): void {
     const sensorSelector = document.getElementById(
-        "sensorSelector"
+        "sensorSelector",
     ) as HTMLSelectElement
     const sensorTypeSelector = document.getElementById(
-        "sensorTypeSelector"
+        "sensorTypeSelector",
     ) as HTMLSelectElement
     const selectedSensorType = sensorTypeSelector.value
 
@@ -48,7 +48,7 @@ declare global {
     interface Window {
         updateSensorSelector: (
             sensorIdsByType: { [key: string]: string[] },
-            selectedSensor: string | null
+            selectedSensor: string | null,
         ) => void
     }
 }
