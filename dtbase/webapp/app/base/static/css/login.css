@@ -1,107 +1,107 @@
 .login_wrapper {
-    right: 0px;
-    margin: 0px auto;
-    margin-top: 5%;
-    max-width: 350px;
-    position: relative;
+  right: 0px;
+  margin: 0px auto;
+  margin-top: 5%;
+  max-width: 350px;
+  position: relative;
 }
 .login_box {
-    padding: 20px;
-    margin: auto;
+  padding: 20px;
+  margin: auto;
 }
 .login_content {
-    margin: 0 auto;
-    padding: 25px 0 0;
-    position: relative;
-    text-align: center;
-    text-shadow: 0 1px 0 #fff;
-    min-width: 280px;
+  margin: 0 auto;
+  padding: 25px 0 0;
+  position: relative;
+  text-align: center;
+  text-shadow: 0 1px 0 #fff;
+  min-width: 280px;
 }
 .login_content a,
 .login_content .btn-default:hover {
-    text-decoration: none;
+  text-decoration: none;
 }
 .login_content a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 .login_content h1 {
-    font:
-        normal 25px Helvetica,
-        Arial,
-        sans-serif;
-    letter-spacing: -0.05em;
-    line-height: 20px;
-    margin: 10px 0 30px;
+  font:
+    normal 25px Helvetica,
+    Arial,
+    sans-serif;
+  letter-spacing: -0.05em;
+  line-height: 20px;
+  margin: 10px 0 30px;
 }
 .login_content h1:before,
 .login_content h1:after {
-    content: "";
-    height: 1px;
-    position: absolute;
-    top: 10px;
-    width: 27%;
+  content: "";
+  height: 1px;
+  position: absolute;
+  top: 10px;
+  width: 27%;
 }
 .login_content h1:after {
-    right: 0;
+  right: 0;
 }
 .login_content h1:before {
-    left: 0;
+  left: 0;
 }
 .login_content h1:before,
 .login_content h1:after {
-    content: "";
-    height: 1px;
-    position: absolute;
-    top: 10px;
-    width: 20%;
+  content: "";
+  height: 1px;
+  position: absolute;
+  top: 10px;
+  width: 20%;
 }
 .login_content h1:after {
-    right: 0;
+  right: 0;
 }
 .login_content h1:before {
-    left: 0;
+  left: 0;
 }
 .login_content form {
-    margin: 20px 0;
-    position: relative;
+  margin: 20px 0;
+  position: relative;
 }
 
 #username {
-    background-position: 10px 10px !important;
+  background-position: 10px 10px !important;
 }
 
 #password {
-    background-position: 10px -53px !important;
+  background-position: 10px -53px !important;
 }
 .login_content form div a {
-    font-size: 12px;
-    margin: 10px 15px 0 0;
+  font-size: 12px;
+  margin: 10px 15px 0 0;
 }
 .separator {
-    border-top: 1px solid #d8d8d8;
-    margin-top: 10px;
-    padding-top: 10px;
+  border-top: 1px solid #d8d8d8;
+  margin-top: 10px;
+  padding-top: 10px;
 }
 .button {
-    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#f7f9fa', endColorstr='#f0f0f0', GradientType=0);
-    -ms-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
-    -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
-    border-radius: 0 0 5px 5px;
-    border-top: 1px solid #cfd5d9;
-    padding: 15px 0;
+  filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#f7f9fa', endColorstr='#f0f0f0', GradientType=0);
+  -ms-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+  -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+  border-radius: 0 0 5px 5px;
+  border-top: 1px solid #cfd5d9;
+  padding: 15px 0;
 }
 .login_content form input[type="submit"],
 #content form .submit {
-    float: left;
-    margin-left: 38px;
+  float: left;
+  margin-left: 38px;
 }
 .button a {
-    font-size: 17px;
-    padding: 2px 0 2px 40px;
-    text-decoration: none;
-    transition: all 0.3s ease;
+  font-size: 17px;
+  padding: 2px 0 2px 40px;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 .button a:hover {
-    background-position: 0 -135px;
+  background-position: 0 -135px;
 }

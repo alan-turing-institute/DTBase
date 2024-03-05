@@ -28,7 +28,7 @@ The first `<script>` tag includes a file transpiled from `sensor_list_table.ts`.
 import { initialiseDataTable } from "./datatables"
 
 export function updateTable(sensors_for_each_type) {
-    // blahblah, bunch of things happen here
+  // blahblah, bunch of things happen here
 }
 
 window.updateTable = updateTable

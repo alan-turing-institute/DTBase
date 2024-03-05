@@ -1,27 +1,27 @@
 {
-    "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true
-        }
-    },
-    "env": {
-        "browser": true,
-        "jquery": true
-    },
-    "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "consistent-return": 2,
-        "no-else-return": 1,
-        "space-unary-ops": 0,
-        "require-jsdoc": 0,
-        "no-unused-vars": 0,
-        "no-undef": 0,
-        "camelcase": 0
-    },
-    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
-    "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
-    "root": true
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "consistent-return": 2,
+    "no-else-return": 1,
+    "space-unary-ops": 0,
+    "require-jsdoc": 0,
+    "no-unused-vars": 0,
+    "no-undef": 0,
+    "camelcase": 0
+  },
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true
 }

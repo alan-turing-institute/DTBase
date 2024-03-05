@@ -1,154 +1,154 @@
 body {
-    font-family: "Poppins", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .nav-pills .nav-link {
-    border-radius: 0.5rem;
+  border-radius: 0.5rem;
 }
 
 .nav-pills .nav-link.active {
-    background-color: #0d6efd;
-    color: white;
-    width: 100% !important;
+  background-color: #0d6efd;
+  color: white;
+  width: 100% !important;
 }
 
 .form-group {
-    width: 40%; /* adjust as needed */
-    /* centers the form if you want */
-    margin-bottom: 10px;
+  width: 40%; /* adjust as needed */
+  /* centers the form if you want */
+  margin-bottom: 10px;
 }
 
 .add-identifier-wrapper .existing-identifier-select,
 .add-identifier-wrapper {
-    width: 60%; /* adjust as needed */
+  width: 60%; /* adjust as needed */
 }
 
 .btn-add-identifier {
-    width: 10%;
+  width: 10%;
 }
 
 .add-identifier-wrapper .btn-add-identifier {
-    margin-left: 5%; /* adjust as needed */
+  margin-left: 5%; /* adjust as needed */
 }
 
 .identifier-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px; /* Adjust this value according to your needs */
-    margin-top: 20px; /* This will add space before each row */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px; /* Adjust this value according to your needs */
+  margin-top: 20px; /* This will add space before each row */
 }
 
 .btn-margin {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 
 .custom-input {
-    width: 50%;
+  width: 50%;
 }
 
 #locationTableWrapper {
-    max-width: 800px;
+  max-width: 800px;
 }
 
 #sensorTableWrapper {
-    max-width: 800px;
+  max-width: 800px;
 }
 
 .num-column {
-    width: 70px;
-    /* bold the text */
-    font-weight: bold;
+  width: 70px;
+  /* bold the text */
+  font-weight: bold;
 }
 
 form input[type="text"],
 form input[type="email"],
 form input[type="password"] {
-    border-radius: 3px;
-    -ms-box-shadow:
-        0 1px 0 #fff,
-        0 -2px 5px rgba(0, 0, 0, 0.08) inset;
-    -o-box-shadow:
-        0 1px 0 #fff,
-        0 -2px 5px rgba(0, 0, 0, 0.08) inset;
-    box-shadow:
-        0 1px 0 #fff,
-        0 -2px 5px rgba(0, 0, 0, 0.08) inset;
-    border: 1px solid #c8c8c8;
-    color: #777;
-    margin: 0 0 20px;
-    width: 100%;
+  border-radius: 3px;
+  -ms-box-shadow:
+    0 1px 0 #fff,
+    0 -2px 5px rgba(0, 0, 0, 0.08) inset;
+  -o-box-shadow:
+    0 1px 0 #fff,
+    0 -2px 5px rgba(0, 0, 0, 0.08) inset;
+  box-shadow:
+    0 1px 0 #fff,
+    0 -2px 5px rgba(0, 0, 0, 0.08) inset;
+  border: 1px solid #c8c8c8;
+  color: #777;
+  margin: 0 0 20px;
+  width: 100%;
 }
 form input[type="text"]:focus,
 form input[type="email"]:focus,
 form input[type="password"]:focus {
-    -ms-box-shadow: 0 0 2px #ed1c24 inset;
-    -o-box-shadow: 0 0 2px #ed1c24 inset;
-    box-shadow: 0 0 2px #a97aad inset;
-    background-color: #fff;
-    border: 1px solid #a878af;
-    outline: none;
+  -ms-box-shadow: 0 0 2px #ed1c24 inset;
+  -o-box-shadow: 0 0 2px #ed1c24 inset;
+  box-shadow: 0 0 2px #a97aad inset;
+  background-color: #fff;
+  border: 1px solid #a878af;
+  outline: none;
 }
 
 /* Alerts and other Flask flashes. */
 .alert {
-    position: absolute;
-    float: left;
-    margin: 0 0 0 20px;
-    padding: 3px 10px;
-    color: #fff;
-    border-radius: 3px 4px 4px 3px;
-    background-color: #ce5454;
-    white-space: pre;
-    top: 10px;
-    left: -15px;
-    opacity: 0;
-    z-index: 1;
-    transition: 0.15s ease-out;
+  position: absolute;
+  float: left;
+  margin: 0 0 0 20px;
+  padding: 3px 10px;
+  color: #fff;
+  border-radius: 3px 4px 4px 3px;
+  background-color: #ce5454;
+  white-space: pre;
+  top: 10px;
+  left: -15px;
+  opacity: 0;
+  z-index: 1;
+  transition: 0.15s ease-out;
 }
 .alert::after {
-    content: "";
-    display: block;
-    height: 0;
-    width: 0;
-    border-color: transparent #ce5454 transparent transparent;
-    border-style: solid;
-    border-width: 11px 7px;
-    position: absolute;
-    left: -13px;
-    top: 4px;
+  content: "";
+  display: block;
+  height: 0;
+  width: 0;
+  border-color: transparent #ce5454 transparent transparent;
+  border-style: solid;
+  border-width: 11px 7px;
+  position: absolute;
+  left: -13px;
+  top: 4px;
 }
 .alert {
-    left: 0;
-    opacity: 1;
+  left: 0;
+  opacity: 1;
 }
 .alert-success {
-    color: #ffffff;
-    background-color: rgba(38, 185, 154, 0.88);
-    border-color: rgba(38, 185, 154, 0.88);
+  color: #ffffff;
+  background-color: rgba(38, 185, 154, 0.88);
+  border-color: rgba(38, 185, 154, 0.88);
 }
 .alert-info {
-    color: #e9edef;
-    background-color: rgba(52, 152, 219, 0.88);
-    border-color: rgba(52, 152, 219, 0.88);
+  color: #e9edef;
+  background-color: rgba(52, 152, 219, 0.88);
+  border-color: rgba(52, 152, 219, 0.88);
 }
 .alert-warning {
-    color: #e9edef;
-    background-color: rgba(243, 156, 18, 0.88);
-    border-color: rgba(243, 156, 18, 0.88);
+  color: #e9edef;
+  background-color: rgba(243, 156, 18, 0.88);
+  border-color: rgba(243, 156, 18, 0.88);
 }
 .alert-danger,
 .alert-error {
-    color: #e9edef;
-    background-color: rgba(231, 76, 60, 0.88);
-    border-color: rgba(231, 76, 60, 0.88);
+  color: #e9edef;
+  background-color: rgba(231, 76, 60, 0.88);
+  border-color: rgba(231, 76, 60, 0.88);
 }
 
 .password-toggle {
-    position: absolute;
-    top: 30%;
-    right: 4%;
-    z-index: 10;
-    cursor: pointer;
-    color: LightGray;
+  position: absolute;
+  top: 30%;
+  right: 4%;
+  z-index: 10;
+  cursor: pointer;
+  color: LightGray;
 }
