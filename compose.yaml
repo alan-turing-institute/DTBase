@@ -1,0 +1,67 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile_db
+    image: postgres
+    container_name: dt_dev
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=dt_dev
+    volumes:
+      - ./db:/var/lib/postgresql/data
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile_backend
+    image: backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - DT_SQL_TESTUSER=postgres
+      - DT_SQL_TESTPASS=password
+      - DT_SQL_TESTHOST=localhost
+      - DT_SQL_TESTPORT=5432
+      - DT_SQL_TESTDBNAME=test_db
+      - DT_SQL_USER=postgres
+      - DT_SQL_PASS=password
+      - DT_SQL_HOST=dt_dev
+      - DT_SQL_PORT=5432
+      - DT_SQL_DBNAME=dt_dev
+      - DT_DEFAULT_USER_PASS=password
+      - DT_FRONT_SECRET_KEY=banana
+      - DT_JWT_SECRET_KEY=<REPLACE_ME>
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile_frontend
+    image: frontend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+    environment:
+      - DT_SQL_TESTUSER=postgres
+      - DT_SQL_TESTPASS=password
+      - DT_SQL_TESTHOST=localhost
+      - DT_SQL_TESTPORT=5432
+      - DT_SQL_TESTDBNAME=test_db
+      - DT_SQL_USER=postgres
+      - DT_SQL_PASS=password
+      - DT_SQL_HOST=dt_dev
+      - DT_SQL_PORT=5432
+      - DT_SQL_DBNAME=dt_dev
+      - DT_DEFAULT_USER_PASS=password
+      - DT_FRONT_SECRET_KEY=banana
+      - DT_BACKEND_URL=http://dtbase-backend-1:5000
+      - DT_JWT_SECRET_KEY=<REPLACE_ME>
+
+volumes:
+  db:
