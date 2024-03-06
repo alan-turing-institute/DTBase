@@ -23,6 +23,6 @@ ADD pyproject.toml pyproject.toml
 RUN python3 -m pip install .
 
 # launch the webapp
-WORKDIR /DTBase/dtbase/webapp
+WORKDIR /DTBase/dtbase/frontend
 EXPOSE 8000
 CMD ["./run.sh"]

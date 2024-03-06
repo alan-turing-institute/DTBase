@@ -17,4 +17,4 @@ else
     bport=5000
 fi
 
-uvicorn dtbase_app:app --port $bport --host=0.0.0.0 --reload
+uvicorn main:app --port $bport --host=0.0.0.0 --reload

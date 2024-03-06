@@ -74,7 +74,7 @@ infrastructure = [
 "Bug tracker" = "https://github.com/alan-turing-institute/DTBase/issues"
 
 [project.scripts]
-dtbase_start_postgres_docker = "dtbase.core.db_docker:main"
+dtbase_start_postgres_docker = "dtbase.backend.database.db_docker:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -89,7 +89,6 @@ license-files = ["LICENSE"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dtbase*"]
-exclude = ["dtbase.tests*"]
 namespaces = false
 
 [tool.ruff]
