@@ -8,7 +8,7 @@ if test -f "../../.secrets/dtenv_localdb.sh"; then
 fi
 
 # start the postgres docker container, if it isn't already running.
-dtbase_start_postgres_docker
+#dtbase_start_postgres_docker
 
 if [ -n "$1" ] && [ "$1" -gt "-1" ]
 then
@@ -17,4 +17,4 @@ else
     bport=5000
 fi
 
-uvicorn dtbase_app:app --port $bport --reload
+uvicorn dtbase_app:app --port $bport --host=0.0.0.0 --reload
