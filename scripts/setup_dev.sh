@@ -1,8 +1,10 @@
-ENV_NAME="dt_env"
+#!/bin/zsh
 
+ENV_NAME="dt_env"
 # Function to check and activate Conda environment
 check_activate_conda() {
     if conda env list | grep "${ENV_NAME}" > /dev/null 2>&1; then
+        source ~/miniconda3/etc/profile.d/conda.sh
         echo "Activating Conda environment: ${ENV_NAME}"
         conda activate "${ENV_NAME}"
         return 0
@@ -41,16 +43,14 @@ if ! { conda --version &>/dev/null && check_activate_conda; } &&
     echo "No suitable Python environment management system is installed or the ${ENV_NAME} environment does not exist."
 fi
 
+
 # Make sure everything is installed
 pip install '.[dev]'
 
-# Run tests
-python -m pytest
-
 # Start the backend API
-(cd backend && DT_CONFIG_MODE=Debug ./run_localdb.sh) &
+(cd dtbase/backend && DT_CONFIG_MODE=Debug ./run_localdb.sh) &
 
 # Start the frontend
-(cd webapp && npm install && FLASK_DEBUG=true DT_CONFIG_MODE=Auto-login ./run.sh) &
+(cd dtbase/webapp && npm install && FLASK_DEBUG=true DT_CONFIG_MODE=Auto-login ./run.sh) &
 
 echo "DTBase setup complete. Backend running on http://localhost:5000, frontend on http://localhost:8000."
