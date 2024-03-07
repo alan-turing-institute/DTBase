@@ -69,7 +69,7 @@ def create_pg_database(
     pg_database = postgresql.Database(
         f"{RESOURCE_NAME_PREFIX}-postgresql-db",
         charset="UTF8",
-        collation="English_United States.1252",
+        collation="en_US.utf8",
         database_name=SQL_DB_NAME,
         resource_group_name=resource_group.name,
         server_name=sql_server.name,
