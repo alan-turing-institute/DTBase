@@ -11,9 +11,9 @@ from pulumi import Config, Output, export
 
 CONFIG = Config()
 
-BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:main"
-FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:main"
-FUNCTIONS_DOCKER_URL = "turingcropapp/dtbase-functions:main"
+BACKEND_DOCKER_URL = CONFIG.require("backend-docker-url")
+FRONTEND_DOCKER_URL = CONFIG.require("frontend-docker-url")
+FUNCTIONS_DOCKER_URL = CONFIG.require("functions-docker-url")
 RESOURCE_NAME_PREFIX = CONFIG.get("resource-name-prefix")
 SQL_SERVER_USER = "dbadmin"
 SQL_DB_NAME = "dtdb"
