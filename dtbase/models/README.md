@@ -41,6 +41,10 @@ Here `endpoint` is a string that is the name of a DTBase API endpoint, and `payl
 - `/model/insert-model-measure`
 - `/model/insert-model-run`
 
+Even though calls to endpoints like `insert-model` and `insert-model-measure` only need to be run once, it is safe to make every run of the model call those endpoints. If the model/measure/scenario already exists in the database the backend will just ignore the attempt to write a duplicate, and return a 409 status code, which `BaseModel` handles for you.
+
+### Calling the Model
+
 The model can then be called like this:
 
 ```
@@ -54,4 +58,7 @@ cm(
 
 The `dt_user_email` and `dt_user_password` arguments are for user credentials that can be used to log into the DTBase backend. Any other keyword arguments, like in this case `some_data`, are passed onto the `get_service_data` function. Note that these have to be passed as keyword arguments, positional ones won't work.
 
-Even though calls to endpoints like `insert-model` and `insert-model-measure` only need to be run once, it is safe to make every run of the model call those endpoints. If the model/measure/scenario already exists in the database the backend will just ignore the attempt to write a duplicate, and return a 409 status code, which `BaseModel` handles for you.
+The URL for the DTBase backend with which `BaseModel` communicates is set by an environment variable called `DT_BACKEND_URL`. So on Linux/Mac you would call your model script as something like
+```
+DT_BACKEND_URL="http://myownserver.runningdtbase.com" python my_very_own_model_running_script.py
+```
