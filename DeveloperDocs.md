@@ -107,7 +107,7 @@ Run the frontend in the same way as running locally.
 
 ## Contributing code
 
-We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/).
+We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/) - some of these will be installed through the package manager npm whenever the GitHub actions are triggered (see .github/workflow/.pre-commit.yaml where we install the dependencies and plugins using `npm install --prefix dtbase/frontend/ --include=dev `.
 It is installed as a dev dependency when you run `pip install .[dev]`.
 We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass.
 If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.
