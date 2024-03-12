@@ -62,15 +62,8 @@ The three Docker containers are defined by Docker files in the root folder, call
 
 More documentation on the different parts of DTBase can be found in the following files.
 
-* [DeveloperDocs.md](DeveloperDocs.md) for how to run DTBase locally and set it up for development purposes.
-* [dtbase/backend/README.md](dtbase/backend/README.md) for the backend web server and database.
-* [dtbase/frontend/README.md](dtbase/frontend/README.md) for the frontend.
-* [dtbase/services/README.md](dtbase/services/README.md) for utilities we provide for implementing your own services.
-* [dtbase/models/README.md](dtbase/models/README.md) for the existing time-series forecasting models (mostly Arima), which use the services infrastructure.
-* [dtbase/ingress/README.md](dtbase/ingress/README.md) for the example data ingress functions, which use the services infrastructure.
-* [dtbase/functions/README.md](dtbase/functions/README.md) for Azure Functions that run the example services we have implemented.
-* [dtbase/core/README.md](dtbase/core/README.md) for code shared by the different parts of DTBase listed above.
-* [infrastructure/README.md](infrastructure/README.md) for the infrastructure-as-code configuration using Pulumi, for Azure.
+* [DeveloperDocs.md](docs/DeveloperDocs.md) for how to run DTBase locally and set it up for development purposes.
+* [dtbase_docs.md](docs/dtbase_docs.md) for detailed documentation of all aspects of DTBase.
 
 ### History/The CROP project
 
