@@ -144,5 +144,5 @@ plots
 ./examples/plots
 
 # outputs of transpiling typescript
-dtbase/webapp/app/base/static/javascript/*.js
-dtbase/webapp/app/base/static/javascript/*.js.map
+dtbase/frontend/app/base/static/javascript/*.js
+dtbase/frontend/app/base/static/javascript/*.js.map
