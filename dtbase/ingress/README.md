@@ -4,29 +4,25 @@ This readme details how to write your own data ingress in DTBase using the OpenW
 
 ## BaseIngress
 
-The `BaseIngress` class has all the general purpose tools for interacting with the backend (and TODO: Azure Functions). It inherits from `BaseService`.
-For a custom data ingress, the user should create their own custom DataIngressClass inheriting from the `BaseIngress` class.
-For example:
+The `BaseIngress` class has all the general purpose tools for interacting with the backend. It inherits from `BaseService`. For a custom data ingress, the user should create their own custom data ingress class inheriting from the `BaseIngress` class. For example:
 
 ```
 class CustomDataIngress(BaseIngress):
     """
     Custom class inheriting from the BaseIngress class for interacting with the OpenWeatherData API.
     """
-
-    def __init__(self) -> None:
-        super().__init__()
 ```
 
-### Method: get_service_data
+### Method: `get_service_data`
 
 The user then needs to write a `get_service_data` method in the `CustomDataIngress`. This method should extract data from a source (could be an online API or from disk or anywhere) and return the data:
 
 ```
-def get_service_data():
-    api_url = 'example/online/api/endpoint'
-    data = request.get(api_url)
-    return data
+    def get_service_data():
+        api_url = 'example/online/api/endpoint'
+        data = request.get(api_url)
+        return_value = process_data(data)
+        return return_value
 ```
 
 The structure of the data being returned by the function should be as follows:
@@ -35,35 +31,55 @@ The structure of the data being returned by the function should be as follows:
 [(endpoint, payload), (endpoint, payload), etc.]
 ```
 
-The payload should be in a very specific format depending on which DTBase backend endpoint you wish to post the data to. The documentation for all available backend endpoints can be found in the [backend README.md](..//backend/README.md).
+Here each `endpoint` is a string for the name of a DTBase backend endpoint. Each `payload` should be in the specific format required by that endpoint. For more details about the backend endpoints see the [backend README.md](../backend/README.md).
 
-For example, if we would like to insert two different sensor readings, then the output of `get_service_data` should look something like this:
+For example, if we would like to insert two different types of sensor readings, then the output of `get_service_data` should look something like this:
 
 ```
 [
-    '/sensor/insert-sensor-readings', {
-  "measure_name": <measure_name1:str>,
-  "unique_identifier": <sensor_unique_identifier:str>,
-  "readings": <list of readings>,
-  "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
-},
-    '/sensor/insert-sensor-readings', {
-  "measure_name": <measure_name2:str>,
-  "unique_identifier": <sensor_unique_identifier:str>,
-  "readings": <list of readings>,
-  "timestamps": <list of timestamps in ISO 8601 format '%Y-%m-%dT%H:%M:%S'>
-}
+    (
+        '/sensor/insert-sensor-readings',
+        {
+            "measure_name": <name of the first sensor measure>,
+            "unique_identifier": <sensor unique identifier>,
+            "readings": <list of readings>,
+            "timestamps": <list of timestamps>
+        },
+    ),
+    (
+        '/sensor/insert-sensor-readings',
+        {
+            "measure_name": <name of the second sensor measure>,
+            "unique_identifier": <sensor unique identifier>,
+            "readings": <list of readings>,
+            "timestamps": <list of timestamps>
+        },
+    ),
 ]
 ```
 
-### Method: ingress_data
+### Calling the Ingress Class
 
-The `ingress_data` method is used to send data to the database via DTBase's backend. The user doesn't need to write this, but this is the method to call after defining `get_service_data`.
+The ingress class can then be called like this:
 
+```
+ingresser = CustomDataIngress()
+ingresser(
+    dt_user_email=blahblah@email.com,
+    dt_user_password="this is a very bad password",
+)
+```
+The user credentials can be used to log in to the DTBase backend. Any extra keyword arguments passed when calling `ingresser` are passed onwards to `get_service_data`.
+
+The URL for the DTBase backend with which `BaseIngress` communicates is set by an environment variable called `DT_BACKEND_URL`. So on Linux/Mac you would call your model script as something like
+```
+DT_BACKEND_URL="http://myownserver.runningdtbase.com" python my_very_own_ingress_script.py
+```
+
+Behind the scenes calling `ingresser`
 1. Runs the `get_service_data` method to extract data from a source
 2. Logs into the backend
 3. Loops through the data `get_service_data` returns and posts it to the backend.
-
 
 ## OpenWeatherMap Example
 
@@ -83,11 +99,11 @@ These constants are dictionaries and define the sensor type and sensor payloads.
 
 ### 2. OpenWeatherDataIngress
 
-We then write a custom class that inherits from `BaseIngress`. There are a number of `_*` methods that are used to handle different combinations of start and end dates given by the user. A lot of this complexity comes from there being two different APIs.
+We then write a custom class that inherits from `BaseIngress`. There are a number of `_*` methods that are used to handle different combinations of start and end dates given by the user. A lot of this complexity comes from there being two different APIs for historical and forecast data.
 
-The important method is the `get_service_data`. This method takes in `dt_from` and `dt_to` arguments to define when the user wants to extract information from the API. There is then some specific preprocessing to get the exact data we want from the API.
+The important method is `get_service_data`. This method takes in `dt_from` and `dt_to` arguments to define when the user wants to extract information from the API. There is then some specific preprocessing to get the exact data we want from the API.
 
-Finally, we return data in a very specific format:
+Finally, we return data in this format:
 
 ```
 sensor_type_output = [("/sensor/insert-sensor-type", SENSOR_TYPE)]
@@ -105,7 +121,7 @@ return sensor_type_output + sensor_output + sensor_readings_output
 
 ### 3. Uploading data to database
 
-After writing your own custom `get_service_data` method, we can then send it to the database via the dtbase backend. **The backend must be running. Please check the [developer docs](../../DeveloperDocs.md) for how to run the backend**.
+After writing your own custom `get_service_data` method, we can then send it to the database via the DTBase backend. **The backend must be running. Please check the [developer docs](../../DeveloperDocs.md) for how to run the backend locally**.
 
 This is simply done by calling
 
@@ -114,9 +130,8 @@ weather_ingress = OpenWeatherDataIngress()
 weather_ingress.ingress_data(dt_from, dt_to)
 ```
 
-Under the hood, the class finds the `get_service_data` method, runs the `get_service_data` method, and then calls the backend API to upload the data to the database. It handles authentication and error handling. This method uses any input arguments required in `get_service_data`.
+Under the hood the class finds the `get_service_data` method, runs the `get_service_data` method, and then calls the backend API to upload the data to the database. It handles authentication and error handling. This method uses any input arguments required in `get_service_data`.
 
-**Note: It uses environment variables for API keys and authentication so ensure you have the correct variables set.**
-For instance, for the OpenWeatherDataIngress, the environment variables you'll need to set are `DT_OPENWEATHERMAP_APIKEY` and `DT_OPENWEATHERMAP_LAT` and `DT_OPENWEATHERMAP_LONG` for the latitude and longitude for the weather location.
+**Note: It uses environment variables for API keys and authentication so ensure you have the correct variables set.** For instance, for the OpenWeatherDataIngress, the environment variables you'll need to set are `DT_OPENWEATHERMAP_APIKEY` and `DT_OPENWEATHERMAP_LAT` and `DT_OPENWEATHERMAP_LONG` for the latitude and longitude for the weather location. And of course `DT_BACKEND_URL` to specify where the backend is to be found (unless it's `localhost`, which is the default value).
 
 The `example_weather_ingress` function shows how to use this code to ingress weather data.

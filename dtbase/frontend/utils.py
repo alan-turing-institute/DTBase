@@ -1,5 +1,4 @@
 """Utilities for the front end."""
-import datetime as dt
 import unicodedata
 import urllib
 from collections.abc import Collection
@@ -7,14 +6,6 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from flask import Request
-
-
-def parse_rfc1123_datetime(string: str) -> dt.datetime:
-    """Parse an RFC 1123 formatted datetime string into a datetime object.
-
-    The backend returns this format, it's a web standard.
-    """
-    return dt.datetime.strptime(string, "%a, %d %b %Y %H:%M:%S GMT")
 
 
 def parse_url_parameter(request: Request, parameter: str) -> Optional[str]:
