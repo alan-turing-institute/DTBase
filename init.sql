@@ -1,1 +1,1 @@
-create database [dt_dev];
+CREATE DATABASE dt_dev;
