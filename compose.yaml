@@ -8,9 +8,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=dt_dev
+      - POSTGRES_USER=${DT_SQL_USER}
+      - POSTGRES_PASSWORD=${DT_SQL_PASS}
+      - POSTGRES_DB=${DT_SQL_DBNAME}
     volumes:
       - app_data:/var/lib/postgresql/data
   backend:
@@ -23,13 +23,16 @@ services:
     depends_on:
       - db
     environment:
-      - DT_SQL_USER=postgres
-      - DT_SQL_PASS=password
-      - DT_SQL_HOST=db
-      - DT_SQL_PORT=5432
-      - DT_SQL_DBNAME=dt_dev
-      - DT_DEFAULT_USER_PASS=password
-      - DT_JWT_SECRET_KEY=<REPLACE_ME>
+      - DT_SQL_USER=${DT_SQL_USER}
+      - DT_SQL_PASS=${DT_SQL_PASS}
+      - DT_SQL_HOST=${DT_SQL_HOST}
+      - DT_SQL_PORT=${DT_SQL_PORT}
+      - DT_SQL_DBNAME=${DT_SQL_DBNAME}
+      - DT_DEFAULT_USER_PASS=${DT_DEFAULT_USER_PASS}
+      - DT_JWT_SECRET_KEY=${DT_JWT_SECRET_KEY}
+    volumes:
+      - .:/app
+    command: bash -c "pip install -e /app && ./run.sh"
   frontend:
     build:
       context: .
@@ -40,8 +43,7 @@ services:
     depends_on:
       - backend
     environment:
-      #- DT_DEFAULT_USER_PASS=password
-      - DT_FRONT_SECRET_KEY=banana
-      - DT_BACKEND_URL=http://backend:5000
+      - DT_BACKEND_URL=${DT_BACKEND_URL}
+      - DT_FRONT_SECRET_KEY=${DT_FRONT_SECRET_KEY}
 volumes:
   app_data:
