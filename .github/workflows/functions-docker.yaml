@@ -18,15 +18,15 @@ jobs:
       - name: 'Build main'
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-          docker build -f Dockerfile_functions -t turingcropapp/dtbase-functions:main .
+          docker build -f dockerfiles/Dockerfile.functions -t turingcropapp/dtbase-functions:main .
           docker push turingcropapp/dtbase-functions:main
       - name: 'Build dev'
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
-          docker build -f Dockerfile_functions -t turingcropapp/dtbase-functions:dev .
+          docker build -f dockerfiles/Dockerfile.functions -t turingcropapp/dtbase-functions:dev .
           docker push turingcropapp/dtbase-functions:dev
       - name: 'Build test-actions'
         if: ${{ github.ref == 'refs/heads/test-actions' }}
         run: |
-          docker build -f Dockerfile_functions -t turingcropapp/dtbase-functions:test-actions .
+          docker build -f dockerfiles/Dockerfile.functions -t turingcropapp/dtbase-functions:test-actions .
           docker push turingcropapp/dtbase-functions:test-actions
