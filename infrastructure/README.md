@@ -13,10 +13,4 @@
 10. Make sure you're in a Python virtual environment with Pulumi SDK installed (`pip install .[infrastructure]` should cover your needs).
 11. Set all the necessary configurations with `pulumi config set` and `pulumi config set --secret`. You'll find these in `__main__.py`, or you can keep adding them until `pulumi up` stops complaining.
 12. Run `pulumi up` to stand up your new Pulumi stack.
-13. As of 2023-11-30, the creation of one resource, the PostgreSQL database, fails. This
-    seems to be an issue with Pulumi, see comments in `__main__.create_pg_database`.
-    Once all the other resources have been created with `pulumi up`, and it's only
-    complaining about the database failing, you can manually login to the PostgreSQL
-    server you've created and create the database yourself. You will then have a
-    functioning deployment of DTBase. Hopefully soon this workaround won't be necessary.
-14. Set up continuous deployment by selecting your WebApp in the Azure Portal, navigating to Deployment Center, and copying the generated Webhook URL; then, head to DockerHub, select the linked container, create a new webhook using the copied URL, and repeat for each WebApp.
+13. Set up continuous deployment by selecting your WebApp in the Azure Portal, navigating to Deployment Center, and copying the generated Webhook URL; then, head to DockerHub, select the linked container, create a new webhook using the copied URL, and repeat for each WebApp.
