@@ -7,6 +7,8 @@ services:
     restart: always
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${DT_SQL_USER}
       - POSTGRES_PASSWORD=${DT_SQL_PASS}
@@ -22,6 +24,8 @@ services:
       - "5000:5000"
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       - DT_SQL_USER=${DT_SQL_USER}
       - DT_SQL_PASS=${DT_SQL_PASS}
@@ -30,9 +34,6 @@ services:
       - DT_SQL_DBNAME=${DT_SQL_DBNAME}
       - DT_DEFAULT_USER_PASS=${DT_DEFAULT_USER_PASS}
       - DT_JWT_SECRET_KEY=${DT_JWT_SECRET_KEY}
-    volumes:
-      - .:/app
-    command: bash -c "pip install -e /app && ./run.sh"
   frontend:
     build:
       context: .
@@ -42,6 +43,8 @@ services:
       - "8000:8000"
     depends_on:
       - backend
+    env_file:
+      - .env
     environment:
       - DT_BACKEND_URL=${DT_BACKEND_URL}
       - DT_FRONT_SECRET_KEY=${DT_FRONT_SECRET_KEY}
