@@ -101,7 +101,7 @@ TODO: Write a summary of how user management works.
 
 ### The Default User
 
-When starting a new deployment of a DTBase-based digital twin one encounters a chicken-and-egg dilemma: To be able to create users, or do anything really, with the backend, one needs to first have a registered user (the `/user/create-user` endpoint requires a valid JWT token like every other endpoint). To way out of this is the default user. If one sets the environment variable `DT_DEFAULT_USER_PASS` and starts the backend, at startup time a user with the "email" `default_user@localhost` is created, with the given password. One can use this to log in and create some proper users. One should then unset the `DT_DEFAULT_USER_PASS` environment variable and restart the backend. This causes the default user to be deleted.
+When starting a new deployment of a DTBase-based digital twin one encounters a chicken-and-egg dilemma: To be able to create users, or do anything really, with the backend, one needs to first have a registered user (the `/user/create-user` endpoint requires a valid JWT token like every other endpoint). The way out of this is the default user. If one sets the environment variable `DT_DEFAULT_USER_PASS` and starts the backend, at startup time a user with the "email" `default_user@localhost` is created, with the given password. One can use this to log in and create some proper users. One should then unset the `DT_DEFAULT_USER_PASS` environment variable and restart the backend. This causes the default user to be deleted.
 
 Often it's handy to keep the default user around for development purposes, but one should be careful not to leave it on a live deployment with sensitive data stored.
 
@@ -338,7 +338,12 @@ This is simply done by calling
 
 ```
 weather_ingress = OpenWeatherDataIngress()
-weather_ingress.ingress_data(dt_from, dt_to)
+weather_ingress(
+    dt_user_email=blahblah@email.com,
+    dt_user_password="this is a very bad password",
+    dt_from=dt_from,
+    dt_to=dt_to,
+)
 ```
 
 Under the hood the class finds the `get_service_data` method, runs the `get_service_data` method, and then calls the backend API to upload the data to the database. It handles authentication and error handling. This method uses any input arguments required in `get_service_data`.

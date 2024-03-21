@@ -75,7 +75,7 @@ If you've done this setup once and then e.g. rebooted your machine, all you shou
 
 ### Running the tests
 
-1. Tests can now be run by locally by running `python -m pytest`.
+Tests can now be run by locally by running `python -m pytest`. You do need the PostgreSQL server to be running for them, but the tests automatically spin up a fresh database session, backend instance, and frontend instance.
 
 ### Running the backend API
 
