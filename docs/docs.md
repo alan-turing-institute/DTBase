@@ -89,15 +89,19 @@ Locations can be defined using any combination of floating point, integer, or st
 
 #### Sensors
 
-The Sensor data model is as follows.   Every _Sensor_ has a _SensorType_ which in turn specifies the variable(s) it can measure - these are known as _SensorMeasures_.  Each _SensorMeasure_ specifies its datatype (float, int, string, or bool), and these are used to define the type of the corresponding _SensorXYZReadings_.   A _Sensor_ may also have a _SensorLocation_, which specifies a _Location_ as defined above, and a time window (possibly open-ended) when the sensor was at that location.
+The sensor data model is as follows.   Every _Sensor_ has a _SensorType_ which in turn specifies the variable(s) it can measure - these are known as _SensorMeasures_.  Each _SensorMeasure_ specifies its datatype (float, int, string, or bool), and these are used to define the type of the corresponding _SensorXYZReadings_.   A _Sensor_ may also have a _SensorLocation_, which specifies a _Location_ as defined above, and a time window (possibly open-ended) when the sensor was at that location.
 
 #### Models
 
-TODO: Write a summary of how storing model data works.
+_Model_ objects come associated with _ModelMeasures_, that are exactly analogous to _SensorMeasures_, i.e. they specify different quantities a model may output. The model outputs, which can again be floats, ints, strings, or booleans, are always associated with a _ModelRun_, which comes with a timestamp for when this run of the model happened. Each run is also associated with a _ModelScenario_, which is DTBase's way of keeping track of model parameters or other variations in how models can be run.
+
+For instance, a model might be a weather forecast model, and a scenario might be which location we are forecasting weather for and which parameters the weather simulation uses. Running the model once would result in a single _ModelRun_, which could be associated with values for multiple _ModelMeasures_, such as forecasted temperature and forecasted humidity.
 
 #### Users
 
-TODO: Write a summary of how user management works.
+Current user management is quite basic: Users can be created, deleted, and listed, and their passwords can be changed. Users are identified by an email address (there is no other notion of username), although currently we never actually send email to that address.
+
+Currently all users have the same rights, including the right to create and delete users. This is simply because we haven't had time to implement a separation between admin users and regular users yet.
 
 ### The Default User
 
