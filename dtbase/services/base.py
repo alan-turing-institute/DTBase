@@ -77,7 +77,7 @@ class BaseService:
         if dt_user_password is None:
             dt_user_password = DEFAULT_USER_PASS
 
-        self._backend_login(dt_user_email, dt_user_email)
+        self._backend_login(dt_user_email, dt_user_password)
 
         responses = []
         for data_pair in data_pairs:
