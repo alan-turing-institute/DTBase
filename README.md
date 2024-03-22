@@ -1,47 +1,73 @@
 # DTBase
-A general base software package from which Digital Twins can be developed.
+A starting point from which digital twins can be developed.
 
-## Overview
+### What DTBase is
 
-### Goals of DTBase
+DTBase is a software package that developers can fork to develop their own digital twins with minimal effort. Digital twins mean quite different things to different people, and thus we should clarify. DTBase has
+* A relational database, for holding both observational data (from e.g. sensors) and computational data (from models).
+* A web server that wraps the database in a REST API. A user should never directly interact with the database, but rather through the API.
+* A frontend web server, that provides a barebones graphical web user interface.
+* An infrastructure-as-code configuration for deploying these resources on Azure.
+* Tools for implementing your own "services", as DTBase calls them: Snippets of code that run periodically or on demand and interact with the backend API, such as data ingress functions or forecasting models.
+* A few example services:
+    * One to ingress weather data from OpenWeatherMap
+    * One for running the Arima time series forecasting model
+* Basic access control (user accounts and logins).
+* Backend API endpoints, and for some of these frontend pages for easier interaction, for adding/editing/deleting
+    * sensors, and inserting and retrieving data associated with sensors.
+    * locations, and associating sensors with locations.
+    * models, and inserting and retrieving data outputted by models. By this we mean simply "registering" a model with DTBase, not adding the code to actually run the model.
+    * users. Separating users with different rights (e.g. admins) is currently unimplemented.
+    * services. These are URLs that one can call to trigger a snippet of code to run, which may interact with the backend API. For instance ingress functions or models.
 
-The primary aim of DTBase is to provide a software package that developers can fork and use to deploy their own digital twin with minimal effort. This is an ambitious project as digital twins vary significantly and therefore DTBase needs to be both robust and flexible.
-DTBase consists of three main parts: A PostgreSQL database, a backend app for interacting with the database and a frontend app for visuals. The database, backend and frontend communicate via restful APIs, therefore allowing users of DTBase to choose which components of the code base they require for their personal usecase.
+Some things DTBase does not, currently, have:
+* Anything related to physical 3D structure of the objects that it is twinning. We have a very basic system for tracking locations in the twin, and for instance assigning sensors to locations, but this remains underdeveloped.
+* Comprehensive visualisation tools. The frontend has basic time series plotting capabilities, but that's it.
+* Sophisticated model orchestration. The services infrastructure can be used to store parameters for models and run them on demand, but the rest remains in development.
+* Anything for using the digital twin to control the real asset.
 
-We try to design the code base so as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but Azure is what the developers have access to and therefore is the default service accomodated.
+#### DTBase may not be for you if
+* Your idea of digital twin centres a CAD or Unity model of the thing being twinned.
+* You need a plug-and-play, ready made software package that you `pip install` and run.
 
-### Packages and technologies
+#### DTBase may be for you if
+* Your idea of digital twin starts centres around a single data store with a unified interface, running models, and visualising data and model results from various sources on a web page.
+* You want a codebase you can use as a starting point, and are willing to develop more bespoke features on top of it.
 
-* The core of DTBase is the database, for which we use PostgresSQL.
-* The backend is written in Python, using the FastAPI and SQLAlchemy packages.
+You may choose to only use parts of the infrastructure that DTBase offers. For instance, the frontend doesn't offer any functionality that the backend API doesn't have, so you can choose to only use the backend, and develop your own frontend from scratch.
+
+We have designed the codebase so that as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but for historical reasons Azure is what we provide an infrastructure-as-code configuration for.
+
+### Structure
+
+![diagram illustrating the structure of DTBase](./media/infrastructure.svg)
+
+The above diagram illustrates the different parts of DTBase, which one talks to which, and how the code gets deployed when you make edits. This assumes DTBase is deployed on Azure using the Pulumi infrastructure-as-code configuration in the `infrastructure` folder.
+
+Each of the boxes on the right with the Docker symbol in the corner is a separate Docker container, built by a GitHub Action every time there's a new commit in the `main` branch, and pushed to Docker Hub, from where Azure loads it. Only the backend interacts with the database, everything else interacts with the backend. Services are here shown as Azure Functions, which is a convenient way to deploy your own services, but a service can also be any other external API endpoint that you can call to trigger something to run, hosted separately from your DTBase deployment.
+
+The three Docker containers are defined by Docker files in the root folder, called `Dockerfile_backend`, `Dockerfile_frontend`, and `Dockerfile_functions`.
+
+### Tech stack
+
+* Most of the code is Python, except for browser stuff which is in Typescript and Jinja templates.
+* The relational database is PostgreSQL.
+* The backend is written in Python, using FastAPI and SQLAlchemy.
 * The frontend is a Flask app written in Python.
-* Continuous Integration and Continuous Deployment are done via Github Actions, which in turn build Docker images and push them to Dockerhub.
-* Data ingress, Modelling and other services are implemented via Azure Functions.
-* Scripted deployment on Azure is done via Pulumi.
+* Continuous integration and continuous deployment are done via Github Actions, which in turn build Docker images and push them to Dockerhub.
+* Infrastructure-as-code configuration is done using Pulumi.
+* The example services (weather ingress, Arima) are implemented as Azure Functions.
 
-We are prioritizing the implementation of the data model, and a backend API, as the first steps in DTBase.  Users should be able to interact with the database via REST API endpoints, to insert, delete, and retrieve data related to Locations, Sensors, and Predictive Models.
+### More Details
 
-We also aim to include:
-* Example ingress functions that retrieve data from an external API and use the DTBase API to store it in the database.
-* An example of a predictive model (Arima) that makes use of sensor data.
-* Pulumi scripts to deploy the full set of infrastructure on Microsoft Azure cloud.
-* A very minimal frontend that will allow users to interact with some aspects of the API.
+More documentation on the different parts of DTBase can be found in the following files.
 
-### API documentation
-
-See [here](dtbase/backend/README.md) for a list of API endpoints, along with expected request and response structures.
-
-### Deployment documentation
-
-See [here](infrastructure/README.md) for docs on the Pulumi deployment.
-
-### Developer documentation / Local running.
-
-See [here](DeveloperDocs.md)
+* [DeveloperDocs.md](docs/DeveloperDocs.md) for how to run DTBase locally and set it up for development purposes.
+* [docs.md](docs/docs.md) for detailed documentation of all aspects of DTBase.
 
 ### History/The CROP project
 
-The DTBase package is based on [CROP](https://github.com/alan-turing-institute/CROP), a Digital Twin for an underground farm, located in a disused air-raid shelter in Clapham, London. Some of the defining aspects of the CROP Digital Twin are:
+The DTBase package is based on [CROP](https://github.com/alan-turing-institute/CROP), a digital twin for an underground farm, located in a disused air-raid shelter in Clapham, London. Some of the defining aspects of the CROP digital twin are:
 * Ingress of real-time sensor data.
 * Ingress of data from other sources (weather, power consumption, information specific to the farm).
 * Predictive models run on a daily schedule to give predictions and uncertainties for future conditions.
@@ -55,7 +81,4 @@ The DTBase package is based on [CROP](https://github.com/alan-turing-institute/C
 
 All of this makes use of cloud-based infrastructure, and can be easily deployed on Microsoft Azure using Pulumi.
 
-For DTBase, the aim is to replicate some (but not all) of the features of CROP, but generalizing as far as possible.  In particular:
-* We make no assumptions on how *Locations* are defined in the digital twin.
-* Rather than having separate database tables for each sensor type, we have a more flexible and general set of tables for *Sensors* and *Sensor Readings*.
-* We follow the CROP model for defining the data structures around the predictive models, including model runs, the variables predicted in them, and the obtained values.
+DTBase grew out of the CROP codebase. It aims to replicate most (but not all) of the features of CROP, but generalize the code to be agnostic to the use case.
