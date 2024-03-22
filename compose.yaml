@@ -1,9 +1,6 @@
 services:
   db:
-    build:
-      context: .
-      dockerfile: dockerfiles/Dockerfile.db
-    image: dtbase_db
+    image: postgres:16.2
     restart: always
     ports:
       - "5432:5432"
@@ -12,7 +9,6 @@ services:
     environment:
       - POSTGRES_USER=${DT_SQL_USER}
       - POSTGRES_PASSWORD=${DT_SQL_PASS}
-      - POSTGRES_DB=${DT_SQL_DBNAME}
     volumes:
       - app_data:/var/lib/postgresql/data
   backend:
