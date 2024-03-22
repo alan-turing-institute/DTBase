@@ -7,24 +7,24 @@ export function deleteSensor(): void {
     }).then(function (response) {
       if (response.ok) {
         // If the sensor was deleted successfully, close the popup window
-        window.close();
+        window.close()
       } else {
         // If the sensor was not deleted successfully, show an alert
-        alert("Sensor not deleted");
+        alert("Sensor not deleted")
       }
-    });
+    })
   } else {
     // Do nothing
-    alert("Sensor not deleted");
+    alert("Sensor not deleted")
   }
 }
 
 export function editSensor(event: Event): void {
-  event.preventDefault(); // prevent the form from submitting normally
+  event.preventDefault() // prevent the form from submitting normally
 
-  const form = event.target as HTMLFormElement;
-  const url = form.action; // get the form's action URL
-  const formData = new FormData(form); // get the form data
+  const form = event.target as HTMLFormElement
+  const url = form.action // get the form's action URL
+  const formData = new FormData(form) // get the form data
 
   // send the form data to the server
   fetch(url, {
@@ -33,23 +33,23 @@ export function editSensor(event: Event): void {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error("Network response was not ok")
       } else {
-        window.close();
+        window.close()
       }
     })
     .catch((error) => {
       // handle error - don't close the window if there was an error
-      console.error("Error:", error);
-    });
+      console.error("Error:", error)
+    })
 }
 
 declare global {
   interface Window {
-    deleteSensor: () => void;
-    editSensor: (event: Event) => void;
+    deleteSensor: () => void
+    editSensor: (event: Event) => void
   }
 }
 
-window.deleteSensor = deleteSensor;
-window.editSensor = editSensor;
+window.deleteSensor = deleteSensor
+window.editSensor = editSensor

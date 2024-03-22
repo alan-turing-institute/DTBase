@@ -1,18 +1,16 @@
 export function updateSensorSelector(
   sensorIdsByType: { [key: string]: string[] },
-  selectedSensor: string | null
+  selectedSensor: string | null,
 ): void {
-  const sensorSelector = document.getElementById(
-    "sensorSelector"
-  ) as HTMLSelectElement;
+  const sensorSelector = document.getElementById("sensorSelector") as HTMLSelectElement
   const sensorTypeSelector = document.getElementById(
-    "sensorTypeSelector"
-  ) as HTMLSelectElement;
-  const selectedSensorType = sensorTypeSelector.value;
+    "sensorTypeSelector",
+  ) as HTMLSelectElement
+  const selectedSensorType = sensorTypeSelector.value
 
   // Empty sensorSelector
   while (sensorSelector.firstChild) {
-    sensorSelector.removeChild(sensorSelector.firstChild);
+    sensorSelector.removeChild(sensorSelector.firstChild)
   }
 
   // Create new options for the sensorSelector
@@ -22,24 +20,24 @@ export function updateSensorSelector(
     selectedSensor !== null ||
     selectedSensor != ""
   ) {
-    const defaultOption = document.createElement("option");
-    defaultOption.value = "";
-    defaultOption.selected = true;
-    defaultOption.disabled = true;
-    defaultOption.hidden = true;
-    defaultOption.text = "Choose sensor";
-    sensorSelector.appendChild(defaultOption);
+    const defaultOption = document.createElement("option")
+    defaultOption.value = ""
+    defaultOption.selected = true
+    defaultOption.disabled = true
+    defaultOption.hidden = true
+    defaultOption.text = "Choose sensor"
+    sensorSelector.appendChild(defaultOption)
   }
 
   if (selectedSensorType != "") {
-    const sensorIds = sensorIdsByType[selectedSensorType];
+    const sensorIds = sensorIdsByType[selectedSensorType]
     for (let i = 0; i < sensorIds.length; i++) {
-      const option = document.createElement("option");
-      const id = sensorIds[i];
-      option.value = id;
-      option.text = id;
-      if (id == selectedSensor) option.selected = true;
-      sensorSelector.appendChild(option);
+      const option = document.createElement("option")
+      const id = sensorIds[i]
+      option.value = id
+      option.text = id
+      if (id == selectedSensor) option.selected = true
+      sensorSelector.appendChild(option)
     }
   }
 }
@@ -48,9 +46,9 @@ declare global {
   interface Window {
     updateSensorSelector: (
       sensorIdsByType: { [key: string]: string[] },
-      selectedSensor: string | null
-    ) => void;
+      selectedSensor: string | null,
+    ) => void
   }
 }
 
-window.updateSensorSelector = updateSensorSelector;
+window.updateSensorSelector = updateSensorSelector

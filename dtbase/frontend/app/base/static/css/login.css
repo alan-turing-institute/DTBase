@@ -25,7 +25,10 @@
   text-decoration: underline;
 }
 .login_content h1 {
-  font: normal 25px Helvetica, Arial, sans-serif;
+  font:
+    normal 25px Helvetica,
+    Arial,
+    sans-serif;
   letter-spacing: -0.05em;
   line-height: 20px;
   margin: 10px 0 30px;

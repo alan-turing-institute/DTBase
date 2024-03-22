@@ -106,6 +106,6 @@ Note that you may need to whitelist your IP address on the PostgreSQL server for
 
 ## Contributing code
 
-We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/). It is installed as a dev dependency when you run `pip install .[dev]`. You also need to make sure you've run `npm install --dev` in the `dtbase/frontend` folder to be able to lint/format the frontend code. We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass. If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.
+We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/). It is installed as a dev dependency when you run `pip install .[dev]`. You also need to make sure you've run `npm install --prefix dtbase/frontend/ --include=dev ` to install the linters and formatters for the frontend code. We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass. If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.
 
 We recommend reading the [docs.md](docs.md) file to gain an understanding of what the various parts of the codebase do and how they work.

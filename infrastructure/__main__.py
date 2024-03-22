@@ -11,9 +11,9 @@ from pulumi import Config, Output, export
 
 CONFIG = Config()
 
-BACKEND_DOCKER_URL = "turingcropapp/dtbase-backend:main"
-FRONTEND_DOCKER_URL = "turingcropapp/dtbase-frontend:main"
-FUNCTIONS_DOCKER_URL = "turingcropapp/dtbase-functions:main"
+BACKEND_DOCKER_URL = CONFIG.require("backend-docker-url")
+FRONTEND_DOCKER_URL = CONFIG.require("frontend-docker-url")
+FUNCTIONS_DOCKER_URL = CONFIG.require("functions-docker-url")
 RESOURCE_NAME_PREFIX = CONFIG.get("resource-name-prefix")
 SQL_SERVER_USER = "dbadmin"
 SQL_DB_NAME = "dtdb"
@@ -61,15 +61,9 @@ def create_sql_server(resource_group: resource.ResourceGroup) -> postgresql.Serv
 def create_pg_database(
     resource_group: resource.ResourceGroup, sql_server: postgresql.Server
 ) -> postgresql.Database:
-    # TODO This is broken as of 2023-11-30. I'm not sure why, but I've raised an issue
-    # on pulumi: https://github.com/pulumi/pulumi-azure-native/issues/2916
-    # That this resource fails to get created doesn't interfere with anything else, so
-    # one can run `pulumi up`, get all the other stuff going, and then manually go and
-    # create a database called ${SQL_DB_NAME} on the PostgreSQL server.
     pg_database = postgresql.Database(
         f"{RESOURCE_NAME_PREFIX}-postgresql-db",
         charset="UTF8",
-        collation="English_United States.1252",
         database_name=SQL_DB_NAME,
         resource_group_name=resource_group.name,
         server_name=sql_server.name,

@@ -1,19 +1,15 @@
-import { SensorMeasure } from "./interfaces";
+import { SensorMeasure } from "./interfaces"
 
 export function onPageLoad(existing_measures: SensorMeasure[]): void {
-  const addButton = document.getElementById(
-    "addMeasureButton"
-  ) as HTMLButtonElement;
-  const measureGroup = document.getElementById(
-    "formGroupMeasures"
-  ) as HTMLDivElement;
+  const addButton = document.getElementById("addMeasureButton") as HTMLButtonElement
+  const measureGroup = document.getElementById("formGroupMeasures") as HTMLDivElement
   const existingMeasureSelect = document.getElementById(
-    "existingMeasureSelect"
-  ) as HTMLSelectElement;
+    "existingMeasureSelect",
+  ) as HTMLSelectElement
 
   function createMeasureRow(measure: SensorMeasure | null = null) {
-    const newRow = document.createElement("div");
-    newRow.className = "measure-row";
+    const newRow = document.createElement("div")
+    newRow.className = "measure-row"
 
     newRow.innerHTML = `
             <input type="hidden" name="measure_existing[]" value="${
@@ -36,7 +32,7 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
                 (option) =>
                   `<option value="${option}" ${
                     measure?.datatype === option ? "selected" : ""
-                  }>${option}</option>`
+                  }>${option}</option>`,
               )
               .join("")}
             </select>
@@ -46,38 +42,37 @@ export function onPageLoad(existing_measures: SensorMeasure[]): void {
                 : ""
             }
             <button type="button" class="btn btn-danger btn-remove-measure">-</button>
-        `;
-
-    (
+        `
+    ;(
       newRow.querySelector(".btn-remove-measure") as HTMLButtonElement
     ).addEventListener("click", function () {
-      newRow.remove();
-    });
+      newRow.remove()
+    })
 
-    measureGroup.appendChild(newRow);
+    measureGroup.appendChild(newRow)
   }
 
   addButton.addEventListener("click", function () {
-    createMeasureRow();
-  });
+    createMeasureRow()
+  })
 
   existingMeasureSelect.addEventListener("change", function (event) {
-    const target = event.target as HTMLSelectElement;
-    const selectedId = target.value;
+    const target = event.target as HTMLSelectElement
+    const selectedId = target.value
 
     if (selectedId) {
       const measure = existing_measures.find(
-        (measure) => measure.id === parseInt(selectedId)
-      );
-      createMeasureRow(measure);
-      target.value = "";
+        (measure) => measure.id === parseInt(selectedId),
+      )
+      createMeasureRow(measure)
+      target.value = ""
     }
-  });
+  })
 }
 
 declare global {
   interface Window {
-    onPageLoad: (existing_measures: SensorMeasure[]) => void;
+    onPageLoad: (existing_measures: SensorMeasure[]) => void
   }
 }
-window.onPageLoad = onPageLoad;
+window.onPageLoad = onPageLoad

@@ -11,6 +11,10 @@
     "jquery": true
   },
   "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "consistent-return": 2,
+    "no-else-return": 1,
+    "space-unary-ops": 0,
     "require-jsdoc": 0,
     "no-unused-vars": 0,
     "no-undef": 0,
@@ -18,9 +22,8 @@
   },
   "extends": [
     "eslint:recommended",
-    "google",
-    "prettier",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
