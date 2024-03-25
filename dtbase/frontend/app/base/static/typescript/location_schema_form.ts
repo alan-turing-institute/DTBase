@@ -1,39 +1,37 @@
-import { LocationIdentifier } from "./interfaces";
+import { LocationIdentifier } from "./interfaces"
 
 export function onPageLoad(existing_identifiers: LocationIdentifier[]): void {
-  const addButton = document.getElementById(
-    "addIdentifierButton"
-  ) as HTMLButtonElement;
+  const addButton = document.getElementById("addIdentifierButton") as HTMLButtonElement
   const identifierGroup = document.getElementById(
-    "identifiersFormGroup"
-  ) as HTMLDivElement;
+    "identifiersFormGroup",
+  ) as HTMLDivElement
   const existingIdentifierSelect = document.getElementById(
-    "existingIdentifierSelect"
-  ) as HTMLSelectElement;
+    "existingIdentifierSelect",
+  ) as HTMLSelectElement
 
   addButton.addEventListener("click", function () {
-    createIdentifierRow(identifierGroup);
-  });
+    createIdentifierRow(identifierGroup)
+  })
 
   existingIdentifierSelect.addEventListener("change", function (event) {
-    const target = event.target as HTMLSelectElement;
-    const selectedId = target.value;
+    const target = event.target as HTMLSelectElement
+    const selectedId = target.value
 
     if (selectedId) {
       const identifier = existing_identifiers.find(
-        (identifier) => identifier.id === parseInt(selectedId)
-      );
-      createIdentifierRow(identifierGroup, identifier);
-      target.value = "";
+        (identifier) => identifier.id === parseInt(selectedId),
+      )
+      createIdentifierRow(identifierGroup, identifier)
+      target.value = ""
     }
-  });
+  })
 }
 function createIdentifierRow(
   identifierGroup: HTMLDivElement,
-  identifier: null | LocationIdentifier = null
+  identifier: null | LocationIdentifier = null,
 ): void {
-  const newRow = document.createElement("div");
-  newRow.className = "identifier-row";
+  const newRow = document.createElement("div")
+  newRow.className = "identifier-row"
 
   newRow.innerHTML = `
     <input type="hidden" name="identifier_existing[]" value="${
@@ -56,7 +54,7 @@ function createIdentifierRow(
         (option) =>
           `<option value="${option}" ${
             identifier?.datatype === option ? "selected" : ""
-          }>${option}</option>`
+          }>${option}</option>`,
       )
       .join("")}
         </select>
@@ -66,21 +64,20 @@ function createIdentifierRow(
             : ""
         }
         <button type="button" class="btn btn-danger btn-remove-identifier">-</button>
-        `;
-
-  (
+        `
+  ;(
     newRow.querySelector(".btn-remove-identifier") as HTMLButtonElement
   ).addEventListener("click", function () {
-    newRow.remove();
-  });
+    newRow.remove()
+  })
 
-  identifierGroup.appendChild(newRow);
+  identifierGroup.appendChild(newRow)
 }
 
 declare global {
   interface Window {
-    onPageLoad: (existing_identifiers: LocationIdentifier[]) => void;
+    onPageLoad: (existing_identifiers: LocationIdentifier[]) => void
   }
 }
 
-window.onPageLoad = onPageLoad;
+window.onPageLoad = onPageLoad

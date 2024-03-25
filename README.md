@@ -26,17 +26,17 @@ Some things DTBase does not, currently, have:
 * Sophisticated model orchestration. The services infrastructure can be used to store parameters for models and run them on demand, but the rest remains in development.
 * Anything for using the digital twin to control the real asset.
 
-DTBase may not be for you if
+#### DTBase may not be for you if
 * Your idea of digital twin centres a CAD or Unity model of the thing being twinned.
 * You need a plug-and-play, ready made software package that you `pip install` and run.
 
-DTBase may be for you if
+#### DTBase may be for you if
 * Your idea of digital twin starts centres around a single data store with a unified interface, running models, and visualising data and model results from various sources on a web page.
 * You want a codebase you can use as a starting point, and are willing to develop more bespoke features on top of it.
 
-You may choose to only use parts of the infrastructure that DTBase offers. For instance, the frontend doesn't offer any functionality that the backend API doesn't have, so you can only use the backend, and develop your own frontend from scratch.
+You may choose to only use parts of the infrastructure that DTBase offers. For instance, the frontend doesn't offer any functionality that the backend API doesn't have, so you can choose to only use the backend, and develop your own frontend from scratch.
 
-We have designed the codebase so that as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but Azure is what we provide an infrastructure-as-code configuration for.
+We have designed the codebase so that as many of DTBase's features as possible can be deployed either locally or via Azure. There is no reason that DTBase couldn't be deployed on other cloud services, but for historical reasons Azure is what we provide an infrastructure-as-code configuration for.
 
 ### Structure
 
@@ -63,7 +63,7 @@ The three Docker containers are defined by Docker files in the root folder, call
 More documentation on the different parts of DTBase can be found in the following files.
 
 * [DeveloperDocs.md](docs/DeveloperDocs.md) for how to run DTBase locally and set it up for development purposes.
-* [dtbase_docs.md](docs/dtbase_docs.md) for detailed documentation of all aspects of DTBase.
+* [docs.md](docs/docs.md) for detailed documentation of all aspects of DTBase.
 
 ### History/The CROP project
 

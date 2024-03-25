@@ -127,7 +127,7 @@ The DTBase frontend is a Flask webapp. To run it you need to
 2. In a new terminal session, again run `source .secrets/dtenv_localdb.sh`
 3. Navigate to the directory `dtbase/frontend` and run the command `./run.sh`.
 4. You should now be able to view the frontend on your browser at `http://localhost:8000`.
-5. You can log in with the username `default_user@localhost` and the password you set `DT_DEFAULT_USER_PASS` above when you created `dtenv_localdb.sh`.
+5. You can log in with the username `default_user@localhost` and the password you set as `DT_DEFAULT_USER_PASS` above when you created `dtenv_localdb.sh`.
 6. Like for the backend, you can use different modes for the frontend, by running e.g. `DT_CONFIG_MODE=Auto-login ./run.sh` to be always automatically logged in as the default user. The valid options for `DT_CONFIG_MODE` for the frontend can be found in `dtbase/frontend/config.py`.
 
 A tip: When developing the frontend, it can be very handy to run it with `FLASK_DEBUG=true DT_CONFIG_MODE=Auto-login ./run.sh`. The first environment variable makes it such that Flask restarts every time you make a change to the code. (The backend already by default has a similar autorefresh option enabled.) The second one makes Flask automatically log in as the default user. This way when you make code changes, you can see the effect immediately in your browser without having to restart and/or log in.
@@ -147,6 +147,6 @@ Please refer to the [infrastructure readme](../infrastructure/README.md) for doc
 
 ## Contributing code
 
-We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/). It is installed as a dev dependency when you run `pip install .[dev]`. You also need to make sure you've run `npm install --dev` in the `dtbase/frontend` folder to be able to lint/format the frontend code. We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass. If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.
+We run a set of linters and formatters on all code using [pre-commit](https://pre-commit.com/). It is installed as a dev dependency when you run `pip install .[dev]`. You also need to make sure you've run `npm install --prefix dtbase/frontend/ --include=dev ` to install the linters and formatters for the frontend code. We recommend running `pre-commit install` so that pre-commit gets run every time you `git commit`, and only allows you to commit if the checks pass. If you need to bypass such checks for some commit you can do so with `git commit --no-verify`.
 
-We recommend reading the many `README.md` files (see list in the main README) in various subfolders of DTBase to gain an understanding of what the various parts of the codebase do and how they work.
+We recommend reading the [docs.md](docs.md) file to gain an understanding of what the various parts of the codebase do and how they work.

@@ -72,10 +72,15 @@ def fetch_sensor_data(
         data, with columns for each measure and for timestamp.
     """
     result = {}
-    if isinstance(dt_from, dt.datetime):
-        dt_from = dt_from.isoformat()
-    if isinstance(dt_to, dt.datetime):
-        dt_to = dt_to.isoformat()
+    # The parsing to a datetime object ensures that we don't pass any ill-formatted
+    # strings to the backend.
+    if isinstance(dt_from, str):
+        dt_from = parse(dt_from)
+    if isinstance(dt_to, str):
+        dt_to = parse(dt_to)
+    dt_from = dt_from.isoformat()
+    dt_to = dt_to.isoformat()
+
     for sensor_id in sensor_ids:
         measure_readings_list = []
         for measure in measures:

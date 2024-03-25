@@ -90,13 +90,17 @@ def get_run_pred_data(run_id: int | str) -> Dict[str, Any]:
     return pred_data
 
 
-def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str, Any]:
+def get_run_sensor_data(
+    run_id: int | str, earliest_timestamp: str, last_timestamp: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Get the real data to which the prediction of a ModelRun should be compared
 
     Args:
        run_id: int | str, database ID of the ModelRun
        earliest_timestamp: str, ISO format timestamp of the earliest prediction point
+       last_timestamp: str, ISO format timestamp of the last prediction point. Optional,
+       by default now.
 
     Returns:
        dict, with keys "sensor_uniq_id", "measure_name", "readings", where "readings" is
@@ -110,7 +114,10 @@ def get_run_sensor_data(run_id: int | str, earliest_timestamp: str) -> Dict[str,
     measure_name = response.json()["sensor_measure"]["name"]
     sensor_uniq_id = response.json()["sensor_unique_id"]
     dt_from = earliest_timestamp
-    dt_to = dt.datetime.now().isoformat()
+    if last_timestamp:
+        dt_to = last_timestamp
+    else:
+        dt_to = dt.datetime.now().isoformat()
     response = current_user.backend_call(
         "post",
         "/sensor/sensor-readings",
@@ -142,8 +149,12 @@ def fetch_run_data(run_id: int | str) -> Dict[str, Any]:
     """
     pred_data = get_run_pred_data(run_id)
     # find the earliest time in the predicted data
-    earliest_timestamp = pred_data[list(pred_data.keys())[0]][0]["timestamp"]
-    sensor_data = get_run_sensor_data(run_id, earliest_timestamp)
+    if pred_data:
+        earliest_timestamp = pred_data[list(pred_data.keys())[0]][0]["timestamp"]
+        last_timestamp = pred_data[list(pred_data.keys())[0]][-1]["timestamp"]
+        sensor_data = get_run_sensor_data(run_id, earliest_timestamp, last_timestamp)
+    else:
+        sensor_data = {}
     return {"pred_data": pred_data, "sensor_data": sensor_data}
 
 
