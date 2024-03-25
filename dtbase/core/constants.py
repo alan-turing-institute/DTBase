@@ -48,8 +48,6 @@ SQL_CONNECTION_STRING = make_conn_string(
     SQL_PORT,
 )
 SQL_DBNAME = os.environ.get("DT_SQL_DBNAME", "DUMMY").strip().lower()
-SQL_DEFAULT_DBNAME = "postgres"
-SQL_SSLMODE = "require"
 
 # same for the temporary db used for unit testing
 SQL_TEST_USER = os.environ.get("DT_SQL_TESTUSER", "DUMMY").strip()

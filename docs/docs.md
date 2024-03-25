@@ -57,7 +57,6 @@ The backend is a web app implemented using FastAPI. It takes in REST requests an
     * `structure.py`. Defines what are all the tables and their columns and constraints.
     * `locations.py/models.py/services.py` etc. Provide add/edit/delete functions for all the things stored in the database, such as locations, sensors, sensor data, models, model data, and users.
     * `queries.py`. More complex SQL queries and queries used by several files.
-    * `db_docker.py`. Utilities for starting a PostgreSQL server and checking if one is running. Used mostly by tests, but also bu `run_localdb.sh`.
     * `utils.py`. Miscellaneous utilities for things like creating new database sessions. Most importantly has too module-level constants, `DB_ENGINE` and `DB_SESSION_MAKER`, that are the one-stop-shop of all other modules whenever a connection to the database is needed.
 * `exc.py`. Custom exception classes used by various modules.
 * `auth.py`. Everything related to authenticating users. Authentication uses JSON Web Tokens (JWT). See below for how this affects using the API.
