@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16.2
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DT_SQL_USER}
+      - POSTGRES_PASSWORD=${DT_SQL_PASS}
+    volumes:
+      - app_data:/var/lib/postgresql/data
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.backend
+    image: dtbase_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DT_SQL_USER=${DT_SQL_USER}
+      - DT_SQL_PASS=${DT_SQL_PASS}
+      - DT_SQL_HOST=${DT_SQL_HOST}
+      - DT_SQL_PORT=${DT_SQL_PORT}
+      - DT_SQL_DBNAME=${DT_SQL_DBNAME}
+      - DT_DEFAULT_USER_PASS=${DT_DEFAULT_USER_PASS}
+      - DT_JWT_SECRET_KEY=${DT_JWT_SECRET_KEY}
+  frontend:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.frontend
+    image: dtbase_frontend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    environment:
+      - DT_BACKEND_URL=${DT_BACKEND_URL}
+      - DT_FRONT_SECRET_KEY=${DT_FRONT_SECRET_KEY}
+volumes:
+  app_data:

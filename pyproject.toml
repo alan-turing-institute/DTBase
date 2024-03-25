@@ -73,9 +73,6 @@ infrastructure = [
 "Homepage" = "https://github.com/alan-turing-institute/DTBase"
 "Bug tracker" = "https://github.com/alan-turing-institute/DTBase/issues"
 
-[project.scripts]
-dtbase_start_postgres_docker = "dtbase.backend.database.db_docker:main"
-
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"

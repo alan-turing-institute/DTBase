@@ -1,4 +1,7 @@
 """Configuration module for unit tests."""
+import os
+import re
+import subprocess
 import time
 from html.parser import HTMLParser
 from typing import Any, Callable, Generator, Optional
@@ -8,6 +11,7 @@ from urllib.parse import urlparse
 import numpy as np
 import pytest
 import requests_mock
+import sqlalchemy_utils as sqla_utils
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from flask import Flask
@@ -18,19 +22,11 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from dtbase.backend.create_app import create_app as create_backend_app
-
-# The below import is for exporting, other modules will import it from there
-from dtbase.backend.database.db_docker import (
-    check_for_docker,  # noqa: F401
-    start_docker_postgres,
-    stop_docker_postgres,
-)
 from dtbase.backend.database.users import insert_user
 
 # The below import is for exporting, other modules will import it from there
 from dtbase.backend.database.utils import (
     connect_db,
-    create_database,
     create_tables,
     drop_db,
     drop_tables,
@@ -40,6 +36,8 @@ from dtbase.core.constants import (
     DEFAULT_USER_PASS,
     SQL_TEST_CONNECTION_STRING,
     SQL_TEST_DBNAME,
+    SQL_TEST_PASSWORD,
+    SQL_TEST_USER,
 )
 from dtbase.frontend.app import create_app as create_frontend_app
 from dtbase.frontend.config import config_dict as frontend_config
@@ -48,8 +46,94 @@ from .utils import TEST_USER_EMAIL, TEST_USER_PASSWORD, get_token
 
 np.random.seed(42)
 
-# if we start a new docker container, store the ID so we can stop it later
+# # # # # #
+# Stuff for starting and stopping a docker container for the database.
+# If we start a new docker container, store the ID so we can stop it later
 DOCKER_CONTAINER_ID: Optional[str] = None
+
+
+def check_for_docker() -> str | bool:
+    """
+    See if we have a postgres docker container already running.
+
+    Returns
+    =======
+    container_id:str if container running,
+    OR
+    True if docker is running, but no postgres container
+    OR
+    False if docker is not running
+    """
+    p = subprocess.run(["docker", "ps"], capture_output=True)
+    if p.returncode != 0:
+        return False
+    output = p.stdout.decode("utf-8")
+    m = re.search(r"([0-9a-f]+)[\s]+postgres", output)
+    if not m:
+        return True  # Docker is running, but no postgres container
+    else:
+        return m.groups()[0]  # return the container ID
+
+
+def start_docker_postgres(
+    postgres_user: str = "postgres",
+    postgres_password: str = "postgres",
+    postgres_dbname: str = "dtdb",
+) -> str | None:
+    """
+    Start a postgres docker container, if one isn't already running.
+
+    Returns:
+           container_id or None:  return int container_id if and only if we
+                                  start a new docker container.
+    """
+    # see if docker is running, and if so, if postgres container exists
+    docker_info = check_for_docker()
+    if not docker_info:  # docker desktop not running at all
+        print("Docker not found - will skip tests that use the database.")
+        return
+    if isinstance(docker_info, bool):
+        # docker is running, but no postgres container
+        print("Starting postgres docker container")
+        p = subprocess.run(
+            [
+                "docker",
+                "run",
+                "-e",
+                f"POSTGRES_DB={postgres_dbname}",
+                "-e",
+                f"POSTGRES_USER={postgres_user}",
+                "-e",
+                f"POSTGRES_PASSWORD={postgres_password}",
+                "-d",
+                "-p",
+                "5432:5432",
+                "postgres:14",
+            ],
+            capture_output=True,
+        )
+        if p.returncode != 0:
+            print("Problem starting Docker container - is Docker running?")
+            return
+        else:
+            # wait a while for the container to start up
+            time.sleep(10)
+            # save the docker container id so we can stop it later
+            container_id = p.stdout.decode("utf-8")
+            return container_id
+
+
+def stop_docker_postgres(container_id: str) -> None:
+    """
+    Stop the docker container with the specified container_id
+    """
+    if container_id:
+        print(f"Stopping docker container {container_id}")
+        os.system("docker kill " + container_id)
+
+
+# # # # # #
+# Stuff for getting the CSRF token from the frontend
 
 
 class CSRFTokenParser(HTMLParser):
@@ -76,6 +160,10 @@ def get_csrf_token(client: FlaskClient) -> str:
     if token is None:
         raise RuntimeError("Failed to extract CSRF token")
     return token
+
+
+# # # # # #
+# Fixtures for the tests
 
 
 def reset_tables(engine: Engine) -> None:
@@ -299,31 +387,26 @@ def pytest_configure() -> None:
     This hook is called for every plugin and initial conftest
     file after command line options have been parsed.
     """
-
     # move on with the rest of the setup
-    print(
-        "pytest_configure: start " + SQL_TEST_CONNECTION_STRING + " " + SQL_TEST_DBNAME
-    )
     global DOCKER_CONTAINER_ID
-    DOCKER_CONTAINER_ID = start_docker_postgres()
+    DOCKER_CONTAINER_ID = start_docker_postgres(
+        postgres_user=SQL_TEST_USER,
+        postgres_password=SQL_TEST_PASSWORD,
+    )
     if DOCKER_CONTAINER_ID:
         print(f"Setting DOCKER_CONTAINER_ID to {DOCKER_CONTAINER_ID}")
     # create database so that we have tables ready
-    create_database(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    conn_string = "{}/{}".format(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
+    if not sqla_utils.database_exists(conn_string):
+        sqla_utils.create_database(conn_string)
     time.sleep(1)
-    #    upload_synthetic_data.main(SQL_TEST_DBNAME)
-    print("pytest_configure: end")
 
 
 def pytest_unconfigure() -> None:
     """
     called before test process is exited.
     """
-
-    print("pytest_unconfigure: start")
-    # drops test db
     drop_db(SQL_TEST_CONNECTION_STRING, SQL_TEST_DBNAME)
     # if we started a docker container in pytest_configure, kill it here.
     if DOCKER_CONTAINER_ID:
         stop_docker_postgres(DOCKER_CONTAINER_ID)
-    print("pytest_unconfigure: end")

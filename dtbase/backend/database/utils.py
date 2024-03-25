@@ -4,17 +4,18 @@ drop database, and check its structure.
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from typing import Generator, Optional
 
 import sqlalchemy as sqla
+import sqlalchemy_utils as sqla_utils
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy.engine import Engine, RowMapping
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session as SqlaSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.scoping import scoped_session
-from sqlalchemy_utils import database_exists, drop_database
 
 from dtbase.backend.database.structure import (
     Base,
@@ -32,9 +33,6 @@ from dtbase.backend.database.structure import (
     SensorStringReading,
 )
 from dtbase.backend.exc import DatabaseConnectionError
-from dtbase.core.constants import (
-    SQL_DEFAULT_DBNAME,
-)
 
 # We may have to deal with various objects that represent a database connection session,
 # so make a union type of all of them. This is used for type annotations around the
@@ -120,62 +118,27 @@ def create_tables(engine: Engine) -> None:
     Base.metadata.create_all(engine)
 
 
-def create_database(conn_string: str, db_name: str) -> None:
-    """
-    Function to create a new database
-    -sql_connection_string: a string that holds an address to the db
-    -dbname: name of the db (string)
-    return: None
-    raise: DatabaseConnectionError or SQLAlchemyError if creating the database fails
-    """
-
-    # Create connection string
-    db_conn_string = "{}/{}".format(conn_string, db_name)
-
-    if database_exists(db_conn_string):
-        return
-    # Create a new database. On postgres, the postgres database is normally present by
-    # default. Connecting as a superuser (eg, postgres), allows to connect and create a
-    # new db.
-    def_engine = sqla.create_engine(
-        "{}/{}".format(conn_string, SQL_DEFAULT_DBNAME),
-        pool_size=20,
-        max_overflow=-1,
-    )
-
-    # You cannot use engine.execute() directly, because postgres does not allow to
-    # create databases inside transactions, inside which sqlalchemy always tries to
-    # run queries. To get around this, get the underlying connection from the
-    # engine:
-    with def_engine.connect() as conn:
-        # But the connection will still be inside a transaction, so you have to end
-        # the open transaction with a commit:
-        conn.execute(sqla.text("commit"))
-
-        # Then proceed to create the database using the PostgreSQL command.
-        conn.execute(sqla.text("create database " + db_name))
-
-        # Connects to the engine using the new database url
-        engine = connect_db(conn_string, db_name)
-        # Adds the tables and columns from the classes in module structure
-        create_tables(engine)
-
-
 def connect_db(conn_string: str, db_name: str) -> Engine:
     """
-    Function to connect to a database
-    -conn_string: the string that holds the connection to postgres
-    -dbname: name of the database
-    return: engine: returns the engine object
-    raises: DatabaseConnectionError if connecting fails
+    Connect to a database.
+
+    Creates the database if it does not exist.
+
+    Argugments:
+        conn_string (str): The connection string to the database.
+        db_name (str): The name of the database to connect to.
+
+    Raises:
+        DatabaseConnectionError: If the database connection fails.
+
+    Returns:
+        Engine: The SQLAlchemy engine object.
     """
-
-    # Create connection string
     db_conn_string = "{}/{}".format(conn_string, db_name)
+    if not sqla_utils.database_exists(db_conn_string):
+        logging.info("Database {db_conn_string} does not exist, creating it.")
+        sqla_utils.create_database(db_conn_string)
 
-    # Connect to an engine
-    if not database_exists(db_conn_string):
-        raise DatabaseConnectionError("Cannot find db: %s", db_conn_string)
     try:
         engine = sqla.create_engine(db_conn_string, pool_size=20, max_overflow=-1)
     except SQLAlchemyError:
@@ -201,7 +164,7 @@ def drop_db(conn_string: str, db_name: str) -> None:
     # Connection string
     db_conn_string = "{}/{}".format(conn_string, db_name)
 
-    if database_exists(db_conn_string):
+    if sqla_utils.database_exists(db_conn_string):
         # Connect to the db
         engine = connect_db(conn_string, db_name)
 
@@ -223,7 +186,7 @@ def drop_db(conn_string: str, db_name: str) -> None:
         connection.execute(sqla.text(text))
 
         # Drops db
-        drop_database(db_conn_string)
+        sqla_utils.drop_database(db_conn_string)
 
 
 def row_mappings_to_dicts(rows: Sequence[RowMapping]) -> list[dict]:
