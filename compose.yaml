@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile.backend
-    image: backend
+    image: dtbase_backend
     ports:
       - "5000:5000"
     depends_on:
