@@ -34,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile.frontend
-    image: frontend
+    image: dtbase_frontend
     ports:
       - "8000:8000"
     depends_on:
