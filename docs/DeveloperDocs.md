@@ -69,7 +69,7 @@ NOTE!: If running the application via Docker Compose, then this needs to be done
 The easiest way to run all aspects of DTBase together is to use docker compose. The steps to do this is as follows:
 
 1. Install Docker
-2. We need to create an .env file for defining environment variables. Copy the `default.env` file and rename it `.env`. Replace the value that have `"<REPLACE_ME>"` in place.
+2. We need to create an .env file for defining environment variables. Copy the `default.env` file and rename it `docker_deployment.env`. Replace the value that have `"<REPLACE_ME>"` in place.
 3. `docker compose up -d` builds the images and then runs all the containers.
 
 The backend and frontend are exposed at `http://localhost:5000/docs` and `http://localhost:8000` respectively. A volume is attached to the containers and will persist even after the containers have been stopped or deleted. The volume contains all the data from the database. If you want to start the application with a fresh database, then delete the volume before calling `docker compose` again.

@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .env
+      - docker_deployment.env
     environment:
       - POSTGRES_USER=${DT_SQL_USER}
       - POSTGRES_PASSWORD=${DT_SQL_PASS}
@@ -21,7 +21,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - docker_deployment.env
     environment:
       - DT_SQL_USER=${DT_SQL_USER}
       - DT_SQL_PASS=${DT_SQL_PASS}
@@ -40,7 +40,7 @@ services:
     depends_on:
       - backend
     env_file:
-      - .env
+      - docker_deployment.env
     environment:
       - DT_BACKEND_URL=${DT_BACKEND_URL}
       - DT_FRONT_SECRET_KEY=${DT_FRONT_SECRET_KEY}
