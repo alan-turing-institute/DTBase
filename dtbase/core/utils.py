@@ -43,7 +43,7 @@ def login(
     response = backend_call(
         "post",
         "/auth/login",
-        {"email": DEFAULT_USER_EMAIL, "password": DEFAULT_USER_PASS},
+        {"email": email, "password": password},
     )
     if response.status_code != 200:
         raise BackendCallError(response)
