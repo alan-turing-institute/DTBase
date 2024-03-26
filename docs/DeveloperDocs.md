@@ -123,14 +123,14 @@ The easiest way to run a PostgreSQL server locally is using a prebuilt Docker im
 3. Install PostgreSQL
 4. Run a PostgreSQL server in a Docker container:
 
-    `docker run --name dt_dev -e POSTGRES_PASSWORD="<REPLACE_ME>" -p 5432:5432 -d postgres`
+    `docker run --name ${DT_SQL_DBNAME} -e POSTGRES_PASSWORD=${DT_SQL_PASS} -p 5432:5432 -d ${DT_SQL_USER}`
 
     The `"<REPLACE_ME>"` value here should be the one you set as `DT_SQL_PASS` in your `.secrets/dtenv_localdb.sh`.
 5. Initialise the database:
 
-    `createdb --host localhost --username postgres dt_dev`
+    `createdb --host ${DT_SQL_HOST} --username ${DT_SQL_USER} ${DT_SQL_DBNAME}`
 
-If you've done this setup once and then e.g. rebooted your machine, all you should need to do is run `docker start dt_dev` to restart the existing Docker container.
+If you've done this setup once and then e.g. rebooted your machine, all you should need to do is run `docker start ${DT_SQL_DBNAME}` to restart the existing Docker container.
 
 ### Running the tests
 
