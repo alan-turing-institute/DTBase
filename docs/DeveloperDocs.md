@@ -12,20 +12,60 @@ We would recommend forking the entire repository and developing on that fork. Co
 
 ## Summary
 
-- [Managing Secrets and Environment Variables](#managing-secrets-and-environment-variables)
-- [Run entire application stack locally via docker compose](#run-entire-application-via-docker-compose)
-- [Installing DTBase](#installing-dtbase)
-- [Running a local database](#running-a-local-database)
-- [Running Tests](#running-the-tests)
-- [Running the backend API Locally](#running-the-backend-api-locally)
-- [Running the frontend locally](#running-the-frontend-locally)
-- [Running with an Non-local Database](#running-with-an-non-local-database)
-- [Running all components non-locally](#running-all-components-non-locally)
+- [Run entire application stack locally via docker compose](#run-entire-application-locally-via-docker-compose)
+- [Run Individual Components via the Command Line](#run-individual-components-via-the-command-line)
+    - [Managing Secrets and Environment Variables](#managing-secrets-and-environment-variables)
+    - [Installing DTBase](#installing-dtbase)
+    - [Running a local database](#running-a-local-database)
+    - [Running Tests](#running-the-tests)
+    - [Running the backend API Locally](#running-the-backend-api-locally)
+    - [Running the frontend locally](#running-the-frontend-locally)
+    - [Running with an Non-local Database](#running-with-an-non-local-database)
+    - [Running all components non-locally](#running-all-components-non-locally)
 - [Contributing to code](#contributing-code)
 
-## Managing Secrets and Environment Variables
+## Run Entire Application Locally via Docker Compose
 
-DTBase makes use of a set of secret values, such as database passwords and encryption keys for logins. These are kept in the `.secrets` folder in a Bash shell script that sets environment variables with the secret values. For your own deployment you should
+The easiest way to run all aspects of DTBase together is to use docker compose. The steps to do this is as follows:
+
+1. Install Docker
+2. DTBase makes use of a set of secret values, such as database passwords and encryption keys for logins. These are kept in the `.secrets` folder in a Bash shell script that sets environment variables with the secret values. For your own deployment you should:
+    - Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_docker_deployment.sh` (this could be named anything).
+    - Populate this file with following variables:
+    ```
+    #!/bin/bash
+
+    # Dev database
+    export DT_SQL_USER="postgres"
+    export DT_SQL_PASS="<REPLACE_ME>"
+    export DT_SQL_HOST="db"
+    export DT_SQL_PORT="5432"
+    export DT_SQL_DBNAME="dt_dev"
+
+    # Secrets for the web servers
+    export DT_BACKEND_URL="http://backend:5000"
+    export DT_DEFAULT_USER_PASS="<REPLACE_ME>"
+    export DT_FRONT_SECRET_KEY="<REPLACE_ME>"
+    export DT_JWT_SECRET_KEY="<REPLACE_ME>"
+    ```
+    You should, of course, replace all the `<REPLACE_ME>` values with long strings of random characters, or other good passwords. They won't be need to be human-memorisable. If any of these values leak anyone can gain admin access to your DTBase deployment!
+
+    You can find more documentation about what each of the environment variables are for in `.secrets/dtenv_template.sh`.
+
+3. Source these environment variables: `source .secrets/dtenv_docker_deployment.sh`
+4. `docker compose up -d` builds the images and then runs all the containers.
+
+The backend and frontend are exposed at `http://localhost:5000/docs` and `http://localhost:8000` respectively. A volume is attached to the containers and will persist even after the containers have been stopped or deleted. The volume contains all the data from the database. If you want to start the application with a fresh database, then delete the volume before calling `docker compose` again.
+
+This deployment is convenient for a quick local deployment. However, when changes are made to the code, the images need to be rebuilt. This doesn't take too long but isn't ideal. It's probabaly possible to tweak the dockerfile and compose files to mount the code so an image rebuild it not needed.
+
+If you either don't want to spend time editing the docker setup, don't want to rebuild images each time a code change is made or simply want to avoid docker as much as possible, then look at deploying individual components via the command line.
+
+## Run Individual Components via the Command Line
+
+### Managing Secrets and Environment Variables
+
+First step is to setup environment variables. DTBase makes use of a set of secret values, such as database passwords and encryption keys for logins. These are kept in the `.secrets` folder in a Bash shell script that sets environment variables with the secret values. For your own deployment you should
 
 1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv_localdb.sh`
 2. Populate this file with following variables:
@@ -55,30 +95,15 @@ DTBase makes use of a set of secret values, such as database passwords and encry
     ```
     You should, of course, replace all the `<REPLACE_ME>` values with long strings of random characters, or other good passwords. They won't be need to be human-memorisable. If any of these values leak anyone can gain admin access to your DTBase deployment!
 
-You can find more documentation about what each of the environment variables are for in `.secrets/dtenv_localdb.sh`.
+You can find more documentation about what each of the environment variables are for in `.secrets/dtenv_template.sh`.
 
 In any terminal session where you want to e.g. run one of the web servers, you will need start out by
 
 3. Activating the Python virtual environment you created.
 4. Sourcing the secrets file, with `source .secrets/dtenv_localdb.sh`.
 
-NOTE!: If running the application via Docker Compose, then this needs to be done in an .env file instead. Please follow the instructions [that section](#run-entire-application-via-docker-compose).
 
-## Run Entire Application via Docker Compose
-
-The easiest way to run all aspects of DTBase together is to use docker compose. The steps to do this is as follows:
-
-1. Install Docker
-2. We need to create an .env file for defining environment variables. Copy the `default.env` file and rename it `.env`. Replace the value that have `"<REPLACE_ME>"` in place.
-3. `docker compose up -d` builds the images and then runs all the containers.
-
-The backend and frontend are exposed at `http://localhost:5000/docs` and `http://localhost:8000` respectively. A volume is attached to the containers and will persist even after the containers have been stopped or deleted. The volume contains all the data from the database. If you want to start the application with a fresh database, then delete the volume before calling `docker compose` again.
-
-This deployment is convenient for a quick local deployment. However, when changes are made to the code, the images need to be rebuilt. This doesn't take too long but isn't ideal. It's probabaly possible to tweak the dockerfile and compose files to mount the code so an image rebuild it not needed.
-
-If you either don't want to spend time editing the docker setup, don't want to rebuild images each time a code change is made or simply want to avoid docker as much as possible, then move onto the next section.
-
-## Installing DTBase
+### Installing DTBase
 
 Running the seperate components locally via the command line requires DTBase to be installed as a package. Instructions are as follows:
 
@@ -90,7 +115,7 @@ Running the seperate components locally via the command line requires DTBase to 
 pip install '.[dev]'
 ```
 
-## Running a Local Database
+### Running a Local Database
 
 The easiest way to run a PostgreSQL server locally is using a prebuilt Docker image.
 1. Run `source .secrets/dtenv_localdb.sh`.
@@ -98,29 +123,29 @@ The easiest way to run a PostgreSQL server locally is using a prebuilt Docker im
 3. Install PostgreSQL
 4. Run a PostgreSQL server in a Docker container:
 
-    `docker run --name dt_dev -e POSTGRES_PASSWORD="<REPLACE_ME>" -p 5432:5432 -d postgres`
+    `docker run --name ${DT_SQL_DBNAME} -e POSTGRES_PASSWORD=${DT_SQL_PASS} -p 5432:5432 -d ${DT_SQL_USER}`
 
     The `"<REPLACE_ME>"` value here should be the one you set as `DT_SQL_PASS` in your `.secrets/dtenv_localdb.sh`.
 5. Initialise the database:
 
-    `createdb --host localhost --username postgres dt_dev`
+    `createdb --host ${DT_SQL_HOST} --username ${DT_SQL_USER} ${DT_SQL_DBNAME}`
 
-If you've done this setup once and then e.g. rebooted your machine, all you should need to do is run `docker start dt_dev` to restart the existing Docker container.
+If you've done this setup once and then e.g. rebooted your machine, all you should need to do is run `docker start ${DT_SQL_DBNAME}` to restart the existing Docker container.
 
-## Running the tests
+### Running the tests
 
 Assuming a local database has been setup, then the tests can now be run. The tests spin up its own backend and frontend applications automatically.
 
 1. Tests can now be run by locally by running `python -m pytest`.
 
-## Running the backend API Locally
+### Running the backend API Locally
 
 The backend API is a FastAPI app that provides REST API endpoints for reading from and writing to the database. You can run it by:
 
 1. Navigate to the directory `dtbase/backend` and run the command `./run_localdb.sh`. This starts the FastAPI app listening on `http://localhost:5000`. You can test it by sending requests to some of its endpoints using e.g. Postman or the `requests` library. To see all the API endpoints and what they do, navigate to `http://localhost:5000/docs` in a web browser.
 2. Optionally, you can use different modes for the backend, by running e.g. `DT_CONFIG_MODE=Debug ./run_localdb.sh` to run in debug mode. The valid options for `DT_CONFIG_MODE` can be found in `dtbase/backend/config.py`.
 
-## Running the frontend locally
+### Running the frontend locally
 
 The DTBase frontend is a Flask webapp. To run it you need to
 1. Install npm (Node Package Manager)
@@ -132,7 +157,7 @@ The DTBase frontend is a Flask webapp. To run it you need to
 
 A tip: When developing the frontend, it can be very handy to run it with `FLASK_DEBUG=true DT_CONFIG_MODE=Auto-login ./run.sh`. The first environment variable makes it such that Flask restarts every time you make a change to the code. (The backend already by default has a similar autorefresh option enabled.) The second one makes Flask automatically log in as the default user. This way when you make code changes, you can see the effect immediately in your browser without having to restart and/or log in.
 
-## Running with an Non-local Database
+### Running with an Non-local Database
 
 Sometimes you want to run the backend and the frontend locally, but have the database reside elsewhere, e.g. on Azure. To do this,
 1. Copy the file `.secrets/dtenv_template.sh` to `.secrets/dtenv.sh` and populate this file with values for the various environment variables. These are mostly the same as above when running a local database, except for `DT_SQL_HOST`, `DT_SQL_PORT`, `DT_SQL_USER`, and `DT_SQL_PASS`. These should be set to match the hostname, port, username, and password for the PostgreSQL server, where ever it is running. If you want to run against a database on Azure deployed by Pulumi, you may want to consult your Pulumi config for e.g. the password.
@@ -141,7 +166,7 @@ To run the backend with this new set of environment variables, go to `dtbase/bac
 
 Note that you may need to whitelist your IP address on the PostgreSQL server for it to accept your connection. This is necessary when the database is hosted on Azure, for instance.
 
-## Running all components non-locally
+### Running all components non-locally
 
 Please refer to the [infrastructure readme](../infrastructure/README.md) for documentation of how to deploy the entire application stack on Azure. There is no reason this application couldn't be deployed on other platforms but we don't offer any instructions of how to do this.
 
